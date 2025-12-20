@@ -96,19 +96,13 @@ const Login: React.FC = () => {
 
       <div className="w-full max-w-md z-10">
         <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-          {/* Red Logo Banner */}
-          <div className="bg-red-600 rounded-t-lg px-6 py-8 text-center">
-            <div className="space-y-2">
-              <h1 className="text-4xl font-bold text-white uppercase tracking-wide">
-                SAGAR<sup className="text-lg">®</sup>
-              </h1>
-              <h2 className="text-xl font-bold text-white uppercase tracking-wide">
-                TMT & PIPES
-              </h2>
-              <p className="text-sm text-white mt-2">
-                मजबूती और विश्वास है हम...
-              </p>
-            </div>
+          {/* Logo Banner */}
+          <div className="rounded-t-lg overflow-hidden">
+            <img
+              src={logo}
+              alt="Sagar TMT & Pipes"
+              className="block w-full h-auto"
+            />
           </div>
 
           {/* Form Content */}
