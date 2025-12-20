@@ -8,6 +8,7 @@ import logo from "../assert/Logo.jpeg";
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
+  const [showHeaderGlow, setShowHeaderGlow] = useState(true);
 
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
 
@@ -40,8 +41,21 @@ const AppHeader: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setShowHeaderGlow(false);
+    }, 30000);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, []);
+
   return (
-    <header className="sticky top-0 flex w-full bg-white border-slate-200 z-99999 dark:border-slate-700 dark:bg-slate-900 lg:border-b shadow-sm">
+    <header className="relative sticky top-0 flex w-full bg-white border-slate-200 z-99999 dark:border-slate-700 dark:bg-slate-900 lg:border-b shadow-sm">
+      {showHeaderGlow && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-amber-300 via-orange-500 to-red-500 opacity-90 animate-pulse" />
+      )}
         <div className="flex flex-col items-center justify-between grow lg:flex-row lg:px-6">
         <div className="flex items-center justify-between w-full gap-2 px-3 py-3 border-b border-slate-200 dark:border-slate-700 sm:gap-4 lg:justify-normal lg:border-b-0 lg:px-0 lg:py-4">
           <button

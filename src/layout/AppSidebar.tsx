@@ -127,16 +127,17 @@ const AppSidebar: React.FC = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
   
-  // Check if user is admin
-  const isAdmin = user?.role === 'admin' || user?.userType === 'admin' || user?.access?.includes('all');
+  // Check if user is admin (only explicit admin roles)
+  const role = (user?.role || user?.userType || "").toLowerCase();
+  const isAdmin = role === "admin" || role === "superadmin";
   
   // Combine items in order: Dashboard, O2D (admin only), BatchCode, Lead to Order
   const navItems: NavItem[] = useMemo(() => {
     if (isAdmin) {
       return [dashboardItem, ...o2dItems, batchCodeItem, leadToOrderItem];
-    } else {
-      return [dashboardItem, batchCodeItem, leadToOrderItem];
     }
+
+    return [batchCodeItem, leadToOrderItem];
   }, [isAdmin]);
 
   const [openSubmenu, setOpenSubmenu] = useState<{

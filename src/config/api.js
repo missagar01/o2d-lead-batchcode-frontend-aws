@@ -100,6 +100,7 @@ export const API_ENDPOINTS = {
     LADDLE: '/api/batchcode/laddle-checklist',
     TUNDISH: '/api/batchcode/tundish-checklist',
     ADMIN_OVERVIEW: '/api/batchcode/admin/overview',
+    ADMIN_OVERVIEW_BY_CODE: '/api/batchcode/admin/overview',
   },
 
   // Lead-to-Order APIs

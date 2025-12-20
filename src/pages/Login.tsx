@@ -12,18 +12,26 @@ import logo from "../assert/Logo.jpeg";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login, loading, isAuthenticated } = useAuth();
+  const { login, loading, isAuthenticated, user } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [toast, setToast] = useState({ show: false, message: "", type: "" });
 
+  const getDefaultRoute = (roleValue?: string) => {
+    const normalized = (roleValue || "").toLowerCase();
+    if (normalized === "admin" || normalized === "superadmin") {
+      return "/dashboard";
+    }
+    return "/lead-to-order/dashboard";
+  };
+
   useEffect(() => {
     // Only redirect if authenticated and not already on login page
     if (isAuthenticated && !loading) {
-      navigate("/dashboard", { replace: true });
+      navigate(getDefaultRoute(user?.role || user?.userType), { replace: true });
     }
-  }, [isAuthenticated, loading, navigate]);
+  }, [isAuthenticated, loading, navigate, user]);
 
   // Professional Background Pattern
   const ProfessionalBackground = () => {
@@ -59,7 +67,7 @@ const Login: React.FC = () => {
       showToast(`Login successful! Welcome, ${result.user?.username || username}`, "success");
       // Navigate after a short delay to show toast
       setTimeout(() => {
-        navigate("/dashboard", { replace: true });
+        navigate(getDefaultRoute(result.user?.role || result.user?.userType), { replace: true });
       }, 1000);
     } else {
       const errorMsg = result.error || "Invalid username or password";

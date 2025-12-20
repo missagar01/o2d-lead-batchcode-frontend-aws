@@ -51,8 +51,8 @@ export const batchcodeAPI = {
 
   // Admin Overview - Get all batchcode data for dashboard
   getAdminOverview: (uniqueCode?: string) => {
-    const url = uniqueCode 
-      ? `${API_ENDPOINTS.BATCHCODE.ADMIN_OVERVIEW}/${uniqueCode}`
+    const url = uniqueCode
+      ? `${API_ENDPOINTS.BATCHCODE.ADMIN_OVERVIEW_BY_CODE}/${uniqueCode}`
       : API_ENDPOINTS.BATCHCODE.ADMIN_OVERVIEW;
     return api.get(url);
   },

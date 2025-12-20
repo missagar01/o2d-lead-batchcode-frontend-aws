@@ -7,7 +7,15 @@ interface PublicRouteProps {
 }
 
 const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
+
+  const getDefaultRoute = (roleValue?: string) => {
+    const normalized = (roleValue || "").toLowerCase();
+    if (normalized === "admin" || normalized === "superadmin") {
+      return "/dashboard";
+    }
+    return "/lead-to-order/dashboard";
+  };
 
   if (loading) {
     return (
@@ -19,7 +27,7 @@ const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
 
   // If authenticated, redirect to dashboard
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={getDefaultRoute(user?.role || user?.userType)} replace />;
   }
 
   // If not authenticated, show the public route (login page)
