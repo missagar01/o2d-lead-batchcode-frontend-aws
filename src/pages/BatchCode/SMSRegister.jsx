@@ -17,6 +17,7 @@ function SMSRegister() {
     const [popupMessage, setPopupMessage] = useState("")
     const [popupType, setPopupType] = useState("") // "success" or "warning"
     const [showPopup, setShowPopup] = useState(false)
+    const [successUniqueCode, setSuccessUniqueCode] = useState("")
     const [filteredHistoryData, setFilteredHistoryData] = useState([])
     const [errors, setErrors] = useState({})
     const maytapiConfig = useMemo(() => ({
@@ -37,9 +38,9 @@ function SMSRegister() {
         temperature: ""
     })
 
-    // Auto-hide popup after 2 seconds
+    // Auto-hide popup only for warnings (not for success - user must click OK)
     useEffect(() => {
-        if (showPopup) {
+        if (showPopup && popupType === "warning") {
             const timer = setTimeout(() => {
                 setShowPopup(false)
                 setPopupMessage("")
@@ -48,7 +49,14 @@ function SMSRegister() {
 
             return () => clearTimeout(timer)
         }
-    }, [showPopup])
+    }, [showPopup, popupType])
+
+    const handleClosePopup = () => {
+        setShowPopup(false)
+        setPopupMessage("")
+        setPopupType("")
+        setSuccessUniqueCode("")
+    }
 
     // Fetch history data when in history view
     useEffect(() => {
@@ -291,6 +299,13 @@ function SMSRegister() {
                     showPopupMessage("Report saved, but WhatsApp alert failed.", "warning")
                 })
 
+                // Extract unique_code from response - try multiple possible locations
+                const uniqueCode = apiRecord.unique_code 
+                    || response.data?.data?.unique_code 
+                    || response.data?.unique_code
+                    || generateUniqueCode(whatsAppPayload) 
+                    || ""
+                setSuccessUniqueCode(uniqueCode)
                 showPopupMessage("SMS Report submitted successfully! / एसएमएस रिपोर्ट सफलतापूर्वक सबमिट हो गई!", "success")
 
                 // Reset form
@@ -448,10 +463,12 @@ function SMSRegister() {
                 {/* Popup Modal */}
                 {showPopup && (
                     <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-                        <div className={`relative mx-4 p-6 rounded-lg shadow-2xl max-w-sm w-full transform transition-all duration-300 ${popupType === "success"
-                            ? 'bg-green-50 border-2 border-green-400'
-                            : 'bg-yellow-50 border-2 border-yellow-400'
-                            }`}>
+                        <div 
+                            className={`relative mx-4 p-6 rounded-lg shadow-2xl max-w-sm w-full transform transition-all duration-300 pointer-events-auto ${popupType === "success"
+                                ? 'bg-green-50 border-2 border-green-400'
+                                : 'bg-yellow-50 border-2 border-yellow-400'
+                                }`}
+                        >
                             <div className="flex items-center justify-center mb-4">
                                 {popupType === "success" ? (
                                     <CheckCircle2 className="h-12 w-12 text-green-500" />
@@ -467,16 +484,34 @@ function SMSRegister() {
                                 <p className={popupType === "success" ? 'text-green-700' : 'text-yellow-700'}>
                                     {popupMessage}
                                 </p>
+                                {popupType === "success" && successUniqueCode && (
+                                    <p className="mt-2 text-green-700 font-semibold">
+                                        Unique Code: <span className="font-bold">{successUniqueCode}</span>
+                                    </p>
+                                )}
                             </div>
-                            {/* Progress bar for auto-dismiss */}
-                            <div className="mt-4 w-full bg-gray-200 rounded-full h-1">
-                                <div
-                                    className={`h-1 rounded-full ${popupType === "success" ? 'bg-green-500' : 'bg-yellow-500'
+                            {/* Progress bar for auto-dismiss - only for warnings */}
+                            {popupType === "warning" && (
+                                <div className="mt-4 w-full bg-gray-200 rounded-full h-1">
+                                    <div
+                                        className="h-1 rounded-full bg-yellow-500"
+                                        style={{
+                                            animation: 'shrink 2s linear forwards'
+                                        }}
+                                    />
+                                </div>
+                            )}
+                            {/* OK Button */}
+                            <div className="mt-4 flex justify-center">
+                                <button
+                                    onClick={handleClosePopup}
+                                    className={`px-6 py-2 rounded-md font-medium transition-colors ${popupType === "success"
+                                        ? 'bg-green-500 hover:bg-green-600 text-white'
+                                        : 'bg-yellow-500 hover:bg-yellow-600 text-white'
                                         }`}
-                                    style={{
-                                        animation: 'shrink 2s linear forwards'
-                                    }}
-                                />
+                                >
+                                    OK
+                                </button>
                             </div>
                         </div>
                     </div>

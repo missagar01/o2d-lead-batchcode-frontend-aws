@@ -8,10 +8,6 @@ import {
   HorizontaLDots,
   ListIcon,
   PieChartIcon,
-  ArrowRightIcon,
-  BoxIcon,
-  DollarLineIcon,
-  ShootingStarIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../context/AuthContext";
@@ -25,65 +21,30 @@ type NavItem = {
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
 };
 
-// O2D items - shown in sidebar for all users
-const o2dItems: NavItem[] = [
-  {
-    icon: <ListIcon />,
-    name: "Orders",
-    path: "/o2d/orders",
-  },
-  {
-    icon: <ArrowRightIcon />,
-    name: "Gate Entry",
-    path: "/o2d/gate-entry",
-  },
-  {
-    icon: <BoxIcon />,
-    name: "First Weight",
-    path: "/o2d/first-weight",
-  },
-  {
-    icon: <BoxCubeIcon />,
-    name: "Load Vehicle",
-    path: "/o2d/load-vehicle",
-  },
-  {
-    icon: <BoxIcon />,
-    name: "Second Weight",
-    path: "/o2d/second-weight",
-  },
-  {
-    icon: <DollarLineIcon />,
-    name: "Generate Invoice",
-    path: "/o2d/generate-invoice",
-  },
-  {
-    icon: <ArrowRightIcon />,
-    name: "Gate Out Entry",
-    path: "/o2d/gate-out",
-  },
-  {
-    icon: <PieChartIcon />,
-    name: "Pending Vehicles",
-    path: "/o2d/process",
-  },
-  {
-    icon: <DollarLineIcon />,
-    name: "Payment",
-    path: "/o2d/payment",
-  },
-  {
-    icon: <ShootingStarIcon />,
-    name: "Party Feedback",
-    path: "/o2d/party-feedback",
-  },
-];
-
 // Dashboard item - shows O2D dashboard by default
 const dashboardItem: NavItem = {
   icon: <PieChartIcon />,
   name: "Dashboard",
   path: "/",
+};
+
+// O2D with submenu - clicking main item goes to dashboard with o2d tab
+const o2dItem: NavItem = {
+  icon: <BoxCubeIcon />,
+  name: "O2D",
+  path: "/?tab=o2d",
+  subItems: [
+    { name: "Orders", path: "/o2d/orders", pro: false },
+    { name: "Gate Entry", path: "/o2d/gate-entry", pro: false },
+    { name: "First Weight", path: "/o2d/first-weight", pro: false },
+    { name: "Load Vehicle", path: "/o2d/load-vehicle", pro: false },
+    { name: "Second Weight", path: "/o2d/second-weight", pro: false },
+    { name: "Generate Invoice", path: "/o2d/generate-invoice", pro: false },
+    { name: "Gate Out Entry", path: "/o2d/gate-out", pro: false },
+    { name: "Pending Vehicles", path: "/o2d/process", pro: false },
+    { name: "Payment", path: "/o2d/payment", pro: false },
+    { name: "Party Feedback", path: "/o2d/party-feedback", pro: false },
+  ],
 };
 
 // BatchCode with submenu - clicking main item goes to dashboard with batchcode tab
@@ -204,22 +165,44 @@ const AppSidebar: React.FC = () => {
       isPathAllowed(subItem.path, user, isAdmin)
     );
     
-    // Add Settings if admin or if allowed in page_access
-    if (isAdmin || isPathAllowed("/lead-to-order/settings", user, isAdmin)) {
-      subItems.push({ name: "Settings", path: "/lead-to-order/settings", pro: false });
-    }
-    
     return {
       ...leadToOrderBaseItem,
       subItems,
     };
   }, [isAdmin, user]);
 
-  // Filter O2D items based on access
-  const filteredO2dItems = useMemo(() => {
-    return o2dItems.filter(item => 
-      item.path && isPathAllowed(item.path, user, isAdmin)
-    );
+  // Filter O2D subItems based on access
+  const filteredO2dItem = useMemo(() => {
+    // Check if user has o2d system access or any o2d page access
+    const systemAccess = user?.system_access 
+      ? user.system_access.split(",").map(s => s.trim().toLowerCase().replace(/\s+/g, "")).filter(Boolean)
+      : [];
+    const pageAccess = user?.page_access
+      ? user.page_access.split(",").map(p => p.trim()).filter(Boolean)
+      : [];
+    
+    const hasO2dSystem = systemAccess.includes("o2d");
+    const hasO2dPages = pageAccess.some(p => p.startsWith("/o2d"));
+    
+    // If no o2d access at all, don't show
+    if (!isAdmin && !hasO2dSystem && !hasO2dPages) {
+      return null;
+    }
+    
+    // Filter subItems based on page_access
+    const filteredSubItems = o2dItem.subItems?.filter(subItem =>
+      isPathAllowed(subItem.path, user, isAdmin)
+    ) || [];
+    
+    // If no subItems are allowed, don't show the parent item
+    if (filteredSubItems.length === 0 && !isAdmin) {
+      return null;
+    }
+    
+    return {
+      ...o2dItem,
+      subItems: filteredSubItems,
+    };
   }, [user, isAdmin]);
 
   // Filter BatchCode subItems based on access
@@ -270,9 +253,9 @@ const AppSidebar: React.FC = () => {
       items.push(dashboardItem);
     }
     
-    // Add filtered O2D items
-    if (filteredO2dItems.length > 0) {
-      items.push(...filteredO2dItems);
+    // Add O2D if allowed
+    if (filteredO2dItem) {
+      items.push(filteredO2dItem);
     }
     
     // Add BatchCode if allowed
@@ -291,7 +274,7 @@ const AppSidebar: React.FC = () => {
     }
     
     return items;
-  }, [showDashboard, filteredO2dItems, filteredBatchCodeItem, leadToOrderNavItem, isAdmin, user]);
+  }, [showDashboard, filteredO2dItem, filteredBatchCodeItem, leadToOrderNavItem, isAdmin, user]);
 
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main";
@@ -378,34 +361,44 @@ const AppSidebar: React.FC = () => {
 
   // Determine menu item color based on name
 const getMenuColor = (name: string) => {
+  if (name === "O2D") {
+    return {
+      activeBg: "bg-indigo-600",
+      defaultBg: "bg-indigo-50",
+      activeText: "text-white",
+      hoverBg: "hover:bg-indigo-100",
+      text: "text-gray-700",
+      badgeBg: "bg-indigo-300 text-indigo-900"
+    };
+  }
   if (name === "BatchCode") {
     return {
       activeBg: "bg-blue-600",
-      defaultBg: "bg-blue-600/40",
+      defaultBg: "bg-blue-50",
       activeText: "text-white",
-      hoverBg: "hover:bg-blue-500",
-      text: "text-white",
+      hoverBg: "hover:bg-blue-100",
+      text: "text-gray-700",
       badgeBg: "bg-blue-300 text-blue-900"
     };
   }
   if (name === "Lead to Order") {
     return {
       activeBg: "bg-emerald-600",
-      defaultBg: "bg-emerald-600/40",
+      defaultBg: "bg-emerald-50",
       activeText: "text-white",
-      hoverBg: "hover:bg-emerald-500",
-      text: "text-white",
+      hoverBg: "hover:bg-emerald-100",
+      text: "text-gray-700",
       badgeBg: "bg-emerald-300 text-emerald-900"
     };
   }
-  // Default for Dashboard and O2D items
+  // Default for Dashboard
   return {
     activeBg: "bg-gray-800",
-    defaultBg: "bg-transparent",
+    defaultBg: "bg-gray-50",
     activeText: "text-white",
-    hoverBg: "hover:bg-gray-700/60",
-    text: "text-white/80",
-    badgeBg: "bg-gray-700 text-gray-200"
+    hoverBg: "hover:bg-gray-100",
+    text: "text-gray-700",
+    badgeBg: "bg-gray-300 text-gray-900"
   };
 };
 
@@ -435,7 +428,7 @@ const getMenuColor = (name: string) => {
                     >
                       <span
                         className={`menu-item-icon-size ${
-                          isMainActive ? menuColor.activeText : "text-white/70"
+                          isMainActive ? menuColor.activeText : menuColor.text
                         }`}
                       >
                         {nav.icon}
@@ -449,8 +442,8 @@ const getMenuColor = (name: string) => {
                         onClick={(e) => handleMainItemClick(e, index)}
                         className={`ml-2 p-2 rounded-lg transition-colors ${
                           openSubmenu?.type === "main" && openSubmenu?.index === index
-                            ? "bg-white/10"
-                            : "hover:bg-white/5"
+                            ? "bg-gray-200"
+                            : "hover:bg-gray-100"
                         }`}
                         aria-label="Toggle submenu"
                       >
@@ -458,8 +451,8 @@ const getMenuColor = (name: string) => {
                           className={`w-4 h-4 transition-transform duration-200 ${
                             openSubmenu?.type === "main" &&
                             openSubmenu?.index === index
-                              ? "rotate-180 text-white"
-                              : "text-white/70"
+                              ? "rotate-180 text-gray-700"
+                              : menuColor.text
                           }`}
                         />
                       </button>
@@ -475,7 +468,7 @@ const getMenuColor = (name: string) => {
                     <span className="flex items-center gap-3">
                       <span
                         className={`menu-item-icon-size ${
-                          isMainActive ? menuColor.activeText : "text-white/70"
+                          isMainActive ? menuColor.activeText : menuColor.text
                         }`}
                       >
                         {nav.icon}
@@ -489,8 +482,8 @@ const getMenuColor = (name: string) => {
                         className={`w-4 h-4 transition-transform duration-200 ${
                           openSubmenu?.type === "main" &&
                           openSubmenu?.index === index
-                            ? "rotate-180 text-white"
-                            : "text-white/70"
+                            ? "rotate-180 text-gray-700"
+                            : menuColor.text
                         }`}
                       />
                     )}
@@ -507,7 +500,7 @@ const getMenuColor = (name: string) => {
                 >
                   <span
                     className={`menu-item-icon-size ${
-                      isActive(nav.path) ? menuColor.activeText : "text-white/70"
+                      isActive(nav.path) ? menuColor.activeText : menuColor.text
                     }`}
                   >
                     {nav.icon}
@@ -531,7 +524,7 @@ const getMenuColor = (name: string) => {
                       : "0px",
                 }}
               >
-                 <ul className="mt-2 space-y-1 ml-4 pl-4 border-l-2 border-white/10">
+                 <ul className="mt-2 space-y-1 ml-4 pl-4 border-l-2 border-gray-300">
                    {nav.subItems.map((subItem) => {
                      const isSubActive = isActive(subItem.path);
                      return (
@@ -541,7 +534,7 @@ const getMenuColor = (name: string) => {
                            className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors duration-200 ${
                              isSubActive
                                ? `${menuColor.activeBg} ${menuColor.activeText} shadow-sm`
-                               : "text-white/60 hover:bg-white/5 hover:text-white/90"
+                               : `${menuColor.text} hover:bg-gray-100 hover:text-gray-900`
                            }`}
                          >
                            <span className="flex items-center gap-2">
@@ -575,7 +568,7 @@ const getMenuColor = (name: string) => {
 
   return (
     <aside
-      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-[#1c242b] text-white h-screen transition-all duration-300 ease-in-out z-50 border-r border-[#181f26] shadow-[0_30px_60px_rgba(0,0,0,0.4)]
+      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white text-gray-700 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 shadow-lg
         ${
           isExpanded || isMobileOpen
             ? "w-[290px]"
@@ -609,14 +602,14 @@ const getMenuColor = (name: string) => {
         <nav className="mb-6">
           <div className="px-2 py-4 space-y-3">
             <div
-              className={`mb-2 text-xs uppercase text-gray-400 flex items-center gap-2 ${
+              className={`mb-2 text-xs uppercase text-gray-500 flex items-center gap-2 ${
                 !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
               }`}
             >
               {isExpanded || isHovered || isMobileOpen ? (
                 "Menu"
               ) : (
-                <HorizontaLDots className="text-gray-400" />
+                <HorizontaLDots className="text-gray-500" />
               )}
             </div>
             {renderMenuItems(navItems)}
@@ -625,10 +618,10 @@ const getMenuColor = (name: string) => {
       </div>
       
       {/* Logout Button */}
-      <div className="mt-auto pb-4 pt-4 border-t border-white/10">
+      <div className="mt-auto pb-4 pt-4 border-t border-gray-200">
         <button
           onClick={logout}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 text-white/80 hover:bg-white/10 hover:text-white ${
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900 ${
             isExpanded || isHovered || isMobileOpen
               ? "justify-start"
               : "justify-center"
