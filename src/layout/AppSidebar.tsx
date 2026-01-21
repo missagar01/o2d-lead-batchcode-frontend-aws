@@ -34,7 +34,7 @@ const o2dItem: NavItem = {
   name: "O2D",
   path: "/?tab=o2d",
   subItems: [
-    { name: "Orders", path: "/o2d/orders", pro: false },
+    // { name: "Orders", path: "/o2d/orders", pro: false },
     { name: "Gate Entry", path: "/o2d/gate-entry", pro: false },
     { name: "First Weight", path: "/o2d/first-weight", pro: false },
     { name: "Load Vehicle", path: "/o2d/load-vehicle", pro: false },
@@ -53,14 +53,14 @@ const batchCodeItem: NavItem = {
   name: "BatchCode",
   path: "/?tab=batchcode",
   subItems: [
-     { name: "Laddel", path: "/batchcode/laddel", pro: false },
+    { name: "Laddel", path: "/batchcode/laddel", pro: false },
     { name: "Tundis", path: "/batchcode/tundis", pro: false },
-       { name: "SMS Register", path: "/batchcode/sms-register", pro: false },
+    { name: "SMS Register", path: "/batchcode/sms-register", pro: false },
     { name: "Hot Coil", path: "/batchcode/hot-coil", pro: false },
-     { name: "Recoiler", path: "/batchcode/recoiler", pro: false },
-       { name: "Pipe Mill", path: "/batchcode/pipe-mill", pro: false },
+    { name: "Recoiler", path: "/batchcode/recoiler", pro: false },
+    { name: "Pipe Mill", path: "/batchcode/pipe-mill", pro: false },
     { name: "QC Lab", path: "/batchcode/qc-lab", pro: false },
-   
+
   ],
 };
 
@@ -105,7 +105,7 @@ const isPathAllowed = (
   }
 
   // Parse system_access and page_access (comma-separated strings, handle spaces)
-  const systemAccess = user.system_access 
+  const systemAccess = user.system_access
     ? user.system_access.split(",").map(s => s.trim().toLowerCase().replace(/\s+/g, "")).filter(Boolean)
     : [];
   const pageAccess = user.page_access
@@ -117,7 +117,7 @@ const isPathAllowed = (
 
   // Determine which system this path belongs to
   let systemMatch = false;
-  
+
   if (normalizedPath.startsWith("/o2d") || normalizedPath === "/" || path.includes("?tab=o2d")) {
     systemMatch = systemAccess.includes("o2d");
   } else if (normalizedPath.startsWith("/batchcode") || path.includes("?tab=batchcode")) {
@@ -161,10 +161,10 @@ const AppSidebar: FC = () => {
 
   const leadToOrderNavItem = useMemo(() => {
     // Filter subItems based on page_access
-    const subItems = leadToOrderBaseSubItems.filter(subItem => 
+    const subItems = leadToOrderBaseSubItems.filter(subItem =>
       isPathAllowed(subItem.path, user, isAdmin)
     );
-    
+
     return {
       ...leadToOrderBaseItem,
       subItems,
@@ -174,31 +174,31 @@ const AppSidebar: FC = () => {
   // Filter O2D subItems based on access
   const filteredO2dItem = useMemo(() => {
     // Check if user has o2d system access or any o2d page access
-    const systemAccess = user?.system_access 
+    const systemAccess = user?.system_access
       ? user.system_access.split(",").map(s => s.trim().toLowerCase().replace(/\s+/g, "")).filter(Boolean)
       : [];
     const pageAccess = user?.page_access
       ? user.page_access.split(",").map(p => p.trim()).filter(Boolean)
       : [];
-    
+
     const hasO2dSystem = systemAccess.includes("o2d");
     const hasO2dPages = pageAccess.some(p => p.startsWith("/o2d"));
-    
+
     // If no o2d access at all, don't show
     if (!isAdmin && !hasO2dSystem && !hasO2dPages) {
       return null;
     }
-    
+
     // Filter subItems based on page_access
     const filteredSubItems = o2dItem.subItems?.filter(subItem =>
       isPathAllowed(subItem.path, user, isAdmin)
     ) || [];
-    
+
     // If no subItems are allowed, don't show the parent item
     if (filteredSubItems.length === 0 && !isAdmin) {
       return null;
     }
-    
+
     return {
       ...o2dItem,
       subItems: filteredSubItems,
@@ -208,31 +208,31 @@ const AppSidebar: FC = () => {
   // Filter BatchCode subItems based on access
   const filteredBatchCodeItem = useMemo(() => {
     // Check if user has batchcode system access or any batchcode page access
-    const systemAccess = user?.system_access 
+    const systemAccess = user?.system_access
       ? user.system_access.split(",").map(s => s.trim().toLowerCase().replace(/\s+/g, "")).filter(Boolean)
       : [];
     const pageAccess = user?.page_access
       ? user.page_access.split(",").map(p => p.trim()).filter(Boolean)
       : [];
-    
+
     const hasBatchcodeSystem = systemAccess.includes("batchcode");
     const hasBatchcodePages = pageAccess.some(p => p.startsWith("/batchcode"));
-    
+
     // If no batchcode access at all, don't show
     if (!isAdmin && !hasBatchcodeSystem && !hasBatchcodePages) {
       return null;
     }
-    
+
     // Filter subItems based on page_access
     const filteredSubItems = batchCodeItem.subItems?.filter(subItem =>
       isPathAllowed(subItem.path, user, isAdmin)
     ) || [];
-    
+
     // If no subItems are allowed, don't show the parent item
     if (filteredSubItems.length === 0 && !isAdmin) {
       return null;
     }
-    
+
     return {
       ...batchCodeItem,
       subItems: filteredSubItems,
@@ -247,32 +247,32 @@ const AppSidebar: FC = () => {
   // Combine items in order: Dashboard (shows O2D), O2D items, BatchCode, Lead to Order
   const navItems: NavItem[] = useMemo(() => {
     const items: NavItem[] = [];
-    
+
     // Add dashboard if O2D access is allowed
     if (showDashboard) {
       items.push(dashboardItem);
     }
-    
+
     // Add O2D if allowed
     if (filteredO2dItem) {
       items.push(filteredO2dItem);
     }
-    
+
     // Add BatchCode if allowed
     if (filteredBatchCodeItem) {
       items.push(filteredBatchCodeItem);
     }
-    
+
     // Add Lead to Order if it has any allowed subItems
     if (leadToOrderNavItem.subItems && leadToOrderNavItem.subItems.length > 0) {
       items.push(leadToOrderNavItem);
     }
-    
+
     // Add Settings separately if admin or allowed
     if (isAdmin || isPathAllowed("/lead-to-order/settings", user, isAdmin)) {
       items.push(leadToOrderSettingsItem);
     }
-    
+
     return items;
   }, [showDashboard, filteredO2dItem, filteredBatchCodeItem, leadToOrderNavItem, isAdmin, user]);
 
@@ -283,7 +283,7 @@ const AppSidebar: FC = () => {
         const [basePath, queryParam] = path.split("?")
         const tabValue = queryParam?.split("=")[1]
         const currentTab = new URLSearchParams(location.search).get("tab")
-        
+
         // If on root path and tab matches, it's active
         if (location.pathname === "/" || location.pathname === "/dashboard") {
           if (tabValue && currentTab === tabValue) return true
@@ -298,47 +298,47 @@ const AppSidebar: FC = () => {
   );
 
   // Determine menu item color based on name
-const getMenuColor = (name: string) => {
-  if (name === "O2D") {
+  const getMenuColor = (name: string) => {
+    if (name === "O2D") {
+      return {
+        activeBg: "bg-indigo-600",
+        defaultBg: "bg-indigo-50",
+        activeText: "text-white",
+        hoverBg: "hover:bg-indigo-100",
+        text: "text-gray-700",
+        badgeBg: "bg-indigo-300 text-indigo-900"
+      };
+    }
+    if (name === "BatchCode") {
+      return {
+        activeBg: "bg-blue-600",
+        defaultBg: "bg-blue-50",
+        activeText: "text-white",
+        hoverBg: "hover:bg-blue-100",
+        text: "text-gray-700",
+        badgeBg: "bg-blue-300 text-blue-900"
+      };
+    }
+    if (name === "Lead to Order") {
+      return {
+        activeBg: "bg-emerald-600",
+        defaultBg: "bg-emerald-50",
+        activeText: "text-white",
+        hoverBg: "hover:bg-emerald-100",
+        text: "text-gray-700",
+        badgeBg: "bg-emerald-300 text-emerald-900"
+      };
+    }
+    // Default for Dashboard
     return {
-      activeBg: "bg-indigo-600",
-      defaultBg: "bg-indigo-50",
+      activeBg: "bg-gray-800",
+      defaultBg: "bg-gray-50",
       activeText: "text-white",
-      hoverBg: "hover:bg-indigo-100",
+      hoverBg: "hover:bg-gray-100",
       text: "text-gray-700",
-      badgeBg: "bg-indigo-300 text-indigo-900"
+      badgeBg: "bg-gray-300 text-gray-900"
     };
-  }
-  if (name === "BatchCode") {
-    return {
-      activeBg: "bg-blue-600",
-      defaultBg: "bg-blue-50",
-      activeText: "text-white",
-      hoverBg: "hover:bg-blue-100",
-      text: "text-gray-700",
-      badgeBg: "bg-blue-300 text-blue-900"
-    };
-  }
-  if (name === "Lead to Order") {
-    return {
-      activeBg: "bg-emerald-600",
-      defaultBg: "bg-emerald-50",
-      activeText: "text-white",
-      hoverBg: "hover:bg-emerald-100",
-      text: "text-gray-700",
-      badgeBg: "bg-emerald-300 text-emerald-900"
-    };
-  }
-  // Default for Dashboard
-  return {
-    activeBg: "bg-gray-800",
-    defaultBg: "bg-gray-50",
-    activeText: "text-white",
-    hoverBg: "hover:bg-gray-100",
-    text: "text-gray-700",
-    badgeBg: "bg-gray-300 text-gray-900"
   };
-};
 
   const renderMenuItems = (items: NavItem[]) => (
     <ul className="flex flex-col gap-1.5">
@@ -358,14 +358,12 @@ const getMenuColor = (name: string) => {
             {nav.path ? (
               <Link
                 to={linkTarget}
-                className={`${baseClasses} px-3 py-2 flex-1 ${
-                  isMainActive ? activeClass : inactiveClass
-                }`}
+                className={`${baseClasses} px-3 py-2 flex-1 ${isMainActive ? activeClass : inactiveClass
+                  }`}
               >
                 <span
-                  className={`menu-item-icon-size ${
-                    isMainActive ? menuColor.activeText : menuColor.text
-                  }`}
+                  className={`menu-item-icon-size ${isMainActive ? menuColor.activeText : menuColor.text
+                    }`}
                 >
                   {nav.icon}
                 </span>
@@ -375,15 +373,13 @@ const getMenuColor = (name: string) => {
               </Link>
             ) : (
               <div
-                className={`${baseClasses} px-3 py-2 flex-1 justify-between ${
-                  isMainActive ? activeClass : inactiveClass
-                }`}
+                className={`${baseClasses} px-3 py-2 flex-1 justify-between ${isMainActive ? activeClass : inactiveClass
+                  }`}
               >
                 <span className="flex items-center gap-3">
                   <span
-                    className={`menu-item-icon-size ${
-                      isMainActive ? menuColor.activeText : menuColor.text
-                    }`}
+                    className={`menu-item-icon-size ${isMainActive ? menuColor.activeText : menuColor.text
+                      }`}
                   >
                     {nav.icon}
                   </span>
@@ -401,11 +397,10 @@ const getMenuColor = (name: string) => {
                     <li key={subItem.name}>
                       <Link
                         to={subItem.path}
-                        className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors duration-200 ${
-                          isSubActive
+                        className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors duration-200 ${isSubActive
                             ? `${menuColor.activeBg} ${menuColor.activeText} shadow-sm`
                             : `${menuColor.text} hover:bg-gray-100 hover:text-gray-900`
-                        }`}
+                          }`}
                       >
                         <span className="flex items-center gap-2">
                           <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50"></span>
@@ -435,15 +430,14 @@ const getMenuColor = (name: string) => {
     </ul>
   );
 
-  
+
 
   return (
     <aside
       className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white text-gray-700 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 shadow-lg
-        ${
-          isExpanded || isMobileOpen
-            ? "w-[290px]"
-            : isHovered
+        ${isExpanded || isMobileOpen
+          ? "w-[290px]"
+          : isHovered
             ? "w-[290px]"
             : "w-[90px]"
         }
@@ -453,9 +447,8 @@ const getMenuColor = (name: string) => {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div
-        className={`py-8 flex ${
-          !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-        }`}
+        className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+          }`}
       >
         <Link to="/">
           <img
@@ -473,9 +466,8 @@ const getMenuColor = (name: string) => {
         <nav className="mb-6">
           <div className="px-2 py-4 space-y-3">
             <div
-              className={`mb-2 text-xs uppercase text-gray-500 flex items-center gap-2 ${
-                !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-              }`}
+              className={`mb-2 text-xs uppercase text-gray-500 flex items-center gap-2 ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+                }`}
             >
               {isExpanded || isHovered || isMobileOpen ? (
                 "Menu"
@@ -487,16 +479,15 @@ const getMenuColor = (name: string) => {
           </div>
         </nav>
       </div>
-      
+
       {/* Logout Button */}
       <div className="mt-auto pb-4 pt-4 border-t border-gray-200">
         <button
           onClick={logout}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900 ${
-            isExpanded || isHovered || isMobileOpen
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900 ${isExpanded || isHovered || isMobileOpen
               ? "justify-start"
               : "justify-center"
-          }`}
+            }`}
           title="Logout"
         >
           <LogOut className="h-5 w-5 flex-shrink-0" />
