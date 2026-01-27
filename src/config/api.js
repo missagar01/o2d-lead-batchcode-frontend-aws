@@ -138,6 +138,10 @@ export const API_ENDPOINTS = {
     },
     USERS: '/api/lead-to-order/users',
     PRODUCTS: '/api/lead-to-order/products',
+    ENQUIRY_TO_ORDER: {
+      DROPDOWNS: '/api/lead-to-order/enquiry-to-order/dropdowns',
+      SUBMIT: '/api/lead-to-order/enquiry-to-order',
+    },
   },
 
   // O2D APIs

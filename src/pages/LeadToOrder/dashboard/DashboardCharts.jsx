@@ -53,16 +53,16 @@ function DashboardCharts() {
     const fetchData = async () => {
       try {
         setIsLoading(true)
-        
+
         // Use the backend API instead of Google Sheets
         const adminStatus = isAdmin(); // Call isAdmin inside the effect
         const data = await fetchDashboardCharts(
-          currentUser?.username || currentUser?.id, 
+          currentUser?.username || currentUser?.id,
           adminStatus
         )
-        
+
         setChartData(data)
-        
+
       } catch (error) {
         setError(error.message)
         // Fallback data is already set
@@ -70,7 +70,7 @@ function DashboardCharts() {
         setIsLoading(false)
       }
     }
-    
+
     if (currentUser) {
       fetchData()
     }
@@ -89,25 +89,22 @@ function DashboardCharts() {
         <div className="inline-flex rounded-md shadow-sm">
           <button
             onClick={() => setActiveTab("overview")}
-            className={`px-4 py-2 text-sm font-medium rounded-l-md ${
-              activeTab === "overview" ? "bg-slate-100 text-slate-900" : "bg-white text-slate-700 hover:bg-slate-50"
-            }`}
+            className={`px-4 py-2 text-sm font-medium rounded-l-md ${activeTab === "overview" ? "bg-slate-100 text-slate-900" : "bg-white text-slate-700 hover:bg-slate-50"
+              }`}
           >
             Overview
           </button>
           <button
             onClick={() => setActiveTab("conversion")}
-            className={`px-4 py-2 text-sm font-medium ${
-              activeTab === "conversion" ? "bg-slate-100 text-slate-900" : "bg-white text-slate-700 hover:bg-slate-50"
-            }`}
+            className={`px-4 py-2 text-sm font-medium ${activeTab === "conversion" ? "bg-slate-100 text-slate-900" : "bg-white text-slate-700 hover:bg-slate-50"
+              }`}
           >
             Conversion
           </button>
           <button
             onClick={() => setActiveTab("sources")}
-            className={`px-4 py-2 text-sm font-medium rounded-r-md ${
-              activeTab === "sources" ? "bg-slate-100 text-slate-900" : "bg-white text-slate-700 hover:bg-slate-50"
-            }`}
+            className={`px-4 py-2 text-sm font-medium rounded-r-md ${activeTab === "sources" ? "bg-slate-100 text-slate-900" : "bg-white text-slate-700 hover:bg-slate-50"
+              }`}
           >
             Lead Sources
           </button>
@@ -123,7 +120,7 @@ function DashboardCharts() {
           <p className="text-red-500">Error loading data. Using fallback data.</p>
         </div>
       ) : (
-        <div className="h-[350px]" style={{ minWidth: 0, minHeight: 350 }}>
+        <div className="h-[350px] w-full" style={{ minWidth: 0, minHeight: 350 }}>
           {activeTab === "overview" && (
             <ResponsiveContainer width="100%" height="100%" minHeight={300}>
               <BarChart data={chartData.overview} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -141,7 +138,7 @@ function DashboardCharts() {
 
           {activeTab === "conversion" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
-              <div className="h-full w-full flex items-center justify-center" style={{ minWidth: 0, minHeight: 250 }}>
+              <div className="h-full w-full flex items-center justify-center p-2" style={{ minWidth: 0, minHeight: 250 }}>
                 <ResponsiveContainer width="100%" height={250} minHeight={250}>
                   <PieChart>
                     <Pie

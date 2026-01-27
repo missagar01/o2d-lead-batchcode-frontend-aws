@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import api, { API_ENDPOINTS } from "../../config/api"
 
 const CallTrackerForm = ({ onClose = () => window.history.back() }) => {
   const [leadSources, setLeadSources] = useState([])
@@ -125,33 +126,33 @@ const CallTrackerForm = ({ onClose = () => window.history.back() }) => {
   };
 
   // Function to fetch dropdown data from DROPDOWN sheet
-const fetchDropdownData = async () => {
-  try {
-        const baseURL = import.meta.env.VITE_API_URL;
-    // const res = await fetch("http://localhost:3006/api/lead-to-order/enquiry-to-order/dropdowns");
-    const res = await fetch(`${baseURL}/api/lead-to-order/enquiry-to-order/dropdowns`);
-    const json = await res.json();
+  const fetchDropdownData = async () => {
+    try {
+      // const res = await fetch("http://localhost:3006/api/lead-to-order/enquiry-to-order/dropdowns");
+      // const res = await fetch(`${baseURL}/api/lead-to-order/enquiry-to-order/dropdowns`);
+      const res = await api.get(API_ENDPOINTS.LEAD_TO_ORDER.ENQUIRY_TO_ORDER.DROPDOWNS);
+      const json = res.data;
 
-    if (!json.success) return;
+      if (!json.success) return;
 
-    const data = json.data;
+      const data = json.data;
 
-    setLeadSources(data.leadSources);
-    setEnquiryApproachOptions(data.enquiryApproaches);
-    setScNames(data.scNames);
-    setReceiverOptions(data.receiverNames);
-    setCompanyOptions(data.directCompanyNames);
+      setLeadSources(data.leadSources);
+      setEnquiryApproachOptions(data.enquiryApproaches);
+      setScNames(data.scNames);
+      setReceiverOptions(data.receiverNames);
+      setCompanyOptions(data.directCompanyNames);
 
-    setItemNameOptions(data.itemNames);
+      setItemNameOptions(data.itemNames);
 
-    // ⭐ ADD THIS LINE HERE
-    setDirectCompanyDetails(data.directCompanyDetails);
-    setLocationOptions(data.locations);
+      // ⭐ ADD THIS LINE HERE
+      setDirectCompanyDetails(data.directCompanyDetails);
+      setLocationOptions(data.locations);
 
-  } catch (error) {
-    console.error("Dropdown fetch error:", error);
-  }
-};
+    } catch (error) {
+      console.error("Dropdown fetch error:", error);
+    }
+  };
 
 
 
@@ -193,45 +194,40 @@ const fetchDropdownData = async () => {
   }
 
   // Function to handle form submission
-const handleSubmit = async () => {
-  setIsSubmitting(true);
-  try {
-     const baseURL = import.meta.env.VITE_API_URL;
-    const payload = {
-      scName: formData.scName,
-      leadSource: formData.leadSource,
-      companyName: formData.companyName,
-      phoneNumber: formData.phoneNumber,
-      salesPersonName: formData.salesPersonName,
-      location: formData.location,
-      emailAddress: formData.emailAddress,
-      enquiryReceiverName: formData.enquiryReceiverName,
-      enquiryDate: formData.enquiryDate,
-      enquiryApproach: formData.enquiryApproach,
-      items
-    };
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        scName: formData.scName,
+        leadSource: formData.leadSource,
+        companyName: formData.companyName,
+        phoneNumber: formData.phoneNumber,
+        salesPersonName: formData.salesPersonName,
+        location: formData.location,
+        emailAddress: formData.emailAddress,
+        enquiryReceiverName: formData.enquiryReceiverName,
+        enquiryDate: formData.enquiryDate,
+        enquiryApproach: formData.enquiryApproach,
+        items
+      };
 
-    const res = await fetch(`${baseURL}/api/lead-to-order/enquiry-to-order`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+      const res = await api.post(API_ENDPOINTS.LEAD_TO_ORDER.ENQUIRY_TO_ORDER.SUBMIT, payload);
 
-    const json = await res.json();
+      const json = res.data;
 
-    if (json.success) {
-      alert("Saved Successfully!");
-      onClose();
-    } else {
-      alert("Error: " + json.error);
+      if (json.success) {
+        alert("Saved Successfully!");
+        onClose();
+      } else {
+        alert("Error: " + json.error);
+      }
+
+    } catch (error) {
+      alert("Submit failed: " + error.message);
     }
 
-  } catch (error) {
-    alert("Submit failed: " + error.message);
-  }
-
-  setIsSubmitting(false);
-};
+    setIsSubmitting(false);
+  };
 
 
   return (
@@ -322,22 +318,22 @@ const handleSubmit = async () => {
                   type="text"
                   className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-base"
                   value={formData.companyName}
-                 onChange={(e) => {
-  const selectedCompany = e.target.value;
+                  onChange={(e) => {
+                    const selectedCompany = e.target.value;
 
-  const details = directCompanyDetails[selectedCompany] || {};
+                    const details = directCompanyDetails[selectedCompany] || {};
 
-  setFormData({
-    ...formData,
-    companyName: selectedCompany,
-    phoneNumber: details.phone || "",
-    salesPersonName: details.contactPerson || "",
-    location: details.billingAddress || "",
-    // emailAddress: details.email || "",
-  });
+                    setFormData({
+                      ...formData,
+                      companyName: selectedCompany,
+                      phoneNumber: details.phone || "",
+                      salesPersonName: details.contactPerson || "",
+                      location: details.billingAddress || "",
+                      // emailAddress: details.email || "",
+                    });
 
-  setShowCompanyDropdown(true);
-}}
+                    setShowCompanyDropdown(true);
+                  }}
 
                   onFocus={() => setShowCompanyDropdown(true)}
                   placeholder="Select or type company name"
@@ -362,19 +358,19 @@ const handleSubmit = async () => {
                   {filteredCompanies.map((company, index) => (
                     <div
                       key={index}
-                    onClick={() => {
-  const details = directCompanyDetails[company] || {};
+                      onClick={() => {
+                        const details = directCompanyDetails[company] || {};
 
-  setFormData({
-    ...formData,
-    companyName: company,
-    phoneNumber: details.phone || "",
-    salesPersonName: details.contactPerson || "",
-    location: details.billingAddress || "",
-  });
+                        setFormData({
+                          ...formData,
+                          companyName: company,
+                          phoneNumber: details.phone || "",
+                          salesPersonName: details.contactPerson || "",
+                          location: details.billingAddress || "",
+                        });
 
-  setShowCompanyDropdown(false);
-}}
+                        setShowCompanyDropdown(false);
+                      }}
 
                       className="px-4 py-3 hover:bg-gray-50 active:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0 touch-manipulation"
                     >
