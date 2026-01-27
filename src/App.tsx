@@ -36,15 +36,11 @@ import { FirstWeightView as O2DFirstWeight } from "./pages/O2D/first-weight-view
 import { LoadVehicleView as O2DLoadVehicle } from "./pages/O2D/load-vehicle-view";
 import { SecondWeightView as O2DSecondWeight } from "./pages/O2D/second-weight-view";
 import { GenerateInvoiceView as O2DGenerateInvoice } from "./pages/O2D/generate-invoice-view";
-import { GateOutView as O2DGateOut } from "./pages/O2D/gate-out-view";
 import { PaymentView as O2DPayment } from "./pages/O2D/payment-view";
 import { OrdersView as O2DOrders } from "./pages/O2D/order-view";
 import { ComplaintDetailsView as O2DComplaintDetails } from "./pages/O2D/complaint-details-view";
-import { PartyFeedbackView as O2DPartyFeedback } from "./pages/O2D/party-feedback-view";
 import { PermissionsView as O2DPermissions } from "./pages/O2D/permissions-view";
 import { PendingVehicles as O2DProcess } from "./pages/O2D/pendding-vehicle";
-// Removed O2D Register as per user request
-// import { RegisterView as O2DRegister } from "./pages/O2D/register-view";
 
 export default function App() {
   return (
@@ -103,15 +99,11 @@ export default function App() {
             <Route path="/o2d/load-vehicle" element={<RouteGuard><O2DLoadVehicle /></RouteGuard>} />
             <Route path="/o2d/second-weight" element={<RouteGuard><O2DSecondWeight /></RouteGuard>} />
             <Route path="/o2d/generate-invoice" element={<RouteGuard><O2DGenerateInvoice /></RouteGuard>} />
-            <Route path="/o2d/gate-out" element={<RouteGuard><O2DGateOut /></RouteGuard>} />
             <Route path="/o2d/payment" element={<RouteGuard><O2DPayment /></RouteGuard>} />
             <Route path="/o2d/orders" element={<RouteGuard><O2DOrders /></RouteGuard>} />
             <Route path="/o2d/process" element={<RouteGuard><O2DProcess /></RouteGuard>} />
             <Route path="/o2d/complaint-details" element={<RouteGuard><O2DComplaintDetails /></RouteGuard>} />
-            <Route path="/o2d/party-feedback" element={<RouteGuard><O2DPartyFeedback /></RouteGuard>} />
             <Route path="/o2d/permissions" element={<RouteGuard><O2DPermissions /></RouteGuard>} />
-            {/* Removed O2D Register route as per user request */}
-            {/* <Route path="/o2d/register" element={<O2DRegister />} /> */}
           </Route>
 
           {/* Catch all - redirect to login if not authenticated, otherwise home */}

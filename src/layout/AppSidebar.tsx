@@ -34,16 +34,13 @@ const o2dItem: NavItem = {
   name: "O2D",
   path: "/?tab=o2d",
   subItems: [
-    // { name: "Orders", path: "/o2d/orders", pro: false },
+    { name: "Orders", path: "/o2d/orders", pro: false },
     { name: "Gate Entry", path: "/o2d/gate-entry", pro: false },
     { name: "First Weight", path: "/o2d/first-weight", pro: false },
     { name: "Load Vehicle", path: "/o2d/load-vehicle", pro: false },
     { name: "Second Weight", path: "/o2d/second-weight", pro: false },
     { name: "Generate Invoice", path: "/o2d/generate-invoice", pro: false },
-    { name: "Gate Out Entry", path: "/o2d/gate-out", pro: false },
     { name: "Pending Vehicles", path: "/o2d/process", pro: false },
-    { name: "Payment", path: "/o2d/payment", pro: false },
-    { name: "Party Feedback", path: "/o2d/party-feedback", pro: false },
   ],
 };
 
@@ -398,8 +395,8 @@ const AppSidebar: FC = () => {
                       <Link
                         to={subItem.path}
                         className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors duration-200 ${isSubActive
-                            ? `${menuColor.activeBg} ${menuColor.activeText} shadow-sm`
-                            : `${menuColor.text} hover:bg-gray-100 hover:text-gray-900`
+                          ? `${menuColor.activeBg} ${menuColor.activeText} shadow-sm`
+                          : `${menuColor.text} hover:bg-gray-100 hover:text-gray-900`
                           }`}
                       >
                         <span className="flex items-center gap-2">
@@ -485,8 +482,8 @@ const AppSidebar: FC = () => {
         <button
           onClick={logout}
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900 ${isExpanded || isHovered || isMobileOpen
-              ? "justify-start"
-              : "justify-center"
+            ? "justify-start"
+            : "justify-center"
             }`}
           title="Logout"
         >

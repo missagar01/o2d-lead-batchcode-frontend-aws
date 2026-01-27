@@ -2,6 +2,7 @@ import UserMetaCard from "../components/UserProfile/UserMetaCard";
 import UserInfoCard from "../components/UserProfile/UserInfoCard";
 import UserAddressCard from "../components/UserProfile/UserAddressCard";
 
+
 export default function UserProfiles() {
   return (
     <div className="space-y-8">

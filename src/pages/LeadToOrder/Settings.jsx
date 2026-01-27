@@ -22,11 +22,9 @@ const PAGE_ROUTES = {
     { value: "/o2d/load-vehicle", label: "Load Vehicle" },
     { value: "/o2d/second-weight", label: "Second Weight" },
     { value: "/o2d/generate-invoice", label: "Generate Invoice" },
-    { value: "/o2d/gate-out", label: "Gate Out Entry" },
     { value: "/o2d/payment", label: "Payment" },
     { value: "/o2d/process", label: "Pending Vehicles" },
     { value: "/o2d/complaint-details", label: "Complaint Details" },
-    { value: "/o2d/party-feedback", label: "Party Feedback" },
     { value: "/o2d/permissions", label: "Permissions" },
   ],
   "batchcode": [
@@ -43,9 +41,9 @@ const PAGE_ROUTES = {
     { value: "/lead-to-order/dashboard", label: "Lead to Order Dashboard" },
     { value: "/lead-to-order/leads", label: "Leads" },
     { value: "/lead-to-order/follow-up", label: "Follow Up" },
-    { value: "/lead-to-order/follow-up/new", label: "New Follow Up" },
+    // { value: "/lead-to-order/follow-up/new", label: "New Follow Up" },
     { value: "/lead-to-order/call-tracker", label: "Call Tracker" },
-    { value: "/lead-to-order/call-tracker/new", label: "New Call Tracker" },
+    // { value: "/lead-to-order/call-tracker/new", label: "New Call Tracker" },
     { value: "/lead-to-order/quotation", label: "Quotation" },
     { value: "/lead-to-order/settings", label: "Settings" },
   ],
@@ -131,11 +129,11 @@ const Settings = () => {
     if (!userRecord) return;
     setFormMode("edit");
     setSelectedUserId(userRecord.id);
-    
+
     // Parse system_access and page_access if they're comma-separated strings
     const systemAccess = userRecord.system_access || "";
     const pageAccess = userRecord.page_access || "";
-    
+
     setFormData({
       user_name: userRecord.user_name || "",
       password: "",
@@ -189,10 +187,10 @@ const Settings = () => {
     }
 
     // Handle system_access and page_access - convert arrays to comma-separated strings
-    const systemAccess = Array.isArray(formData.system_access) 
-      ? formData.system_access.join(",") 
+    const systemAccess = Array.isArray(formData.system_access)
+      ? formData.system_access.join(",")
       : formData.system_access || null;
-    
+
     const pageAccess = Array.isArray(formData.page_access)
       ? formData.page_access.join(",")
       : formData.page_access || null;
@@ -429,85 +427,84 @@ const Settings = () => {
                       <th className="px-2 sm:px-3 py-3 font-bold bg-white text-right whitespace-nowrap min-w-[100px]">Actions</th>
                     </tr>
                   </thead>
-                <tbody>
-                  {loading ? (
-                    <tr>
-                      <td colSpan="7" className="px-2 sm:px-3 py-6 text-center text-xs uppercase text-slate-400">
-                        Loading users...
-                      </td>
-                    </tr>
-                ) : filteredUsers.length === 0 ? (
-                  <tr>
-                    <td colSpan="7" className="px-2 sm:px-3 py-6 text-center text-xs text-slate-400">
-                      {searchQuery ? `No users found matching "${searchQuery}"` : "No users found."}
-                    </td>
-                  </tr>
-                ) : (
-                  filteredUsers.map((userEntry) => (
-                      <tr key={userEntry.id} className="border-t border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
-                      <td className="px-2 sm:px-3 py-3 font-semibold text-slate-900 whitespace-nowrap">
-                        <div className="flex flex-col">
-                          <span className="truncate max-w-[120px]">{userEntry.user_name}</span>
-                          <span className="text-[10px] text-slate-500 sm:hidden">{userEntry.role || "user"}</span>
-                        </div>
-                      </td>
-                      <td className="px-2 sm:px-3 py-3 uppercase text-xs tracking-wide text-slate-500 hidden sm:table-cell whitespace-nowrap">
-                        {userEntry.role || "user"}
-                      </td>
-                      <td className="px-2 sm:px-3 py-3 whitespace-nowrap">
-                        <span
-                          className={`inline-flex rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-semibold ${
-                            userEntry.status === "active"
-                              ? "bg-emerald-100 text-emerald-700"
-                              : "bg-amber-100 text-amber-700"
-                          }`}
-                        >
-                          {userEntry.status || "active"}
-                        </span>
-                      </td>
-                      <td className="px-2 sm:px-3 py-3 text-xs hidden md:table-cell whitespace-nowrap">
-                        <div className="truncate max-w-[150px]">{userEntry.user_access || "—"}</div>
-                        <div className="text-[10px] text-slate-400 truncate max-w-[150px]">{userEntry.department || ""}</div>
-                      </td>
-                      <td className="px-2 sm:px-3 py-3 text-xs leading-tight hidden lg:table-cell whitespace-nowrap">
-                        <div className="truncate max-w-[200px]">{userEntry.page_access || "No page access"}</div>
-                        <div className="truncate text-[10px] text-slate-400 max-w-[200px]">{userEntry.system_access || "No system access"}</div>
-                      </td>
-                      <td className="px-2 sm:px-3 py-3 text-[10px] sm:text-xs text-slate-400 hidden xl:table-cell whitespace-nowrap">
-                        {userEntry.created_at
-                          ? new Date(userEntry.created_at).toLocaleDateString()
-                          : "—"}
-                      </td>
-                      <td className="px-2 sm:px-3 py-3 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-1 sm:gap-2">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEdit(userEntry);
-                            }}
-                            className="rounded-lg border border-slate-200 bg-white p-1.5 sm:p-2 text-slate-500 transition hover:border-slate-300 hover:text-slate-900 hover:bg-slate-50 flex-shrink-0"
-                            aria-label="Edit user"
-                          >
-                            <PencilIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(userEntry.id);
-                            }}
-                            className="rounded-lg border border-slate-200 bg-white p-1.5 sm:p-2 text-slate-500 transition hover:border-red-300 hover:text-red-600 hover:bg-red-50 flex-shrink-0"
-                            aria-label="Delete user"
-                          >
-                            <TrashBinIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                    ))
-                  )}
-                </tbody>
+                  <tbody>
+                    {loading ? (
+                      <tr>
+                        <td colSpan="7" className="px-2 sm:px-3 py-6 text-center text-xs uppercase text-slate-400">
+                          Loading users...
+                        </td>
+                      </tr>
+                    ) : filteredUsers.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" className="px-2 sm:px-3 py-6 text-center text-xs text-slate-400">
+                          {searchQuery ? `No users found matching "${searchQuery}"` : "No users found."}
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredUsers.map((userEntry) => (
+                        <tr key={userEntry.id} className="border-t border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
+                          <td className="px-2 sm:px-3 py-3 font-semibold text-slate-900 whitespace-nowrap">
+                            <div className="flex flex-col">
+                              <span className="truncate max-w-[120px]">{userEntry.user_name}</span>
+                              <span className="text-[10px] text-slate-500 sm:hidden">{userEntry.role || "user"}</span>
+                            </div>
+                          </td>
+                          <td className="px-2 sm:px-3 py-3 uppercase text-xs tracking-wide text-slate-500 hidden sm:table-cell whitespace-nowrap">
+                            {userEntry.role || "user"}
+                          </td>
+                          <td className="px-2 sm:px-3 py-3 whitespace-nowrap">
+                            <span
+                              className={`inline-flex rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-semibold ${userEntry.status === "active"
+                                ? "bg-emerald-100 text-emerald-700"
+                                : "bg-amber-100 text-amber-700"
+                                }`}
+                            >
+                              {userEntry.status || "active"}
+                            </span>
+                          </td>
+                          <td className="px-2 sm:px-3 py-3 text-xs hidden md:table-cell whitespace-nowrap">
+                            <div className="truncate max-w-[150px]">{userEntry.user_access || "—"}</div>
+                            <div className="text-[10px] text-slate-400 truncate max-w-[150px]">{userEntry.department || ""}</div>
+                          </td>
+                          <td className="px-2 sm:px-3 py-3 text-xs leading-tight hidden lg:table-cell whitespace-nowrap">
+                            <div className="truncate max-w-[200px]">{userEntry.page_access || "No page access"}</div>
+                            <div className="truncate text-[10px] text-slate-400 max-w-[200px]">{userEntry.system_access || "No system access"}</div>
+                          </td>
+                          <td className="px-2 sm:px-3 py-3 text-[10px] sm:text-xs text-slate-400 hidden xl:table-cell whitespace-nowrap">
+                            {userEntry.created_at
+                              ? new Date(userEntry.created_at).toLocaleDateString()
+                              : "—"}
+                          </td>
+                          <td className="px-2 sm:px-3 py-3 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-1 sm:gap-2">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEdit(userEntry);
+                                }}
+                                className="rounded-lg border border-slate-200 bg-white p-1.5 sm:p-2 text-slate-500 transition hover:border-slate-300 hover:text-slate-900 hover:bg-slate-50 flex-shrink-0"
+                                aria-label="Edit user"
+                              >
+                                <PencilIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(userEntry.id);
+                                }}
+                                className="rounded-lg border border-slate-200 bg-white p-1.5 sm:p-2 text-slate-500 transition hover:border-red-300 hover:text-red-600 hover:bg-red-50 flex-shrink-0"
+                                aria-label="Delete user"
+                              >
+                                <TrashBinIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
                 </table>
               </div>
             </div>
@@ -517,15 +514,15 @@ const Settings = () => {
 
       {/* Modal for Create/Edit Form */}
       {showModal && (
-        <div 
-          className="fixed inset-0 z-50 overflow-y-auto pointer-events-none" 
-          aria-labelledby="modal-title" 
-          role="dialog" 
+        <div
+          className="fixed inset-0 z-50 overflow-y-auto pointer-events-none"
+          aria-labelledby="modal-title"
+          role="dialog"
           aria-modal="true"
         >
           <div className="flex items-start justify-center min-h-screen pt-8 sm:pt-12 md:pt-16 px-4 pb-8 text-center pointer-events-none">
             {/* Modal panel - no background overlay, dashboard visible behind */}
-            <div 
+            <div
               className="relative inline-block align-top bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all w-full sm:max-w-5xl mx-4 mt-8 sm:mt-12 pointer-events-auto border-2 border-slate-300"
               onClick={(e) => e.stopPropagation()}
             >
@@ -548,11 +545,10 @@ const Settings = () => {
 
                 {message && (
                   <div
-                    className={`mb-4 rounded-md px-4 py-2 text-sm ${
-                      message.type === "error"
-                        ? "bg-red-50 text-red-800 border border-red-200"
-                        : "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                    }`}
+                    className={`mb-4 rounded-md px-4 py-2 text-sm ${message.type === "error"
+                      ? "bg-red-50 text-red-800 border border-red-200"
+                      : "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                      }`}
                   >
                     {message.text}
                   </div>
