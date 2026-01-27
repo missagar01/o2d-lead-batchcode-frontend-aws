@@ -95,28 +95,28 @@ export function DashboardView() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
-  
+
   // Helper function to get default tab based on user's system_access
   const getDefaultTab = useCallback((): "o2d" | "lead-to-order" | "batchcode" => {
     const tabParam = searchParams.get("tab")
     if (tabParam === "lead-to-order" || tabParam === "batchcode") {
       return tabParam
     }
-    
+
     // If user is loaded, check system_access
     if (user && !authLoading) {
       const isAdmin = (user?.role || user?.userType || "").toString().toLowerCase().includes("admin")
-      
+
       // Admin sees O2D by default
       if (isAdmin) {
         return "o2d"
       }
-      
+
       // For regular users, check system_access
-      const systemAccess = user?.system_access 
+      const systemAccess = user?.system_access
         ? user.system_access.split(",").map(s => s.trim().toLowerCase().replace(/\s+/g, "")).filter(Boolean)
         : []
-      
+
       // Priority: o2d > lead-to-order > batchcode
       if (systemAccess.includes("o2d")) {
         return "o2d"
@@ -126,11 +126,11 @@ export function DashboardView() {
         return "batchcode"
       }
     }
-    
+
     // Default fallback
     return "o2d"
   }, [searchParams, user, authLoading])
-  
+
   // Initialize activeTab with proper default
   const [activeTab, setActiveTab] = useState<"o2d" | "lead-to-order" | "batchcode">(() => {
     const tabParam = searchParams.get("tab")
@@ -162,12 +162,12 @@ export function DashboardView() {
       if (selectedState !== "All States") params.append("stateName", selectedState)
       if (fromDate) params.append("fromDate", format(fromDate, "yyyy-MM-dd"))
       if (toDate) params.append("toDate", format(toDate, "yyyy-MM-dd"))
-      
+
       const queryString = params.toString()
-      const url = queryString 
+      const url = queryString
         ? `${API_ENDPOINTS.O2D.DASHBOARD.SUMMARY}?${queryString}`
         : API_ENDPOINTS.O2D.DASHBOARD.SUMMARY
-      
+
       const response = await api.get(url)
       const payload = response.data
       if (!payload?.success || !payload?.data) {
@@ -190,7 +190,7 @@ export function DashboardView() {
     if (authLoading) {
       return
     }
-    
+
     const tabParam = searchParams.get("tab")
     if (tabParam === "lead-to-order" || tabParam === "batchcode") {
       setActiveTab(tabParam)
@@ -208,7 +208,7 @@ export function DashboardView() {
     if (authLoading) {
       return
     }
-    
+
     if (activeTab === "o2d") {
       // Only fetch if we don't have data yet
       if (!data) {
@@ -307,70 +307,54 @@ export function DashboardView() {
     {
       id: "gateIn",
       title: "Total Gate In",
+      // Blue gradient
+      className: "bg-gradient-to-br from-blue-500 to-blue-600 text-white border-none",
+      titleClassName: "text-blue-50",
+      valueClassName: "text-white",
+      descriptionClassName: "text-blue-100",
+      badgeClassName: "bg-white/20 text-white border-white/20 backdrop-blur-sm",
       value: formatMetricValue(displayMetrics.totalGateIn),
       description: "Live count",
       badgeText: "Today",
-      backgroundColor: "#EFF6FF", // Light blue background
-      borderColor: "rgba(37,99,235,0.85)",
-      titleColor: "#1e40af",
-      valueColor: "#1e3a8a",
-      descriptionColor: "#3b82f6",
-      badgeStyle: {
-        backgroundColor: "rgba(37,99,235,0.15)",
-        color: "#1d4ed8",
-        borderColor: "rgba(37,99,235,0.45)",
-      },
     },
     {
       id: "gateOut",
       title: "Total Gate Out",
+      // Purple gradient
+      className: "bg-gradient-to-br from-purple-500 to-purple-600 text-white border-none",
+      titleClassName: "text-purple-50",
+      valueClassName: "text-white",
+      descriptionClassName: "text-purple-100",
+      badgeClassName: "bg-white/20 text-white border-white/20 backdrop-blur-sm",
       value: formatMetricValue(displayMetrics.totalGateOut),
       description: "Live count",
       badgeText: "Today",
-      backgroundColor: "#F5F3FF", // Light purple background
-      borderColor: "rgba(79,70,229,0.85)",
-      titleColor: "#5b21b6",
-      valueColor: "#4c1d95",
-      descriptionColor: "#7c3aed",
-      badgeStyle: {
-        backgroundColor: "rgba(79,70,229,0.14)",
-        color: "#4338ca",
-        borderColor: "rgba(79,70,229,0.45)",
-      },
     },
     {
       id: "pendingGateOut",
       title: "Pending Gate Out",
+      // Orange/Amber gradient
+      className: "bg-gradient-to-br from-orange-400 to-orange-500 text-white border-none",
+      titleClassName: "text-orange-50",
+      valueClassName: "text-white",
+      descriptionClassName: "text-orange-100",
+      badgeClassName: "bg-white/20 text-white border-white/20 backdrop-blur-sm",
       value: formatMetricValue(displayMetrics.totalPendingGateOut),
       description: "Awaiting gate out",
       badgeText: "Pending",
-      backgroundColor: "#FFF7ED", // Light orange/yellow background
-      borderColor: "rgba(249,115,22,0.85)",
-      titleColor: "#c2410c",
-      valueColor: "#9a3412",
-      descriptionColor: "#ea580c",
-      badgeStyle: {
-        backgroundColor: "rgba(249,115,22,0.16)",
-        color: "#c2410c",
-        borderColor: "rgba(249,115,22,0.45)",
-      },
     },
     {
       id: "totalDispatch",
       title: "Total Dispatch",
+      // Indigo gradient
+      className: "bg-gradient-to-br from-indigo-500 to-indigo-600 text-white border-none",
+      titleClassName: "text-indigo-50",
+      valueClassName: "text-white",
+      descriptionClassName: "text-indigo-100",
+      badgeClassName: "bg-white/20 text-white border-white/20 backdrop-blur-sm",
       value: formatMetricValue(displayMetrics.totalDispatchToday),
       description: "Total rows",
       badgeText: formatTodayDate(),
-      backgroundColor: "#FAF5FF", // Light purple background
-      borderColor: "rgba(124,58,237,0.9)",
-      titleColor: "#6d28d9",
-      valueColor: "#581c87",
-      descriptionColor: "#9333ea",
-      badgeStyle: {
-        backgroundColor: "rgba(124,58,237,0.14)",
-        color: "#6d28d9",
-        borderColor: "rgba(124,58,237,0.45)",
-      },
     },
   ]
 
@@ -510,9 +494,8 @@ export function DashboardView() {
             </div>
           </div>
 
-          ${
-            hasActiveFilters
-              ? `
+          ${hasActiveFilters
+          ? `
           <div class="section">
             <div class="section-title">Applied Filters</div>
             <div class="filters-section">
@@ -525,42 +508,40 @@ export function DashboardView() {
             </div>
           </div>
           `
-              : ""
-          }
+          : ""
+        }
 
           <div class="section">
             <div class="section-title">Top 10 Customers</div>
-            ${
-              top10Data.length > 0
-                ? `
+            ${top10Data.length > 0
+          ? `
             <table>
               <thead>
                 <tr><th style="width:8%">Rank</th><th style="width:40%">Customer Name</th><th style="width:20%">Dispatches</th><th style="width:32%">Items</th></tr>
               </thead>
               <tbody>
                 ${top10Data
-                  .map(
-                    (customer) => `
+            .map(
+              (customer) => `
                 <tr>
                   <td>${customer.rank}</td>
                   <td>${customer.name}</td>
                   <td>${customer.dispatches}</td>
                   <td>${customer.itemNames}</td>
                 </tr>`,
-                  )
-                  .join("")}
+            )
+            .join("")}
               </tbody>
             </table>
             `
-                : '<div class="no-data">No customer data available</div>'
-            }
+          : '<div class="no-data">No customer data available</div>'
+        }
           </div>
 
           <div class="section page-break">
             <div class="section-title">Filtered Results (${filteredData?.length || 0} total records)</div>
-            ${
-              filteredData && filteredData.length > 0
-                ? `
+            ${filteredData && filteredData.length > 0
+          ? `
             <table>
               <thead>
                 <tr>
@@ -574,9 +555,9 @@ export function DashboardView() {
               </thead>
               <tbody>
                 ${filteredData
-                  .slice(0, 100)
-                  .map(
-                    (row, index) => `
+            .slice(0, 100)
+            .map(
+              (row, index) => `
                 <tr>
                   <td>${index + 1}</td>
                   <td>${row.partyName || "-"}</td>
@@ -585,14 +566,14 @@ export function DashboardView() {
                   <td>${row.outdate ? new Date(row.outdate).toLocaleDateString() : "-"}</td>
                   <td>${row.invoiceNo || "-"}</td>
                 </tr>`,
-                  )
-                  .join("")}
+            )
+            .join("")}
               </tbody>
             </table>
             ${filteredData.length > 100 ? `<div style="margin-top: 15px; font-size: 12px; color: #6b7280; text-align: center;">Showing first 100 records of ${filteredData.length} total results</div>` : ""}
             `
-                : '<div class="no-data">No records found matching your filters</div>'
-            }
+          : '<div class="no-data">No records found matching your filters</div>'
+        }
           </div>
         </body>
         </html>
@@ -652,7 +633,7 @@ export function DashboardView() {
   const handleTabChange = (value: string) => {
     const tabValue = value as "o2d" | "lead-to-order" | "batchcode"
     setActiveTab(tabValue)
-    
+
     // Update URL params without navigation
     const newSearchParams = new URLSearchParams(searchParams)
     if (tabValue === "o2d") {
@@ -673,25 +654,25 @@ export function DashboardView() {
           </div>
         </div>
       )}
-      
+
       {/* Tabs for Dashboard Navigation - Segmented Control Style - Full Width */}
       <div className="mb-4 sm:mb-6">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="inline-flex h-10 sm:h-12 items-center justify-center rounded-lg bg-gray-100 p-1 text-gray-600 w-full shadow-sm border border-gray-200">
-            <TabsTrigger 
-              value="o2d" 
+            <TabsTrigger
+              value="o2d"
               className="inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 sm:px-6 py-2 text-sm sm:text-base font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm flex-1"
             >
               O2D
             </TabsTrigger>
-            <TabsTrigger 
-              value="lead-to-order" 
+            <TabsTrigger
+              value="lead-to-order"
               className="inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 sm:px-6 py-2 text-sm sm:text-base font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm flex-1"
             >
               Lead to Order
             </TabsTrigger>
-            <TabsTrigger 
-              value="batchcode" 
+            <TabsTrigger
+              value="batchcode"
               className="inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 sm:px-6 py-2 text-sm sm:text-base font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm flex-1"
             >
               Batchcode
@@ -699,7 +680,7 @@ export function DashboardView() {
           </TabsList>
         </Tabs>
       </div>
-      
+
       {/* O2D Dashboard Content */}
       {activeTab === "o2d" && (
         <div className="space-y-4 sm:space-y-6 animate-in fade-in-50 duration-200">
@@ -709,260 +690,256 @@ export function DashboardView() {
               <p className="text-gray-600 text-sm sm:text-base">Filtered view of your O2D operations</p>
               {lastUpdated && <p className="text-xs text-gray-500">Last updated: {lastUpdated.toLocaleTimeString()}</p>}
             </div>
-        <div className="flex items-center gap-2">
-          <Button onClick={fetchDashboard} variant="outline" size="sm" className="flex items-center gap-1">
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </Button>
-          <Button onClick={downloadPDF} className="flex items-center gap-2 ignore-pdf">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            Download PDF
-          </Button>
-        </div>
-      </div>
-
-      {error && (
-        <div className="flex items-center space-x-2 p-3 bg-red-50 border border-red-200 rounded-md text-red-700">
-          <AlertCircle className="h-4 w-4" />
-          <span className="text-sm">{error}</span>
-        </div>
-      )}
-
-      <Card className="border-l-4 border-l-indigo-500 bg-gradient-to-br from-indigo-50/30 to-white">
-        <CardHeader className="bg-gradient-to-r from-indigo-50 to-transparent">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2 text-indigo-700">
-                <Filter className="h-4 w-4 text-indigo-600" />
-                Filters
-              </CardTitle>
-              <CardDescription className="text-indigo-600/80">Filter data by party, item, salesperson, and date range</CardDescription>
-            </div>
-            {hasActiveFilters && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSelectedParty("All Parties")
-                  setSelectedItem("All Items")
-                  setSelectedSales("All Salespersons")
-                  setSelectedState("All States")
-                  setFromDate(null)
-                  setToDate(null)
-                }}
-                className="ignore-pdf bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
-              >
-                <X className="h-4 w-4 mr-2" />
-                Clear All
+            <div className="flex items-center gap-2">
+              <Button onClick={fetchDashboard} variant="outline" size="sm" className="flex items-center gap-1">
+                <RefreshCw className="h-4 w-4" />
+                Refresh
               </Button>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-blue-700">Salesperson</label>
-              <Select value={selectedSales} onValueChange={setSelectedSales}>
-                <SelectTrigger className="border-blue-200 focus:border-blue-400 focus:ring-blue-400">
-                  <SelectValue placeholder="Select salesperson" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="All Salespersons">All Salespersons</SelectItem>
-                  {(data?.filters?.salesPersons || []).map((sales) => (
-                    <SelectItem key={sales} value={sales}>
-                      {sales}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-green-700">Party</label>
-              <Select value={selectedParty} onValueChange={setSelectedParty}>
-                <SelectTrigger className="border-green-200 focus:border-green-400 focus:ring-green-400">
-                  <SelectValue placeholder="Select party" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="All Parties">All Parties</SelectItem>
-                  {(data?.filters?.parties || []).map((party) => (
-                    <SelectItem key={party} value={party}>
-                      {party}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-purple-700">Item</label>
-              <Select value={selectedItem} onValueChange={setSelectedItem}>
-                <SelectTrigger className="border-purple-200 focus:border-purple-400 focus:ring-purple-400">
-                  <SelectValue placeholder="Select item" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="All Items">All Items</SelectItem>
-                  {(data?.filters?.items || []).map((item) => (
-                    <SelectItem key={item} value={item}>
-                      {item}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-orange-700">State</label>
-              <Select value={selectedState} onValueChange={setSelectedState}>
-                <SelectTrigger className="border-orange-200 focus:border-orange-400 focus:ring-orange-400">
-                  <SelectValue placeholder="Select state" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="All States">All States</SelectItem>
-                  {stateOptions.map((state) => (
-                    <SelectItem key={state} value={state}>
-                      {state}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-teal-700">From Date</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn("w-full justify-start text-left font-normal border-teal-200 focus:border-teal-400 focus:ring-teal-400", !fromDate && "text-gray-500")}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4 text-teal-600" />
-                    {fromDate ? format(fromDate, "dd/MM/yyyy") : "Select date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={fromDate ?? undefined} onSelect={setFromDate} initialFocus />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-pink-700">To Date</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn("w-full justify-start text-left font-normal border-pink-200 focus:border-pink-400 focus:ring-pink-400", !toDate && "text-gray-500")}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4 text-pink-600" />
-                    {toDate ? format(toDate, "dd/MM/yyyy") : "Select date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={toDate ?? undefined} onSelect={setToDate} initialFocus />
-                </PopoverContent>
-              </Popover>
+              <Button onClick={downloadPDF} className="flex items-center gap-2 ignore-pdf">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                Download PDF
+              </Button>
             </div>
           </div>
 
-          {hasActiveFilters && (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {selectedParty !== "All Parties" && (
-                <Badge variant="secondary" className="flex items-center gap-1 bg-green-100 text-green-700 border-green-200">
-                  Party: {selectedParty}
-                  <X className="h-3 w-3 cursor-pointer ignore-pdf" onClick={() => setSelectedParty("All Parties")} />
-                </Badge>
-              )}
-              {selectedItem !== "All Items" && (
-                <Badge variant="secondary" className="flex items-center gap-1 bg-purple-100 text-purple-700 border-purple-200">
-                  Item: {selectedItem}
-                  <X className="h-3 w-3 cursor-pointer ignore-pdf" onClick={() => setSelectedItem("All Items")} />
-                </Badge>
-              )}
-              {selectedState !== "All States" && (
-                <Badge variant="secondary" className="flex items-center gap-1 bg-orange-100 text-orange-700 border-orange-200">
-                  State: {selectedState}
-                  <X className="h-3 w-3 cursor-pointer ignore-pdf" onClick={() => setSelectedState("All States")} />
-                </Badge>
-              )}
-              {selectedSales !== "All Salespersons" && (
-                <Badge variant="secondary" className="flex items-center gap-1 bg-blue-100 text-blue-700 border-blue-200">
-                  Sales: {selectedSales}
-                  <X className="h-3 w-3 cursor-pointer ignore-pdf" onClick={() => setSelectedSales("All Salespersons")} />
-                </Badge>
-              )}
-              {fromDate && (
-                <Badge variant="secondary" className="flex items-center gap-1 bg-teal-100 text-teal-700 border-teal-200">
-                  From: {format(fromDate, "dd/MM/yyyy")}
-                  <X className="h-3 w-3 cursor-pointer ignore-pdf" onClick={() => setFromDate(null)} />
-                </Badge>
-              )}
-              {toDate && (
-                <Badge variant="secondary" className="flex items-center gap-1 bg-pink-100 text-pink-700 border-pink-200">
-                  To: {format(toDate, "dd/MM/yyyy")}
-                  <X className="h-3 w-3 cursor-pointer ignore-pdf" onClick={() => setToDate(null)} />
-                </Badge>
-              )}
+          {error && (
+            <div className="flex items-center space-x-2 p-3 bg-red-50 border border-red-200 rounded-md text-red-700">
+              <AlertCircle className="h-4 w-4" />
+              <span className="text-sm">{error}</span>
             </div>
           )}
-        </CardContent>
-      </Card>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-3 lg:gap-4">
-        {summaryCards.map((card) => (
-          <Card
-            key={card.id}
-            className="w-full overflow-hidden border border-transparent shadow-sm hover:shadow-md transition-shadow duration-200"
-            style={{
-              borderLeftColor: card.borderColor,
-              borderLeftWidth: 4,
-              borderLeftStyle: "solid",
-              backgroundColor: card.backgroundColor,
-            }}
-          >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 sm:p-3 pb-2">
-              <CardTitle className="text-xs sm:text-xs font-semibold" style={{ color: card.titleColor }}>
-                {card.title}
-              </CardTitle>
-              <Badge
-                variant="secondary"
-                className="text-xs sm:text-[10px] shrink-0 font-semibold border"
-                style={card.badgeStyle}
-              >
-                {card.badgeText}
-              </Badge>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-3 pt-0">
-              <div className="text-2xl sm:text-xl lg:text-2xl font-bold" style={{ color: card.valueColor }}>
-                {card.value}
+          <Card className="border-l-4 border-l-indigo-500 bg-gradient-to-br from-indigo-50/30 to-white">
+            <CardHeader className="bg-gradient-to-r from-indigo-50 to-transparent">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2 text-indigo-700">
+                    <Filter className="h-4 w-4 text-indigo-600" />
+                    Filters
+                  </CardTitle>
+                  <CardDescription className="text-indigo-600/80">Filter data by party, item, salesperson, and date range</CardDescription>
+                </div>
+                {hasActiveFilters && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedParty("All Parties")
+                      setSelectedItem("All Items")
+                      setSelectedSales("All Salespersons")
+                      setSelectedState("All States")
+                      setFromDate(null)
+                      setToDate(null)
+                    }}
+                    className="ignore-pdf bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Clear All
+                  </Button>
+                )}
               </div>
-              <p className="text-xs mt-1" style={{ color: card.descriptionColor }}>
-                {card.description}
-              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-blue-700">Salesperson</label>
+                  <Select value={selectedSales} onValueChange={setSelectedSales}>
+                    <SelectTrigger className="border-blue-200 focus:border-blue-400 focus:ring-blue-400">
+                      <SelectValue placeholder="Select salesperson" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All Salespersons">All Salespersons</SelectItem>
+                      {(data?.filters?.salesPersons || []).map((sales) => (
+                        <SelectItem key={sales} value={sales}>
+                          {sales}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-green-700">Party</label>
+                  <Select value={selectedParty} onValueChange={setSelectedParty}>
+                    <SelectTrigger className="border-green-200 focus:border-green-400 focus:ring-green-400">
+                      <SelectValue placeholder="Select party" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All Parties">All Parties</SelectItem>
+                      {(data?.filters?.parties || []).map((party) => (
+                        <SelectItem key={party} value={party}>
+                          {party}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-purple-700">Item</label>
+                  <Select value={selectedItem} onValueChange={setSelectedItem}>
+                    <SelectTrigger className="border-purple-200 focus:border-purple-400 focus:ring-purple-400">
+                      <SelectValue placeholder="Select item" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All Items">All Items</SelectItem>
+                      {(data?.filters?.items || []).map((item) => (
+                        <SelectItem key={item} value={item}>
+                          {item}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-orange-700">State</label>
+                  <Select value={selectedState} onValueChange={setSelectedState}>
+                    <SelectTrigger className="border-orange-200 focus:border-orange-400 focus:ring-orange-400">
+                      <SelectValue placeholder="Select state" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All States">All States</SelectItem>
+                      {stateOptions.map((state) => (
+                        <SelectItem key={state} value={state}>
+                          {state}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-teal-700">From Date</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn("w-full justify-start text-left font-normal border-teal-200 focus:border-teal-400 focus:ring-teal-400", !fromDate && "text-gray-500")}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4 text-teal-600" />
+                        {fromDate ? format(fromDate, "dd/MM/yyyy") : "Select date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar mode="single" selected={fromDate ?? undefined} onSelect={setFromDate} initialFocus />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-pink-700">To Date</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn("w-full justify-start text-left font-normal border-pink-200 focus:border-pink-400 focus:ring-pink-400", !toDate && "text-gray-500")}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4 text-pink-600" />
+                        {toDate ? format(toDate, "dd/MM/yyyy") : "Select date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar mode="single" selected={toDate ?? undefined} onSelect={setToDate} initialFocus />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+
+              {hasActiveFilters && (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {selectedParty !== "All Parties" && (
+                    <Badge variant="secondary" className="flex items-center gap-1 bg-green-100 text-green-700 border-green-200">
+                      Party: {selectedParty}
+                      <X className="h-3 w-3 cursor-pointer ignore-pdf" onClick={() => setSelectedParty("All Parties")} />
+                    </Badge>
+                  )}
+                  {selectedItem !== "All Items" && (
+                    <Badge variant="secondary" className="flex items-center gap-1 bg-purple-100 text-purple-700 border-purple-200">
+                      Item: {selectedItem}
+                      <X className="h-3 w-3 cursor-pointer ignore-pdf" onClick={() => setSelectedItem("All Items")} />
+                    </Badge>
+                  )}
+                  {selectedState !== "All States" && (
+                    <Badge variant="secondary" className="flex items-center gap-1 bg-orange-100 text-orange-700 border-orange-200">
+                      State: {selectedState}
+                      <X className="h-3 w-3 cursor-pointer ignore-pdf" onClick={() => setSelectedState("All States")} />
+                    </Badge>
+                  )}
+                  {selectedSales !== "All Salespersons" && (
+                    <Badge variant="secondary" className="flex items-center gap-1 bg-blue-100 text-blue-700 border-blue-200">
+                      Sales: {selectedSales}
+                      <X className="h-3 w-3 cursor-pointer ignore-pdf" onClick={() => setSelectedSales("All Salespersons")} />
+                    </Badge>
+                  )}
+                  {fromDate && (
+                    <Badge variant="secondary" className="flex items-center gap-1 bg-teal-100 text-teal-700 border-teal-200">
+                      From: {format(fromDate, "dd/MM/yyyy")}
+                      <X className="h-3 w-3 cursor-pointer ignore-pdf" onClick={() => setFromDate(null)} />
+                    </Badge>
+                  )}
+                  {toDate && (
+                    <Badge variant="secondary" className="flex items-center gap-1 bg-pink-100 text-pink-700 border-pink-200">
+                      To: {format(toDate, "dd/MM/yyyy")}
+                      <X className="h-3 w-3 cursor-pointer ignore-pdf" onClick={() => setToDate(null)} />
+                    </Badge>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
-        ))}
-      </div>
 
-      <Card className="w-full overflow-hidden">
-        <CardHeader className="p-3 sm:p-4 lg:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div>
-              <CardTitle className="text-sm sm:text-base lg:text-lg">Party Wise Dispatch Analytics</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">
-                Distribution by customer ({filteredData?.length || 0} total records)
-              </CardDescription>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-3 lg:gap-4">
+            {summaryCards.map((card) => (
+              <Card
+                key={card.id}
+                className={cn(
+                  "w-full overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1",
+                  card.className
+                )}
+              >
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 sm:p-5 pb-2">
+                  <CardTitle className={cn("text-xs sm:text-sm font-medium opacity-90", card.titleClassName)}>
+                    {card.title}
+                  </CardTitle>
+                  <Badge
+                    variant="secondary"
+                    className={cn("text-[10px] sm:text-xs shrink-0 font-semibold border-0", card.badgeClassName)}
+                  >
+                    {card.badgeText}
+                  </Badge>
+                </CardHeader>
+                <CardContent className="p-4 sm:p-5 pt-0">
+                  <div className={cn("text-2xl sm:text-3xl font-bold tracking-tight", card.valueClassName)}>
+                    {card.value}
+                  </div>
+                  <p className={cn("text-xs mt-1 font-medium", card.descriptionClassName)}>
+                    {card.description}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        </CardHeader>
-        <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
+
+          <Card className="w-full overflow-hidden">
+            <CardHeader className="p-3 sm:p-4 lg:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                  <CardTitle className="text-sm sm:text-base lg:text-lg">Party Wise Dispatch Analytics</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">
+                    Distribution by customer ({filteredData?.length || 0} total records)
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
               <ChartContainer
                 config={{
                   value: { label: "Dispatched", color: "#0088FE" },
@@ -972,146 +949,146 @@ export function DashboardView() {
               >
                 <div className="w-full" style={{ minHeight: 300, minWidth: 0 }}>
                   <ResponsiveContainer width="100%" height={300} minHeight={300}>
-                <PieChart>
-                  <Pie
-                    data={chartData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius="60%"
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <ChartTooltip
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        const datum = payload[0].payload
-                        return (
-                          <div className="bg-white border rounded-lg p-2 shadow-md">
-                            <p className="font-medium">{datum.name}</p>
-                            <p className="text-sm text-gray-600">{datum.value} dispatches</p>
-                          </div>
-                        )
-                      }
-                      return null
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </ChartContainer>
-        </CardContent>
-      </Card>
+                    <PieChart>
+                      <Pie
+                        data={chartData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        outerRadius="60%"
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {chartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <ChartTooltip
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const datum = payload[0].payload
+                            return (
+                              <div className="bg-white border rounded-lg p-2 shadow-md">
+                                <p className="font-medium">{datum.name}</p>
+                                <p className="text-sm text-gray-600">{datum.value} dispatches</p>
+                              </div>
+                            )
+                          }
+                          return null
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </ChartContainer>
+            </CardContent>
+          </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Top 10 Customers</CardTitle>
-          <CardDescription>
-            Top performing customers by dispatch volume
-            {hasActiveFilters ? " (filtered results)" : ""}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto max-h-[420px]">
-            <Table>
-              <TableHeader className="sticky top-0 z-10 bg-white">
-                <TableRow>
-                  <TableHead className="text-xs sm:text-sm">Rank</TableHead>
-                  <TableHead className="text-xs sm:text-sm">Customer Name</TableHead>
-                  <TableHead className="text-xs sm:text-sm">Item Name</TableHead>
-                  <TableHead className="text-xs sm:text-sm">Dispatches</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {top10Customers.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-gray-500">
-                      No customer data available
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  top10Customers.map((customer) => (
-                    <TableRow key={customer.rank}>
-                      <TableCell className="text-xs sm:text-sm">{customer.rank}</TableCell>
-                      <TableCell className="text-xs sm:text-sm">{customer.name}</TableCell>
-                      <TableCell className="text-xs sm:text-sm">{customer.itemNames}</TableCell>
-                      <TableCell className="text-xs sm:text-sm">{customer.dispatches}</TableCell>
+          <Card>
+            <CardHeader>
+              <CardTitle>Top 10 Customers</CardTitle>
+              <CardDescription>
+                Top performing customers by dispatch volume
+                {hasActiveFilters ? " (filtered results)" : ""}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto max-h-[420px]">
+                <Table>
+                  <TableHeader className="sticky top-0 z-10 bg-white">
+                    <TableRow>
+                      <TableHead className="text-xs sm:text-sm">Rank</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Customer Name</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Item Name</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Dispatches</TableHead>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {top10Customers.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                          No customer data available
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      top10Customers.map((customer) => (
+                        <TableRow key={customer.rank}>
+                          <TableCell className="text-xs sm:text-sm">{customer.rank}</TableCell>
+                          <TableCell className="text-xs sm:text-sm">{customer.name}</TableCell>
+                          <TableCell className="text-xs sm:text-sm">{customer.itemNames}</TableCell>
+                          <TableCell className="text-xs sm:text-sm">{customer.dispatches}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Filtered Results</CardTitle>
-          <CardDescription>
-            Showing {filteredData?.length || 0} records
-            {hasActiveFilters ? " matching your filters" : " (all data)"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto max-h-[480px]">
-            <Table>
-              <TableHeader className="sticky top-0 z-10 bg-white">
-                <TableRow>
-                  <TableHead className="text-xs sm:text-sm">Sr. No.</TableHead>
-                  <TableHead className="text-xs sm:text-sm">Party Name</TableHead>
-                  <TableHead className="text-xs sm:text-sm">Item Name</TableHead>
-                  <TableHead className="text-xs sm:text-sm">In Date</TableHead>
-                  <TableHead className="text-xs sm:text-sm">Out Date</TableHead>
-                  <TableHead className="text-xs sm:text-sm">Gate Out Time</TableHead>
-                  <TableHead className="text-xs sm:text-sm">Order No.</TableHead>
-                  <TableHead className="text-xs sm:text-sm">Gate Pass</TableHead>
-                  <TableHead className="text-xs sm:text-sm">Invoice No.</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {!filteredData || filteredData.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-gray-500">
-                      No records found matching your filters
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredData.map((row, index) => (
-                    <TableRow key={`${row.wslipno || row.orderVrno || index}-${index}`}>
-                      <TableCell className="text-xs sm:text-sm">{index + 1}</TableCell>
-                      <TableCell className="text-xs sm:text-sm">{row.partyName || "-"}</TableCell>
-                      <TableCell className="text-xs sm:text-sm">{row.itemName || "-"}</TableCell>
-                      <TableCell className="text-xs sm:text-sm">
-                        {row.indate ? new Date(row.indate).toLocaleDateString() : "-"}
-                      </TableCell>
-                      <TableCell className="text-xs sm:text-sm">
-                        {row.outdate ? new Date(row.outdate).toLocaleDateString() : "-"}
-                      </TableCell>
-                      <TableCell className="text-xs sm:text-sm">
-                        {row.gateOutTime ? new Date(row.gateOutTime).toLocaleString() : "-"}
-                      </TableCell>
-                      <TableCell className="text-xs sm:text-sm">{row.orderVrno || "-"}</TableCell>
-                      <TableCell className="text-xs sm:text-sm">{row.gateVrno || "-"}</TableCell>
-                      <TableCell className="text-xs sm:text-sm">{row.invoiceNo || "-"}</TableCell>
+          <Card>
+            <CardHeader>
+              <CardTitle>Filtered Results</CardTitle>
+              <CardDescription>
+                Showing {filteredData?.length || 0} records
+                {hasActiveFilters ? " matching your filters" : " (all data)"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto max-h-[480px]">
+                <Table>
+                  <TableHeader className="sticky top-0 z-10 bg-white">
+                    <TableRow>
+                      <TableHead className="text-xs sm:text-sm">Sr. No.</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Party Name</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Item Name</TableHead>
+                      <TableHead className="text-xs sm:text-sm">In Date</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Out Date</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Gate Out Time</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Order No.</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Gate Pass</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Invoice No.</TableHead>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-          {filteredData && filteredData.length > 100 && (
-            <div className="mt-4 text-sm text-gray-500 text-center">
-              Showing first 100 records of {filteredData.length} total results
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {!filteredData || filteredData.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={9} className="text-center py-8 text-gray-500">
+                          No records found matching your filters
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredData.map((row, index) => (
+                        <TableRow key={`${row.wslipno || row.orderVrno || index}-${index}`}>
+                          <TableCell className="text-xs sm:text-sm">{index + 1}</TableCell>
+                          <TableCell className="text-xs sm:text-sm">{row.partyName || "-"}</TableCell>
+                          <TableCell className="text-xs sm:text-sm">{row.itemName || "-"}</TableCell>
+                          <TableCell className="text-xs sm:text-sm">
+                            {row.indate ? new Date(row.indate).toLocaleDateString() : "-"}
+                          </TableCell>
+                          <TableCell className="text-xs sm:text-sm">
+                            {row.outdate ? new Date(row.outdate).toLocaleDateString() : "-"}
+                          </TableCell>
+                          <TableCell className="text-xs sm:text-sm">
+                            {row.gateOutTime ? new Date(row.gateOutTime).toLocaleString() : "-"}
+                          </TableCell>
+                          <TableCell className="text-xs sm:text-sm">{row.orderVrno || "-"}</TableCell>
+                          <TableCell className="text-xs sm:text-sm">{row.gateVrno || "-"}</TableCell>
+                          <TableCell className="text-xs sm:text-sm">{row.invoiceNo || "-"}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+              {filteredData && filteredData.length > 100 && (
+                <div className="mt-4 text-sm text-gray-500 text-center">
+                  Showing first 100 records of {filteredData.length} total results
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       )}
 

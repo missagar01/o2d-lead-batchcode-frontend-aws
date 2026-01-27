@@ -7,9 +7,9 @@ import axios from 'axios';
 
 // Force empty string in development to use Vite proxy unless a base URL is explicitly configured
 // This prevents CORS issues by proxying through localhost when no override is provided
-const isDevelopment = import.meta.env.DEV || 
-  import.meta.env.MODE === 'development' || 
-  window.location.hostname === 'localhost' || 
+const isDevelopment = import.meta.env.DEV ||
+  import.meta.env.MODE === 'development' ||
+  window.location.hostname === 'localhost' ||
   window.location.hostname === '127.0.0.1';
 
 const envBaseUrl = (import.meta.env.VITE_API_BASE_URL || '').trim();
@@ -36,7 +36,7 @@ api.interceptors.request.use(
     if (config.data instanceof FormData && config.headers) {
       delete config.headers['Content-Type'];
     }
-    
+
     return config;
   },
   (error) => {
@@ -181,7 +181,10 @@ export const API_ENDPOINTS = {
       HISTORY: '/api/o2d/payment/history',
       CUSTOMERS: '/api/o2d/payment/customers',
     },
-    ORDERS: '/api/o2d/orders',
+    ORDERS: {
+      PENDING: '/api/o2d/orders/pending',
+      HISTORY: '/api/o2d/orders/history',
+    },
     COMPLAINT: '/api/o2d/complaint',
     PARTY_FEEDBACK: '/api/o2d/party-feedback',
     REGISTER: '/api/o2d/register',
