@@ -40,10 +40,7 @@ const o2dItem: NavItem = {
     { name: "Load Vehicle", path: "/o2d/load-vehicle", pro: false },
     { name: "Second Weight", path: "/o2d/second-weight", pro: false },
     { name: "Generate Invoice", path: "/o2d/generate-invoice", pro: false },
-    { name: "Gate Out Entry", path: "/o2d/gate-out", pro: false },
     { name: "Pending Vehicles", path: "/o2d/process", pro: false },
-    { name: "Payment", path: "/o2d/payment", pro: false },
-    { name: "Party Feedback", path: "/o2d/party-feedback", pro: false },
   ],
 };
 
