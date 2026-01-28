@@ -1,21 +1,15 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react"
-import { AlertCircle, CalendarIcon, Filter, Loader2, RefreshCw, X } from "lucide-react"
+import { AlertCircle, Filter, Loader2, RefreshCw, X } from "lucide-react"
 import { format } from "date-fns"
-import { useSearchParams } from "react-router"
 import { useAuth } from "../../context/AuthContext"
-import LeadToOrderDashboard from "../LeadToOrder/Dashboard"
-import BatchCodeDashboard from "../BatchCode/Dashboard"
 import { Badge } from "./ui/badge"
 import { Button } from "./ui/button"
-import { Calendar } from "./ui/calendar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
 import { ChartContainer, ChartTooltip } from "./ui/chart"
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
-import { Tabs, TabsList, TabsTrigger } from "./ui/tabs"
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts"
 import { cn } from "../../lib/utils"
 import api, { API_ENDPOINTS } from "../../config/api";
@@ -34,10 +28,15 @@ type DashboardRow = {
 }
 
 type DashboardSummary = {
-  totalGateIn?: number
-  totalGateOut?: number
-  pendingGateOut?: number
-  totalDispatch?: number
+  monthlyWorkingParty?: number
+  monthlyPartyAverage?: string
+  pendingOrdersTotal?: number
+  conversionRatio?: string
+  saudaAvg?: Array<{ ITEM: string; AVERAGE: number }>
+  salesAvg?: Array<{ ITEM: string; AVERAGE: number }>
+  saudaRate2026?: number
+  monthlyGd?: number
+  dailyGd?: number
 }
 
 type DashboardFilters = {
@@ -57,96 +56,20 @@ type DashboardResponse = {
 
 // Using o2dAPI service instead of direct fetch
 
-const formatTodayDate = () => {
-  const today = new Date()
-  const day = String(today.getDate()).padStart(2, "0")
-  const month = String(today.getMonth() + 1).padStart(2, "0")
-  const year = today.getFullYear()
-  return `${day}/${month}/${year}`
-}
 
-const parseDateTime = (value?: string | null) => {
-  if (!value) return null
-  const parsed = new Date(value)
-  return isNaN(parsed.getTime()) ? null : parsed
-}
-
-const isDateInRange = (value?: string | null, start?: Date | null, end?: Date | null) => {
-  if (!value) return false
-  const parsed = parseDateTime(value)
-  if (!parsed) return false
-
-  const dateOnly = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate())
-  if (start) {
-    const startOnly = new Date(start.getFullYear(), start.getMonth(), start.getDate())
-    if (dateOnly < startOnly) return false
-  }
-  if (end) {
-    const endOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate())
-    if (dateOnly > endOnly) return false
-  }
-  return true
-}
 
 export function DashboardView() {
-  const [searchParams, setSearchParams] = useSearchParams()
   const { user, loading: authLoading } = useAuth()
   const [data, setData] = useState<DashboardResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
-  // Helper function to get default tab based on user's system_access
-  const getDefaultTab = useCallback((): "o2d" | "lead-to-order" | "batchcode" => {
-    const tabParam = searchParams.get("tab")
-    if (tabParam === "lead-to-order" || tabParam === "batchcode") {
-      return tabParam
-    }
-
-    // If user is loaded, check system_access
-    if (user && !authLoading) {
-      const isAdmin = (user?.role || user?.userType || "").toString().toLowerCase().includes("admin")
-
-      // Admin sees O2D by default
-      if (isAdmin) {
-        return "o2d"
-      }
-
-      // For regular users, check system_access
-      const systemAccess = user?.system_access
-        ? user.system_access.split(",").map(s => s.trim().toLowerCase().replace(/\s+/g, "")).filter(Boolean)
-        : []
-
-      // Priority: o2d > lead-to-order > batchcode
-      if (systemAccess.includes("o2d")) {
-        return "o2d"
-      } else if (systemAccess.includes("lead-to-order")) {
-        return "lead-to-order"
-      } else if (systemAccess.includes("batchcode")) {
-        return "batchcode"
-      }
-    }
-
-    // Default fallback
-    return "o2d"
-  }, [searchParams, user, authLoading])
-
-  // Initialize activeTab with proper default
-  const [activeTab, setActiveTab] = useState<"o2d" | "lead-to-order" | "batchcode">(() => {
-    const tabParam = searchParams.get("tab")
-    if (tabParam === "lead-to-order" || tabParam === "batchcode") {
-      return tabParam
-    }
-    // Will be updated by useEffect when user loads
-    return "o2d"
-  })
-
   const [selectedParty, setSelectedParty] = useState("All Parties")
   const [selectedItem, setSelectedItem] = useState("All Items")
   const [selectedSales, setSelectedSales] = useState("All Salespersons")
   const [selectedState, setSelectedState] = useState("All States")
-  const [fromDate, setFromDate] = useState<Date | null>(null)
-  const [toDate, setToDate] = useState<Date | null>(null)
+  const [selectedMonth, setSelectedMonth] = useState<string>("All Months")
 
   const dashboardRef = useRef<HTMLDivElement | null>(null)
 
@@ -160,8 +83,13 @@ export function DashboardView() {
       if (selectedItem !== "All Items") params.append("itemName", selectedItem)
       if (selectedSales !== "All Salespersons") params.append("salesPerson", selectedSales)
       if (selectedState !== "All States") params.append("stateName", selectedState)
-      if (fromDate) params.append("fromDate", format(fromDate, "yyyy-MM-dd"))
-      if (toDate) params.append("toDate", format(toDate, "yyyy-MM-dd"))
+      if (selectedMonth !== "All Months") {
+        const [year, month] = selectedMonth.split("-")
+        const fromDate = new Date(parseInt(year), parseInt(month) - 1, 1)
+        const toDate = new Date(parseInt(year), parseInt(month), 0)
+        params.append("fromDate", format(fromDate, "yyyy-MM-dd"))
+        params.append("toDate", format(toDate, "yyyy-MM-dd"))
+      }
 
       const queryString = params.toString()
       const url = queryString
@@ -182,48 +110,17 @@ export function DashboardView() {
     } finally {
       setLoading(false)
     }
-  }, [selectedParty, selectedItem, selectedSales, selectedState, fromDate, toDate])
+  }, [selectedParty, selectedItem, selectedSales, selectedState, selectedMonth])
 
-  // Update tab when URL params change or user loads
   useEffect(() => {
-    // Wait for auth to load
     if (authLoading) {
       return
     }
 
-    const tabParam = searchParams.get("tab")
-    if (tabParam === "lead-to-order" || tabParam === "batchcode") {
-      setActiveTab(tabParam)
-    } else if (!tabParam) {
-      // If no tab param, use default based on user's system_access
-      const defaultTab = getDefaultTab()
-      if (activeTab !== defaultTab) {
-        setActiveTab(defaultTab)
-      }
-    }
-  }, [searchParams, user, authLoading, getDefaultTab, activeTab])
-
-  useEffect(() => {
-    // Wait for auth to load before fetching data
-    if (authLoading) {
-      return
-    }
-
-    if (activeTab === "o2d") {
-      // Only fetch if we don't have data yet
-      if (!data) {
-        fetchDashboard()
-      }
-      // Set up auto-refresh interval
-      const interval = setInterval(fetchDashboard, 5 * 60 * 1000)
-      return () => clearInterval(interval)
-    } else {
-      // For other tabs (lead-to-order, batchcode), reset loading state
-      // Their components will handle their own data fetching
-      setLoading(false)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, authLoading]) // Only run when tab changes or auth loads, not when data/fetchDashboard changes
+    fetchDashboard()
+    const interval = setInterval(fetchDashboard, 5 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [authLoading, fetchDashboard])
 
   const filteredData = useMemo(() => {
     const rows = data?.rows || []
@@ -238,49 +135,46 @@ export function DashboardView() {
       if (selectedSales !== "All Salespersons" && salesName !== selectedSales) return false
       if (selectedState !== "All States" && stateName !== selectedState) return false
 
-      if (fromDate || toDate) {
-        const dateToCheck = row.outdate || row.indate || row.gateOutTime
-        if (!dateToCheck || !isDateInRange(dateToCheck, fromDate, toDate)) return false
-      }
-
       return true
     })
-  }, [data?.rows, fromDate, selectedItem, selectedParty, selectedSales, selectedState, toDate])
+  }, [data?.rows, selectedItem, selectedParty, selectedSales, selectedState])
 
   const hasActiveFilters =
     selectedParty !== "All Parties" ||
     selectedItem !== "All Items" ||
     selectedSales !== "All Salespersons" ||
     selectedState !== "All States" ||
-    fromDate !== null ||
-    toDate !== null
+    selectedMonth !== "All Months"
 
   const calculateFilteredMetrics = () => {
     const rows = filteredData || []
     const summary: DashboardSummary = data?.summary || {}
 
-    const totalsFromRows = () => {
-      const gateIn = rows.length
-      const gateOut = rows.filter((row) => !!row.gateOutTime).length
-      const pendingGateOut = rows.filter((row) => !row.gateOutTime).length
-      const dispatch = rows.length
-      return { gateIn, gateOut, pendingGateOut, dispatch }
+    const saudaAvgList = summary.saudaAvg || [];
+    const salesAvgList = summary.salesAvg || [];
+
+    let targetItem = 'PIPE';
+    if (selectedItem !== 'All Items') {
+      if (selectedItem.toUpperCase().includes('STRIP')) targetItem = 'STRIPS';
+      else if (selectedItem.toUpperCase().includes('BILLET')) targetItem = 'BILLET';
     }
 
-    const rowTotals = totalsFromRows()
-    const gateIn = hasActiveFilters ? rowTotals.gateIn : summary.totalGateIn ?? rowTotals.gateIn
-    const gateOut = hasActiveFilters ? rowTotals.gateOut : summary.totalGateOut ?? rowTotals.gateOut
-    const pendingGateOut = hasActiveFilters
-      ? rowTotals.pendingGateOut
-      : summary.pendingGateOut ?? rowTotals.pendingGateOut
-    const dispatch = hasActiveFilters ? rowTotals.dispatch : summary.totalDispatch ?? rowTotals.dispatch
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const saudaAvg = saudaAvgList.find((x: any) => x.ITEM === targetItem)?.AVERAGE || 0;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const salesAvg = salesAvgList.find((x: any) => x.ITEM === targetItem)?.AVERAGE || 0;
 
     return {
-      totalGateIn: gateIn,
-      totalGateOut: gateOut,
-      totalPendingGateOut: pendingGateOut,
-      loadingPending: 0,
-      totalDispatchToday: dispatch,
+      monthlyWorkingParty: summary.monthlyWorkingParty ?? 0,
+      monthlyPartyAverage: summary.monthlyPartyAverage ?? "0%",
+      pendingOrdersTotal: summary.pendingOrdersTotal ?? 0,
+      conversionRatio: summary.conversionRatio ?? "0%",
+      saudaAvg,
+      salesAvg,
+      saudaRate2026: summary.saudaRate2026 ?? 0,
+      monthlyGd: summary.monthlyGd ?? 0,
+      dailyGd: summary.dailyGd ?? 0,
+      activeItemName: targetItem === 'STRIPS' ? 'Strips' : targetItem === 'BILLET' ? 'Billet' : 'Pipe',
       wbIn: 0,
       wbOut: 0,
       wbPending: 0,
@@ -305,58 +199,123 @@ export function DashboardView() {
 
   const summaryCards = [
     {
-      id: "gateIn",
-      title: "Total Gate In",
-      // Blue gradient
-      className: "bg-gradient-to-br from-blue-500 to-blue-600 text-white border-none",
-      titleClassName: "text-blue-50",
-      valueClassName: "text-white",
-      descriptionClassName: "text-blue-100",
-      badgeClassName: "bg-white/20 text-white border-white/20 backdrop-blur-sm",
-      value: formatMetricValue(displayMetrics.totalGateIn),
-      description: "Live count",
-      badgeText: "Today",
-    },
-    {
-      id: "gateOut",
-      title: "Total Gate Out",
-      // Purple gradient
-      className: "bg-gradient-to-br from-purple-500 to-purple-600 text-white border-none",
+      id: "saudaRate2026",
+      title: "Sauda Rate (2026)",
+      // Purple to Indigo gradient
+      className: "bg-gradient-to-br from-purple-500 via-indigo-500 to-blue-600 text-white border-none",
       titleClassName: "text-purple-50",
       valueClassName: "text-white",
       descriptionClassName: "text-purple-100",
       badgeClassName: "bg-white/20 text-white border-white/20 backdrop-blur-sm",
-      value: formatMetricValue(displayMetrics.totalGateOut),
-      description: "Live count",
-      badgeText: "Today",
+      value: `₹${formatMetricValue(displayMetrics.saudaRate2026)}`,
+      description: "Daily Avg Trend",
+      badgeText: "Trend",
     },
     {
-      id: "pendingGateOut",
-      title: "Pending Gate Out",
-      // Orange/Amber gradient
-      className: "bg-gradient-to-br from-orange-400 to-orange-500 text-white border-none",
+      id: "monthlyGd",
+      title: "Monthly GD",
+      // Bright Green gradient
+      className: "bg-gradient-to-br from-green-400 via-green-500 to-green-600 text-white border-none",
+      titleClassName: "text-green-50",
+      valueClassName: "text-white",
+      descriptionClassName: "text-green-100",
+      badgeClassName: "bg-white/20 text-white border-white/20 backdrop-blur-sm",
+      value: `₹${formatMetricValue(displayMetrics.monthlyGd)}`,
+      description: "Gross Dispatch (Month)",
+      badgeText: "GD",
+    },
+    {
+      id: "dailyGd",
+      title: "Daily GD",
+      // Orange to Amber gradient
+      className: "bg-gradient-to-br from-orange-400 via-orange-500 to-amber-500 text-white border-none",
       titleClassName: "text-orange-50",
       valueClassName: "text-white",
       descriptionClassName: "text-orange-100",
       badgeClassName: "bg-white/20 text-white border-white/20 backdrop-blur-sm",
-      value: formatMetricValue(displayMetrics.totalPendingGateOut),
-      description: "Awaiting gate out",
+      value: `₹${formatMetricValue(displayMetrics.dailyGd)}`,
+      description: "Gross Dispatch (Today)",
+      badgeText: "GD",
+    },
+    {
+      id: "monthlyWorkingParty",
+      title: "Monthly Working Party",
+      // Cyan to Teal gradient
+      className: "bg-gradient-to-br from-cyan-400 via-cyan-500 to-teal-500 text-white border-none",
+      titleClassName: "text-cyan-50",
+      valueClassName: "text-white",
+      descriptionClassName: "text-cyan-100",
+      badgeClassName: "bg-white/20 text-white border-white/20 backdrop-blur-sm",
+      value: formatMetricValue(displayMetrics.monthlyWorkingParty),
+      description: "Active parties (Month)",
+      badgeText: "Current Month",
+    },
+    {
+      id: "monthlyPartyAverage",
+      title: "Monthly Party Average",
+      // Emerald gradient
+      className: "bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-600 text-white border-none",
+      titleClassName: "text-emerald-50",
+      valueClassName: "text-white",
+      descriptionClassName: "text-emerald-100",
+      badgeClassName: "bg-white/20 text-white border-white/20 backdrop-blur-sm",
+      value: displayMetrics.monthlyPartyAverage,
+      description: "% of 900 Users",
+      badgeText: "Utilization",
+    },
+
+
+    {
+      id: "pendingOrdersTotal",
+      title: "Parties Pending Order",
+      // Sea Green gradient
+      className: "bg-gradient-to-br from-teal-500 via-emerald-600 to-green-700 text-white border-none",
+      titleClassName: "text-teal-50",
+      valueClassName: "text-white",
+      descriptionClassName: "text-teal-100",
+      badgeClassName: "bg-white/20 text-white border-white/20 backdrop-blur-sm",
+      value: formatMetricValue(displayMetrics.pendingOrdersTotal),
+      description: "Parties with pending orders",
       badgeText: "Pending",
     },
     {
-      id: "totalDispatch",
-      title: "Total Dispatch",
-      // Indigo gradient
-      className: "bg-gradient-to-br from-indigo-500 to-indigo-600 text-white border-none",
-      titleClassName: "text-indigo-50",
+      id: "conversionRatio",
+      title: "Conversion Ratio",
+      // Pink to Rose gradient
+      className: "bg-gradient-to-br from-pink-400 via-pink-500 to-rose-600 text-white border-none",
+      titleClassName: "text-pink-50",
       valueClassName: "text-white",
-      descriptionClassName: "text-indigo-100",
+      descriptionClassName: "text-pink-100",
       badgeClassName: "bg-white/20 text-white border-white/20 backdrop-blur-sm",
-      value: formatMetricValue(displayMetrics.totalDispatchToday),
-      description: "Total rows",
-      badgeText: formatTodayDate(),
+      value: displayMetrics.conversionRatio,
+      description: "Pending % (of 900)",
+      badgeText: "Ratio",
     },
+
+
   ]
+
+  // Get all three item averages for the composite card
+  const getItemAverages = () => {
+    const summary: DashboardSummary = data?.summary || {}
+    const saudaAvgList = summary.saudaAvg || []
+    const salesAvgList = summary.salesAvg || []
+
+    const items = ['PIPE', 'STRIPS', 'BILLET']
+    return items.map(item => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const saudaAvg = saudaAvgList.find((x: any) => x.ITEM === item)?.AVERAGE || 0
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const salesAvg = salesAvgList.find((x: any) => x.ITEM === item)?.AVERAGE || 0
+      return {
+        item: item === 'STRIPS' ? 'Strip' : item === 'BILLET' ? 'Billet' : 'Pipe',
+        saudaAvg,
+        salesAvg,
+      }
+    })
+  }
+
+  const itemAverages = getItemAverages()
 
   const stateOptions = useMemo(() => {
     if (data?.filters?.states && data.filters.states.length > 0) return data.filters.states
@@ -487,10 +446,15 @@ export function DashboardView() {
           <div class="section">
             <div class="section-title">Key Performance Indicators</div>
             <div class="kpi-grid">
-              <div class="kpi-card"><div class="kpi-label">Total Gate In</div><div class="kpi-value">${metrics.totalGateIn}</div></div>
-              <div class="kpi-card"><div class="kpi-label">Total Gate Out</div><div class="kpi-value">${metrics.totalGateOut}</div></div>
-              <div class="kpi-card"><div class="kpi-label">Total Dispatch</div><div class="kpi-value">${metrics.totalDispatchToday}</div></div>
-              <div class="kpi-card"><div class="kpi-label">Pending Gate Out</div><div class="kpi-value alert">${metrics.totalPendingGateOut}</div></div>
+              <div class="kpi-card"><div class="kpi-label">Monthly Working Party</div><div class="kpi-value">${metrics.monthlyWorkingParty}</div></div>
+              <div class="kpi-card"><div class="kpi-label">Monthly Party Average</div><div class="kpi-value">${metrics.monthlyPartyAverage}</div></div>
+              <div class="kpi-card"><div class="kpi-label">Parties Pending Order</div><div class="kpi-value">${metrics.pendingOrdersTotal}</div></div>
+              <div class="kpi-card"><div class="kpi-label">Conversion Ratio</div><div class="kpi-value alert">${metrics.conversionRatio}</div></div>
+              <div class="kpi-card"><div class="kpi-label">Sauda Avg (${metrics.activeItemName})</div><div class="kpi-value">₹${metrics.saudaAvg}</div></div>
+              <div class="kpi-card"><div class="kpi-label">Sales Avg (${metrics.activeItemName})</div><div class="kpi-value">₹${metrics.salesAvg}</div></div>
+              <div class="kpi-card"><div class="kpi-label">Sauda Rate (2026)</div><div class="kpi-value">₹${metrics.saudaRate2026}</div></div>
+              <div class="kpi-card"><div class="kpi-label">Monthly GD</div><div class="kpi-value">₹${metrics.monthlyGd}</div></div>
+              <div class="kpi-card"><div class="kpi-label">Daily GD</div><div class="kpi-value">₹${metrics.dailyGd}</div></div>
             </div>
           </div>
 
@@ -503,8 +467,7 @@ export function DashboardView() {
               ${selectedItem !== "All Items" ? `<span class="filter-item">Item: ${selectedItem}</span>` : ""}
               ${selectedState !== "All States" ? `<span class="filter-item">State: ${selectedState}</span>` : ""}
               ${selectedSales !== "All Salespersons" ? `<span class="filter-item">Sales: ${selectedSales}</span>` : ""}
-              ${fromDate ? `<span class="filter-item">From: ${format(fromDate, "dd/MM/yyyy")}</span>` : ""}
-              ${toDate ? `<span class="filter-item">To: ${format(toDate, "dd/MM/yyyy")}</span>` : ""}
+              ${selectedMonth !== "All Months" ? `<span class="filter-item">Month: ${new Date(selectedMonth + "-01").toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>` : ""}
             </div>
           </div>
           `
@@ -629,482 +592,547 @@ export function DashboardView() {
     )
   }
 
-  // Handle tab change - update URL params instead of navigating
-  const handleTabChange = (value: string) => {
-    const tabValue = value as "o2d" | "lead-to-order" | "batchcode"
-    setActiveTab(tabValue)
 
-    // Update URL params without navigation
-    const newSearchParams = new URLSearchParams(searchParams)
-    if (tabValue === "o2d") {
-      newSearchParams.delete("tab")
-    } else {
-      newSearchParams.set("tab", tabValue)
-    }
-    setSearchParams(newSearchParams, { replace: true })
-  }
 
   return (
     <div className="relative space-y-4 sm:space-y-6 p-2 sm:p-4 lg:p-6" ref={dashboardRef}>
-      {loading && data && activeTab === "o2d" && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80">
-          <div className="flex items-center gap-2 text-gray-700">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            <span className="text-sm">Refreshing dashboard...</span>
+      {loading && data && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+          <div className="flex flex-col items-center justify-center space-y-4 bg-white rounded-lg shadow-2xl p-8">
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-8 h-8 border-2 border-gray-100 border-t-blue-500 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }}></div>
+              </div>
+            </div>
+            <div className="flex flex-col items-center space-y-2">
+              <p className="text-lg font-semibold text-gray-700">Loading...</p>
+              <p className="text-sm text-gray-500">Please wait</p>
+            </div>
           </div>
         </div>
       )}
-
-      {/* Tabs for Dashboard Navigation - Segmented Control Style - Full Width */}
-      <div className="mb-4 sm:mb-6">
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="inline-flex h-10 sm:h-12 items-center justify-center rounded-lg bg-gray-100 p-1 text-gray-600 w-full shadow-sm border border-gray-200">
-            <TabsTrigger
-              value="o2d"
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 sm:px-6 py-2 text-sm sm:text-base font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm flex-1"
-            >
-              O2D
-            </TabsTrigger>
-            <TabsTrigger
-              value="lead-to-order"
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 sm:px-6 py-2 text-sm sm:text-base font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm flex-1"
-            >
-              Lead to Order
-            </TabsTrigger>
-            <TabsTrigger
-              value="batchcode"
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 sm:px-6 py-2 text-sm sm:text-base font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm flex-1"
-            >
-              Batchcode
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
 
       {/* O2D Dashboard Content */}
-      {activeTab === "o2d" && (
-        <div className="space-y-4 sm:space-y-6 animate-in fade-in-50 duration-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">Dashboard</h2>
-              <p className="text-gray-600 text-sm sm:text-base">Filtered view of your O2D operations</p>
-              {lastUpdated && <p className="text-xs text-gray-500">Last updated: {lastUpdated.toLocaleTimeString()}</p>}
-            </div>
-            <div className="flex items-center gap-2">
-              <Button onClick={fetchDashboard} variant="outline" size="sm" className="flex items-center gap-1">
-                <RefreshCw className="h-4 w-4" />
-                Refresh
-              </Button>
-              <Button onClick={downloadPDF} className="flex items-center gap-2 ignore-pdf">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                Download PDF
-              </Button>
-            </div>
+      <div className="space-y-4 sm:space-y-6 animate-in fade-in-50 duration-200">
+        <div className="flex items-center justify-between">
+          <div>
+            {lastUpdated && <p className="text-xs text-gray-500">Last updated: {lastUpdated.toLocaleTimeString()}</p>}
           </div>
+          <div className="flex items-center gap-2">
+            <Button onClick={fetchDashboard} variant="outline" size="sm" className="flex items-center gap-1">
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </Button>
+            <Button onClick={downloadPDF} className="flex items-center gap-2 ignore-pdf">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              Download PDF
+            </Button>
+          </div>
+        </div>
 
-          {error && (
-            <div className="flex items-center space-x-2 p-3 bg-red-50 border border-red-200 rounded-md text-red-700">
-              <AlertCircle className="h-4 w-4" />
-              <span className="text-sm">{error}</span>
-            </div>
+        {error && (
+          <div className="flex items-center space-x-2 p-3 bg-red-50 border border-red-200 rounded-md text-red-700">
+            <AlertCircle className="h-4 w-4" />
+            <span className="text-sm">{error}</span>
+          </div>
+        )}
+
+        {/* Month Filter Section */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white p-4 rounded-lg border shadow-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-700">Select Month:</span>
+          </div>
+          <div className="flex-1 sm:w-[250px]">
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="border-indigo-200 focus:border-indigo-400 focus:ring-indigo-400">
+                <SelectValue placeholder="Select month" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All Months">All Months</SelectItem>
+                {(() => {
+                  const months = []
+                  const startDate = new Date(2025, 3, 1) // April 2025
+                  const currentDate = new Date()
+
+                  for (let d = new Date(startDate); d <= currentDate; d.setMonth(d.getMonth() + 1)) {
+                    const year = d.getFullYear()
+                    const month = d.getMonth() + 1
+                    const monthStr = month.toString().padStart(2, '0')
+                    const value = `${year}-${monthStr}`
+                    const label = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                    months.push(<SelectItem key={value} value={value}>{label}</SelectItem>)
+                  }
+
+                  return months.reverse() // Show most recent first
+                })()}
+              </SelectContent>
+            </Select>
+          </div>
+          {selectedMonth !== "All Months" && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedMonth("All Months")}
+              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+            >
+              Clear Month
+            </Button>
           )}
+        </div>
 
-          <Card className="border-l-4 border-l-indigo-500 bg-gradient-to-br from-indigo-50/30 to-white">
-            <CardHeader className="bg-gradient-to-r from-indigo-50 to-transparent">
+        {/* All Sauda Average & Sales Average - Side by Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          {/* All Sauda Average Card */}
+          <Card className="border-l-4 border-l-purple-600 bg-gradient-to-br from-purple-100 via-violet-50 to-white shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-purple-100 via-violet-100 to-transparent">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="flex items-center gap-2 text-indigo-700">
-                    <Filter className="h-4 w-4 text-indigo-600" />
-                    Filters
-                  </CardTitle>
-                  <CardDescription className="text-indigo-600/80">Filter data by party, item, salesperson, and date range</CardDescription>
-                </div>
-                {hasActiveFilters && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedParty("All Parties")
-                      setSelectedItem("All Items")
-                      setSelectedSales("All Salespersons")
-                      setSelectedState("All States")
-                      setFromDate(null)
-                      setToDate(null)
-                    }}
-                    className="ignore-pdf bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Clear All
-                  </Button>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-blue-700">Salesperson</label>
-                  <Select value={selectedSales} onValueChange={setSelectedSales}>
-                    <SelectTrigger className="border-blue-200 focus:border-blue-400 focus:ring-blue-400">
-                      <SelectValue placeholder="Select salesperson" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="All Salespersons">All Salespersons</SelectItem>
-                      {(data?.filters?.salesPersons || []).map((sales) => (
-                        <SelectItem key={sales} value={sales}>
-                          {sales}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-green-700">Party</label>
-                  <Select value={selectedParty} onValueChange={setSelectedParty}>
-                    <SelectTrigger className="border-green-200 focus:border-green-400 focus:ring-green-400">
-                      <SelectValue placeholder="Select party" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="All Parties">All Parties</SelectItem>
-                      {(data?.filters?.parties || []).map((party) => (
-                        <SelectItem key={party} value={party}>
-                          {party}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-purple-700">Item</label>
-                  <Select value={selectedItem} onValueChange={setSelectedItem}>
-                    <SelectTrigger className="border-purple-200 focus:border-purple-400 focus:ring-purple-400">
-                      <SelectValue placeholder="Select item" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="All Items">All Items</SelectItem>
-                      {(data?.filters?.items || []).map((item) => (
-                        <SelectItem key={item} value={item}>
-                          {item}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-orange-700">State</label>
-                  <Select value={selectedState} onValueChange={setSelectedState}>
-                    <SelectTrigger className="border-orange-200 focus:border-orange-400 focus:ring-orange-400">
-                      <SelectValue placeholder="Select state" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="All States">All States</SelectItem>
-                      {stateOptions.map((state) => (
-                        <SelectItem key={state} value={state}>
-                          {state}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-teal-700">From Date</label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn("w-full justify-start text-left font-normal border-teal-200 focus:border-teal-400 focus:ring-teal-400", !fromDate && "text-gray-500")}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4 text-teal-600" />
-                        {fromDate ? format(fromDate, "dd/MM/yyyy") : "Select date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar mode="single" selected={fromDate ?? undefined} onSelect={setFromDate} initialFocus />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-pink-700">To Date</label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn("w-full justify-start text-left font-normal border-pink-200 focus:border-pink-400 focus:ring-pink-400", !toDate && "text-gray-500")}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4 text-pink-600" />
-                        {toDate ? format(toDate, "dd/MM/yyyy") : "Select date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar mode="single" selected={toDate ?? undefined} onSelect={setToDate} initialFocus />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-
-              {hasActiveFilters && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {selectedParty !== "All Parties" && (
-                    <Badge variant="secondary" className="flex items-center gap-1 bg-green-100 text-green-700 border-green-200">
-                      Party: {selectedParty}
-                      <X className="h-3 w-3 cursor-pointer ignore-pdf" onClick={() => setSelectedParty("All Parties")} />
-                    </Badge>
-                  )}
-                  {selectedItem !== "All Items" && (
-                    <Badge variant="secondary" className="flex items-center gap-1 bg-purple-100 text-purple-700 border-purple-200">
-                      Item: {selectedItem}
-                      <X className="h-3 w-3 cursor-pointer ignore-pdf" onClick={() => setSelectedItem("All Items")} />
-                    </Badge>
-                  )}
-                  {selectedState !== "All States" && (
-                    <Badge variant="secondary" className="flex items-center gap-1 bg-orange-100 text-orange-700 border-orange-200">
-                      State: {selectedState}
-                      <X className="h-3 w-3 cursor-pointer ignore-pdf" onClick={() => setSelectedState("All States")} />
-                    </Badge>
-                  )}
-                  {selectedSales !== "All Salespersons" && (
-                    <Badge variant="secondary" className="flex items-center gap-1 bg-blue-100 text-blue-700 border-blue-200">
-                      Sales: {selectedSales}
-                      <X className="h-3 w-3 cursor-pointer ignore-pdf" onClick={() => setSelectedSales("All Salespersons")} />
-                    </Badge>
-                  )}
-                  {fromDate && (
-                    <Badge variant="secondary" className="flex items-center gap-1 bg-teal-100 text-teal-700 border-teal-200">
-                      From: {format(fromDate, "dd/MM/yyyy")}
-                      <X className="h-3 w-3 cursor-pointer ignore-pdf" onClick={() => setFromDate(null)} />
-                    </Badge>
-                  )}
-                  {toDate && (
-                    <Badge variant="secondary" className="flex items-center gap-1 bg-pink-100 text-pink-700 border-pink-200">
-                      To: {format(toDate, "dd/MM/yyyy")}
-                      <X className="h-3 w-3 cursor-pointer ignore-pdf" onClick={() => setToDate(null)} />
-                    </Badge>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-3 lg:gap-4">
-            {summaryCards.map((card) => (
-              <Card
-                key={card.id}
-                className={cn(
-                  "w-full overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1",
-                  card.className
-                )}
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 sm:p-5 pb-2">
-                  <CardTitle className={cn("text-xs sm:text-sm font-medium opacity-90", card.titleClassName)}>
-                    {card.title}
-                  </CardTitle>
-                  <Badge
-                    variant="secondary"
-                    className={cn("text-[10px] sm:text-xs shrink-0 font-semibold border-0", card.badgeClassName)}
-                  >
-                    {card.badgeText}
-                  </Badge>
-                </CardHeader>
-                <CardContent className="p-4 sm:p-5 pt-0">
-                  <div className={cn("text-2xl sm:text-3xl font-bold tracking-tight", card.valueClassName)}>
-                    {card.value}
-                  </div>
-                  <p className={cn("text-xs mt-1 font-medium", card.descriptionClassName)}>
-                    {card.description}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <Card className="w-full overflow-hidden">
-            <CardHeader className="p-3 sm:p-4 lg:p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div>
-                  <CardTitle className="text-sm sm:text-base lg:text-lg">Party Wise Dispatch Analytics</CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">
-                    Distribution by customer ({filteredData?.length || 0} total records)
+                  <CardTitle className="text-purple-800 font-bold">All Sauda Average</CardTitle>
+                  <CardDescription className="text-purple-700/80">
+                    Average rates for Pipe, Billet, and Strip
                   </CardDescription>
                 </div>
+                <Badge variant="secondary" className="bg-purple-200 text-purple-800 border-purple-300 font-semibold">
+                  All Items
+                </Badge>
               </div>
             </CardHeader>
-            <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
-              <ChartContainer
-                config={{
-                  value: { label: "Dispatched", color: "#0088FE" },
-                  dispatched: { label: "Dispatched", color: "#0088FE" },
-                }}
-                className="w-full"
-              >
-                <div className="w-full" style={{ minHeight: 300, minWidth: 0 }}>
-                  <ResponsiveContainer width="100%" height={300} minHeight={300}>
-                    <PieChart>
-                      <Pie
-                        data={chartData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        outerRadius="60%"
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {chartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <ChartTooltip
-                        content={({ active, payload }) => {
-                          if (active && payload && payload.length) {
-                            const datum = payload[0].payload
-                            return (
-                              <div className="bg-white border rounded-lg p-2 shadow-md">
-                                <p className="font-medium">{datum.name}</p>
-                                <p className="text-sm text-gray-600">{datum.value} dispatches</p>
-                              </div>
-                            )
-                          }
-                          return null
-                        }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Top 10 Customers</CardTitle>
-              <CardDescription>
-                Top performing customers by dispatch volume
-                {hasActiveFilters ? " (filtered results)" : ""}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto max-h-[420px]">
-                <Table>
-                  <TableHeader className="sticky top-0 z-10 bg-white">
-                    <TableRow>
-                      <TableHead className="text-xs sm:text-sm">Rank</TableHead>
-                      <TableHead className="text-xs sm:text-sm">Customer Name</TableHead>
-                      <TableHead className="text-xs sm:text-sm">Item Name</TableHead>
-                      <TableHead className="text-xs sm:text-sm">Dispatches</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {top10Customers.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center py-8 text-gray-500">
-                          No customer data available
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      top10Customers.map((customer) => (
-                        <TableRow key={customer.rank}>
-                          <TableCell className="text-xs sm:text-sm">{customer.rank}</TableCell>
-                          <TableCell className="text-xs sm:text-sm">{customer.name}</TableCell>
-                          <TableCell className="text-xs sm:text-sm">{customer.itemNames}</TableCell>
-                          <TableCell className="text-xs sm:text-sm">{customer.dispatches}</TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+            <CardContent className="p-4 sm:p-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {itemAverages.map((itemData, index) => {
+                  const gradients = [
+                    'from-indigo-500 via-indigo-600 to-blue-600',
+                    'from-red-500 via-orange-500 to-orange-600',
+                    'from-teal-500 via-cyan-500 to-cyan-600'
+                  ]
+                  return (
+                    <Card
+                      key={`sauda-${itemData.item}`}
+                      className={cn(
+                        "border-2 shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1",
+                        `bg-gradient-to-br ${gradients[index]} text-white border-none`
+                      )}
+                    >
+                      <CardHeader className="p-4 pb-2">
+                        <CardTitle className="text-sm font-semibold text-white/90 flex items-center justify-between">
+                          <span>{itemData.item}</span>
+                          <Badge variant="secondary" className="bg-white/20 text-white border-white/20 backdrop-blur-sm text-xs">
+                            Item
+                          </Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4 pt-2">
+                        <div className="space-y-1">
+                          <p className="text-xs text-white/80 font-medium">Sauda Average</p>
+                          <p className="text-3xl font-bold text-white">
+                            ₹{formatMetricValue(itemData.saudaAvg)}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Filtered Results</CardTitle>
-              <CardDescription>
-                Showing {filteredData?.length || 0} records
-                {hasActiveFilters ? " matching your filters" : " (all data)"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto max-h-[480px]">
-                <Table>
-                  <TableHeader className="sticky top-0 z-10 bg-white">
-                    <TableRow>
-                      <TableHead className="text-xs sm:text-sm">Sr. No.</TableHead>
-                      <TableHead className="text-xs sm:text-sm">Party Name</TableHead>
-                      <TableHead className="text-xs sm:text-sm">Item Name</TableHead>
-                      <TableHead className="text-xs sm:text-sm">In Date</TableHead>
-                      <TableHead className="text-xs sm:text-sm">Out Date</TableHead>
-                      <TableHead className="text-xs sm:text-sm">Gate Out Time</TableHead>
-                      <TableHead className="text-xs sm:text-sm">Order No.</TableHead>
-                      <TableHead className="text-xs sm:text-sm">Gate Pass</TableHead>
-                      <TableHead className="text-xs sm:text-sm">Invoice No.</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {!filteredData || filteredData.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={9} className="text-center py-8 text-gray-500">
-                          No records found matching your filters
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredData.map((row, index) => (
-                        <TableRow key={`${row.wslipno || row.orderVrno || index}-${index}`}>
-                          <TableCell className="text-xs sm:text-sm">{index + 1}</TableCell>
-                          <TableCell className="text-xs sm:text-sm">{row.partyName || "-"}</TableCell>
-                          <TableCell className="text-xs sm:text-sm">{row.itemName || "-"}</TableCell>
-                          <TableCell className="text-xs sm:text-sm">
-                            {row.indate ? new Date(row.indate).toLocaleDateString() : "-"}
-                          </TableCell>
-                          <TableCell className="text-xs sm:text-sm">
-                            {row.outdate ? new Date(row.outdate).toLocaleDateString() : "-"}
-                          </TableCell>
-                          <TableCell className="text-xs sm:text-sm">
-                            {row.gateOutTime ? new Date(row.gateOutTime).toLocaleString() : "-"}
-                          </TableCell>
-                          <TableCell className="text-xs sm:text-sm">{row.orderVrno || "-"}</TableCell>
-                          <TableCell className="text-xs sm:text-sm">{row.gateVrno || "-"}</TableCell>
-                          <TableCell className="text-xs sm:text-sm">{row.invoiceNo || "-"}</TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-              {filteredData && filteredData.length > 100 && (
-                <div className="mt-4 text-sm text-gray-500 text-center">
-                  Showing first 100 records of {filteredData.length} total results
+          {/* Current Month Sales Average Card */}
+          <Card className="border-l-4 border-l-orange-600 bg-gradient-to-br from-orange-100 via-amber-50 to-white shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-orange-100 via-amber-100 to-transparent">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-orange-800 font-bold">Current Month Sales Average</CardTitle>
+                  <CardDescription className="text-orange-700/80">
+                    Sales average rates for Pipe, Billet, and Strip
+                  </CardDescription>
                 </div>
+                <Badge variant="secondary" className="bg-orange-200 text-orange-800 border-orange-300 font-semibold">
+                  All Items
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {itemAverages.map((itemData, index) => {
+                  const colors = [
+                    '#099438ff', // Pipe - Light Green
+                    '#142b49ff', // Strip - Light Purple
+                    '#E3227C'  // Billet - Light Pink
+                  ]
+                  return (
+                    <Card
+                      key={`sales-${itemData.item}`}
+                      className="border-2 shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 text-white border-none"
+                      style={{ background: colors[index] }}
+                    >
+                      <CardHeader className="p-4 pb-2">
+                        <CardTitle className="text-sm font-semibold text-white/90 flex items-center justify-between">
+                          <span>{itemData.item}</span>
+                          <Badge variant="secondary" className="bg-white/20 text-white border-white/20 backdrop-blur-sm text-xs">
+                            Item
+                          </Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4 pt-2">
+                        <div className="space-y-1">
+                          <p className="text-xs text-white/80 font-medium">Sales Average</p>
+                          <p className="text-3xl font-bold text-white">
+                            ₹{formatMetricValue(itemData.salesAvg)}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-3 lg:gap-4">
+          {summaryCards.map((card) => (
+            <Card
+              key={card.id}
+              className={cn(
+                "w-full overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1",
+                card.className
               )}
-            </CardContent>
-          </Card>
+            >
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 sm:p-5 pb-2">
+                <CardTitle className={cn("text-xs sm:text-sm font-medium opacity-90", card.titleClassName)}>
+                  {card.title}
+                </CardTitle>
+                <Badge
+                  variant="secondary"
+                  className={cn("text-[10px] sm:text-xs shrink-0 font-semibold border-0", card.badgeClassName)}
+                >
+                  {card.badgeText}
+                </Badge>
+              </CardHeader>
+              <CardContent className="p-4 sm:p-5 pt-0">
+                <div className={cn("text-2xl sm:text-3xl font-bold tracking-tight", card.valueClassName)}>
+                  {card.value}
+                </div>
+                <p className={cn("text-xs mt-1 font-medium", card.descriptionClassName)}>
+                  {card.description}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-      )}
 
-      {/* Lead to Order Dashboard Content */}
-      {activeTab === "lead-to-order" && (
-        <div className="animate-in fade-in-50 duration-200">
-          <LeadToOrderDashboard />
-        </div>
-      )}
 
-      {/* Batchcode Dashboard Content */}
-      {activeTab === "batchcode" && (
-        <div className="animate-in fade-in-50 duration-200">
-          <BatchCodeDashboard />
-        </div>
-      )}
+
+        <Card className="border-l-4 border-l-indigo-500 bg-gradient-to-br from-indigo-50/30 to-white">
+          <CardHeader className="bg-gradient-to-r from-indigo-50 to-transparent">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-indigo-700">
+                  <Filter className="h-4 w-4 text-indigo-600" />
+                  Filters
+                </CardTitle>
+              </div>
+              {hasActiveFilters && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedParty("All Parties")
+                    setSelectedItem("All Items")
+                    setSelectedSales("All Salespersons")
+                    setSelectedState("All States")
+                    setSelectedMonth("All Months")
+                  }}
+                  className="ignore-pdf bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Clear All
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-blue-700">Salesperson</label>
+                <Select value={selectedSales} onValueChange={setSelectedSales}>
+                  <SelectTrigger className="border-blue-200 focus:border-blue-400 focus:ring-blue-400">
+                    <SelectValue placeholder="Select salesperson" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All Salespersons">All Salespersons</SelectItem>
+                    {(data?.filters?.salesPersons || []).map((sales) => (
+                      <SelectItem key={sales} value={sales}>
+                        {sales}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-green-700">Party</label>
+                <Select value={selectedParty} onValueChange={setSelectedParty}>
+                  <SelectTrigger className="border-green-200 focus:border-green-400 focus:ring-green-400">
+                    <SelectValue placeholder="Select party" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All Parties">All Parties</SelectItem>
+                    {(data?.filters?.parties || []).map((party) => (
+                      <SelectItem key={party} value={party}>
+                        {party}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-purple-700">Item</label>
+                <Select value={selectedItem} onValueChange={setSelectedItem}>
+                  <SelectTrigger className="border-purple-200 focus:border-purple-400 focus:ring-purple-400">
+                    <SelectValue placeholder="Select item" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All Items">All Items</SelectItem>
+                    {(data?.filters?.items || []).map((item) => (
+                      <SelectItem key={item} value={item}>
+                        {item}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-orange-700">State</label>
+                <Select value={selectedState} onValueChange={setSelectedState}>
+                  <SelectTrigger className="border-orange-200 focus:border-orange-400 focus:ring-orange-400">
+                    <SelectValue placeholder="Select state" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All States">All States</SelectItem>
+                    {stateOptions.map((state) => (
+                      <SelectItem key={state} value={state}>
+                        {state}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+
+            </div>
+
+            {hasActiveFilters && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {selectedParty !== "All Parties" && (
+                  <Badge variant="secondary" className="flex items-center gap-1 bg-green-100 text-green-700 border-green-200">
+                    Party: {selectedParty}
+                    <X className="h-3 w-3 cursor-pointer ignore-pdf" onClick={() => setSelectedParty("All Parties")} />
+                  </Badge>
+                )}
+                {selectedItem !== "All Items" && (
+                  <Badge variant="secondary" className="flex items-center gap-1 bg-purple-100 text-purple-700 border-purple-200">
+                    Item: {selectedItem}
+                    <X className="h-3 w-3 cursor-pointer ignore-pdf" onClick={() => setSelectedItem("All Items")} />
+                  </Badge>
+                )}
+                {selectedState !== "All States" && (
+                  <Badge variant="secondary" className="flex items-center gap-1 bg-orange-100 text-orange-700 border-orange-200">
+                    State: {selectedState}
+                    <X className="h-3 w-3 cursor-pointer ignore-pdf" onClick={() => setSelectedState("All States")} />
+                  </Badge>
+                )}
+                {selectedSales !== "All Salespersons" && (
+                  <Badge variant="secondary" className="flex items-center gap-1 bg-blue-100 text-blue-700 border-blue-200">
+                    Sales: {selectedSales}
+                    <X className="h-3 w-3 cursor-pointer ignore-pdf" onClick={() => setSelectedSales("All Salespersons")} />
+                  </Badge>
+                )}
+                {selectedMonth !== "All Months" && (
+                  <Badge variant="secondary" className="flex items-center gap-1 bg-indigo-100 text-indigo-700 border-indigo-200">
+                    Month: {new Date(selectedMonth + "-01").toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    <X className="h-3 w-3 cursor-pointer ignore-pdf" onClick={() => setSelectedMonth("All Months")} />
+                  </Badge>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+
+
+        <Card className="w-full overflow-hidden border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-50/30 to-white">
+          <CardHeader className="p-3 sm:p-4 lg:p-6 bg-gradient-to-r from-blue-50 to-transparent">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <CardTitle className="text-sm sm:text-base lg:text-lg text-blue-700">Party Wise Dispatch Analytics</CardTitle>
+                <CardDescription className="text-xs sm:text-sm text-blue-600/80">
+                  Distribution by customer ({filteredData?.length || 0} total records)
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
+            <ChartContainer
+              config={{
+                value: { label: "Dispatched", color: "#0088FE" },
+                dispatched: { label: "Dispatched", color: "#0088FE" },
+              }}
+              className="w-full"
+            >
+              <div className="w-full" style={{ minHeight: 300, minWidth: 0 }}>
+                <ResponsiveContainer width="100%" height={300} minHeight={300}>
+                  <PieChart>
+                    <Pie
+                      data={chartData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius="60%"
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <ChartTooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const datum = payload[0].payload
+                          return (
+                            <div className="bg-white border rounded-lg p-2 shadow-md">
+                              <p className="font-medium">{datum.name}</p>
+                              <p className="text-sm text-gray-600">{datum.value} dispatches</p>
+                            </div>
+                          )
+                        }
+                        return null
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-purple-500 bg-gradient-to-br from-purple-50/30 to-white">
+          <CardHeader className="bg-gradient-to-r from-purple-50 to-transparent">
+            <CardTitle className="text-purple-700">Top 10 Customers</CardTitle>
+            <CardDescription className="text-purple-600/80">
+              Top performing customers by dispatch volume
+              {hasActiveFilters ? " (filtered results)" : ""}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto max-h-[420px]">
+              <Table>
+                <TableHeader className="sticky top-0 z-10 bg-white">
+                  <TableRow>
+                    <TableHead className="text-xs sm:text-sm">Rank</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Customer Name</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Item Name</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Dispatches</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {top10Customers.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                        No customer data available
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    top10Customers.map((customer) => (
+                      <TableRow key={customer.rank}>
+                        <TableCell className="text-xs sm:text-sm">{customer.rank}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">{customer.name}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">{customer.itemNames}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">{customer.dispatches}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-emerald-500 bg-gradient-to-br from-emerald-50/30 to-white">
+          <CardHeader className="bg-gradient-to-r from-emerald-50 to-transparent">
+            <CardTitle className="text-emerald-700">Filtered Results</CardTitle>
+            <CardDescription className="text-emerald-600/80">
+              Showing {filteredData?.length || 0} records
+              {hasActiveFilters ? " matching your filters" : " (all data)"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto max-h-[480px]">
+              <Table>
+                <TableHeader className="sticky top-0 z-10 bg-white">
+                  <TableRow>
+                    <TableHead className="text-xs sm:text-sm">Sr. No.</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Party Name</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Item Name</TableHead>
+                    <TableHead className="text-xs sm:text-sm">In Date</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Out Date</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Gate Out Time</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Order No.</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Gate Pass</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Invoice No.</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {!filteredData || filteredData.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center py-8 text-gray-500">
+                        No records found matching your filters
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredData.map((row, index) => (
+                      <TableRow key={`${row.wslipno || row.orderVrno || index}-${index}`}>
+                        <TableCell className="text-xs sm:text-sm">{index + 1}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">{row.partyName || "-"}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">{row.itemName || "-"}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">
+                          {row.indate ? new Date(row.indate).toLocaleDateString() : "-"}
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm">
+                          {row.outdate ? new Date(row.outdate).toLocaleDateString() : "-"}
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm">
+                          {row.gateOutTime ? new Date(row.gateOutTime).toLocaleString() : "-"}
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm">{row.orderVrno || "-"}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">{row.gateVrno || "-"}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">{row.invoiceNo || "-"}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            {filteredData && filteredData.length > 100 && (
+              <div className="mt-4 text-sm text-gray-500 text-center">
+                Showing first 100 records of {filteredData.length} total results
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

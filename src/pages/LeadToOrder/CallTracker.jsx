@@ -34,7 +34,7 @@ function CallTracker() {
   const [currentStageFilter, setCurrentStageFilter] = useState([])
   const [availableEnquiryNos, setAvailableEnquiryNos] = useState([])
   const [apiUserType, setApiUserType] = useState(null) // Store userType from API
-  
+
   // Company, Person, and Phone filters (for pending tab)
   const [companyFilter, setCompanyFilter] = useState("all")
   const [personFilter, setPersonFilter] = useState("all")
@@ -338,208 +338,185 @@ function CallTracker() {
     }
   }, [])
 
-  // Keep sidebar hidden when modal is open
-  useEffect(() => {
-    if (showCallTrackerModal) {
-      document.body.style.overflow = 'hidden'
-      const navContainer = document.getElementById('main-nav-container')
-      if (navContainer) {
-        navContainer.style.display = 'none'
-      }
-      const sidebar = document.querySelector('aside')
-      if (sidebar) {
-        sidebar.style.display = 'none'
-      }
-    } else {
-      document.body.style.overflow = 'auto'
-      const navContainer = document.getElementById('main-nav-container')
-      if (navContainer) {
-        navContainer.style.display = 'block'
-      }
-      const sidebar = document.querySelector('aside')
-      if (sidebar) {
-        sidebar.style.display = ''
-      }
-    }
-  }, [showCallTrackerModal])
+
 
   // Function to fetch data from FMS and Enquiry Tracker sheets
-// ================================
-// FIXED FETCH FUNCTION WITH MAPPING
-// ================================
-// ================================
-// FIXED FETCH FUNCTION WITH MAPPING AND CORS FIX
-// ================================
-useEffect(() => {
-  const fetchCallTrackerData = async () => {
-    try {
-      setIsLoading(true);
+  // ================================
+  // FIXED FETCH FUNCTION WITH MAPPING
+  // ================================
+  // ================================
+  // FIXED FETCH FUNCTION WITH MAPPING AND CORS FIX
+  // ================================
+  useEffect(() => {
+    const fetchCallTrackerData = async () => {
+      try {
+        setIsLoading(true);
 
-      // ---------------------------------------------
-      // 🔵 1) MAP PENDING (FMS LEADS) ROWS
-      // ---------------------------------------------
-      const mapPending = (row) => ({
-        id: row.id,
-        timestamp: row.created_at,
-        leadId: row.lead_no,
-        receiverName: row.lead_receiver_name,
-        leadSource: row.lead_source,
-        phoneNumber: row.phone_number,
-        salespersonName: row.salesperson_name,
-        companyName: row.company_name,
-        currentStage: row.current_stage,
-        callingDate: row.next_call_date
-          ? formatDateToDDMMYYYY(row.next_call_date)
-          : "",
-        assignedTo: row.sc_name,
-        itemQty: row.item_qty,
-        priority: determinePriority(row.lead_source),
-      });
+        // ---------------------------------------------
+        // 🔵 1) MAP PENDING (FMS LEADS) ROWS
+        // ---------------------------------------------
+        const mapPending = (row) => ({
+          id: row.id,
+          timestamp: row.created_at,
+          leadId: row.lead_no,
+          receiverName: row.lead_receiver_name,
+          leadSource: row.lead_source,
+          phoneNumber: row.phone_number,
+          salespersonName: row.salesperson_name,
+          companyName: row.company_name,
+          currentStage: row.current_stage,
+          callingDate: row.next_call_date
+            ? formatDateToDDMMYYYY(row.next_call_date)
+            : "",
+          assignedTo: row.sc_name,
+          itemQty: row.item_qty,
+          priority: determinePriority(row.lead_source),
+        });
 
-      // ---------------------------------------------
-      // 🔵 2) MAP DIRECT ENQUIRY PENDING (enquiry_to_order)
-      // ---------------------------------------------
-      const mapDirect = (row) => ({
-        id: row.id,
-        timestamp: row.timestamp,
-        leadId: row.en_enquiry_no,
-        leadSource: row.lead_source,
-        companyName: row.company_name,
-        enquiryReceiverName: row.enquiry_receiver_name,
-        currentStage: row.current_stage,
-        callingDate1: row.next_call_date
-          ? formatDateToDDMMYYYY(row.next_call_date)
-          : "",
-        itemQty: row.item_qty,
-        priority: determinePriority(row.lead_source),
-      });
+        // ---------------------------------------------
+        // 🔵 2) MAP DIRECT ENQUIRY PENDING (enquiry_to_order)
+        // ---------------------------------------------
+        const mapDirect = (row) => ({
+          id: row.id,
+          timestamp: row.timestamp,
+          leadId: row.en_enquiry_no,
+          leadSource: row.lead_source,
+          companyName: row.company_name,
+          enquiryReceiverName: row.enquiry_receiver_name,
+          currentStage: row.current_stage,
+          callingDate1: row.next_call_date
+            ? formatDateToDDMMYYYY(row.next_call_date)
+            : "",
+          itemQty: row.item_qty,
+          priority: determinePriority(row.lead_source),
+        });
 
-      // ---------------------------------------------
-      // 🔵 3) MAP HISTORY (enquiry_tracker)
-      // ---------------------------------------------
-      const mapHistory = (row) => ({
-        id: row.id,
-        timestamp: row.timestamp,
-        enquiryNo: row.enquiry_no,
-        enquiryStatus: row.enquiry_status,
-        companyName: row.party_name || "",
-        salesPersonName: row.sales_person_name || "",
-        customerFeedback: row.what_did_customer_say,
-        currentStage: row.current_stage,
-        nextCallDate: row.next_call_date
-          ? formatDateToDDMMYYYY(row.next_call_date)
-          : "",
-        nextCallTime: row.next_call_time,
-        orderStatus: row.is_order_received_status,
-        acceptanceVia: row.acceptance_via,
-        paymentMode: row.payment_mode,
-        paymentTerms: row.payment_terms_in_days,
-        transportMode: row.transport_mode,
-        orderRemark: row.remark,
-        reasonStatus: row.if_no_relevant_reason_status,
-        reasonRemark: row.if_no_relevant_reason_remark,
-        holdReason: row.customer_order_hold_reason_category,
-        holdingDate: row.holding_date
-          ? formatDateToDDMMYYYY(row.holding_date)
-          : "",
-        holdRemark: row.hold_remark,
-      });
+        // ---------------------------------------------
+        // 🔵 3) MAP HISTORY (enquiry_tracker)
+        // ---------------------------------------------
+        const mapHistory = (row) => ({
+          id: row.id,
+          timestamp: row.timestamp,
+          enquiryNo: row.enquiry_no,
+          enquiryStatus: row.enquiry_status,
+          companyName: row.party_name || "",
+          salesPersonName: row.sales_person_name || "",
+          customerFeedback: row.what_did_customer_say,
+          currentStage: row.current_stage,
+          nextCallDate: row.next_call_date
+            ? formatDateToDDMMYYYY(row.next_call_date)
+            : "",
+          nextCallTime: row.next_call_time,
+          orderStatus: row.is_order_received_status,
+          acceptanceVia: row.acceptance_via,
+          paymentMode: row.payment_mode,
+          paymentTerms: row.payment_terms_in_days,
+          transportMode: row.transport_mode,
+          orderRemark: row.remark,
+          reasonStatus: row.if_no_relevant_reason_status,
+          reasonRemark: row.if_no_relevant_reason_remark,
+          holdReason: row.customer_order_hold_reason_category,
+          holdingDate: row.holding_date
+            ? formatDateToDDMMYYYY(row.holding_date)
+            : "",
+          holdRemark: row.hold_remark,
+        });
 
-      // Use centralized API service with Promise.allSettled for error resilience
-      const [pendingResponse, directResponse, historyResponse] = await Promise.allSettled([
-        leadToOrderAPI.getPendingFMS(),
-        leadToOrderAPI.getDirectEnquiryPending(),
-        leadToOrderAPI.getEnquiryHistory()
-      ]);
+        // Use centralized API service with Promise.allSettled for error resilience
+        const [pendingResponse, directResponse, historyResponse] = await Promise.allSettled([
+          leadToOrderAPI.getPendingFMS(),
+          leadToOrderAPI.getDirectEnquiryPending(),
+          leadToOrderAPI.getEnquiryHistory()
+        ]);
 
-      // Handle pending response
-      if (pendingResponse.status === 'fulfilled') {
-        const pendingData = pendingResponse.value?.data;
-        
-        // Check if response is HTML
-        if (typeof pendingData === 'string' && (pendingData.trim().startsWith('<!DOCTYPE') || pendingData.trim().startsWith('<html'))) {
-          console.warn("Backend returned HTML instead of JSON for pending FMS. Using empty data.");
-          setPendingCallTrackers([]);
-        } else if (pendingData?.success && Array.isArray(pendingData.data)) {
-          // Store userType from API response
-          if (pendingData.userType) {
-            setApiUserType(pendingData.userType);
+        // Handle pending response
+        if (pendingResponse.status === 'fulfilled') {
+          const pendingData = pendingResponse.value?.data;
+
+          // Check if response is HTML
+          if (typeof pendingData === 'string' && (pendingData.trim().startsWith('<!DOCTYPE') || pendingData.trim().startsWith('<html'))) {
+            console.warn("Backend returned HTML instead of JSON for pending FMS. Using empty data.");
+            setPendingCallTrackers([]);
+          } else if (pendingData?.success && Array.isArray(pendingData.data)) {
+            // Store userType from API response
+            if (pendingData.userType) {
+              setApiUserType(pendingData.userType);
+            }
+            setPendingCallTrackers((pendingData.data || []).map(mapPending));
+          } else {
+            setPendingCallTrackers([]);
           }
-          setPendingCallTrackers((pendingData.data || []).map(mapPending));
         } else {
+          console.warn("Error fetching pending FMS:", pendingResponse.reason);
           setPendingCallTrackers([]);
         }
-      } else {
-        console.warn("Error fetching pending FMS:", pendingResponse.reason);
+
+        // Handle direct enquiry pending response
+        if (directResponse.status === 'fulfilled') {
+          const directData = directResponse.value?.data;
+
+          // Check if response is HTML
+          if (typeof directData === 'string' && (directData.trim().startsWith('<!DOCTYPE') || directData.trim().startsWith('<html'))) {
+            console.warn("Backend returned HTML instead of JSON for direct enquiry. Using empty data.");
+            setDirectEnquiryPendingTrackers([]);
+          } else if (directData?.success && Array.isArray(directData.data)) {
+            setDirectEnquiryPendingTrackers((directData.data || []).map(mapDirect));
+          } else {
+            setDirectEnquiryPendingTrackers([]);
+          }
+        } else {
+          console.warn("Error fetching direct enquiry:", directResponse.reason);
+          setDirectEnquiryPendingTrackers([]);
+        }
+
+        // Handle history response
+        if (historyResponse.status === 'fulfilled') {
+          const historyData = historyResponse.value?.data;
+
+          // Check if response is HTML
+          if (typeof historyData === 'string' && (historyData.trim().startsWith('<!DOCTYPE') || historyData.trim().startsWith('<html'))) {
+            console.warn("Backend returned HTML instead of JSON for enquiry history. Using empty data.");
+            setHistoryCallTrackers([]);
+          } else if (historyData?.success && Array.isArray(historyData.data)) {
+            setHistoryCallTrackers((historyData.data || []).map(mapHistory));
+          } else {
+            setHistoryCallTrackers([]);
+          }
+        } else {
+          console.warn("Error fetching enquiry history:", historyResponse.reason);
+          setHistoryCallTrackers([]);
+        }
+
+        // Build Enquiry number dropdown list from successfully fetched data
+        const allNos = new Set();
+
+        if (pendingResponse.status === 'fulfilled' && pendingResponse.value?.data?.success) {
+          (pendingResponse.value.data.data || []).forEach((i) => i.lead_no && allNos.add(i.lead_no));
+        }
+        if (directResponse.status === 'fulfilled' && directResponse.value?.data?.success) {
+          (directResponse.value.data.data || []).forEach((i) => i.en_enquiry_no && allNos.add(i.en_enquiry_no));
+        }
+        if (historyResponse.status === 'fulfilled' && historyResponse.value?.data?.success) {
+          (historyResponse.value.data.data || []).forEach((i) => i.enquiry_no && allNos.add(i.enquiry_no));
+        }
+
+        setAvailableEnquiryNos(Array.from(allNos).sort());
+
+      } catch (err) {
+        console.error("Frontend Fetch Error:", err);
         setPendingCallTrackers([]);
-      }
-
-      // Handle direct enquiry pending response
-      if (directResponse.status === 'fulfilled') {
-        const directData = directResponse.value?.data;
-        
-        // Check if response is HTML
-        if (typeof directData === 'string' && (directData.trim().startsWith('<!DOCTYPE') || directData.trim().startsWith('<html'))) {
-          console.warn("Backend returned HTML instead of JSON for direct enquiry. Using empty data.");
-          setDirectEnquiryPendingTrackers([]);
-        } else if (directData?.success && Array.isArray(directData.data)) {
-          setDirectEnquiryPendingTrackers((directData.data || []).map(mapDirect));
-        } else {
-          setDirectEnquiryPendingTrackers([]);
-        }
-      } else {
-        console.warn("Error fetching direct enquiry:", directResponse.reason);
         setDirectEnquiryPendingTrackers([]);
-      }
-
-      // Handle history response
-      if (historyResponse.status === 'fulfilled') {
-        const historyData = historyResponse.value?.data;
-        
-        // Check if response is HTML
-        if (typeof historyData === 'string' && (historyData.trim().startsWith('<!DOCTYPE') || historyData.trim().startsWith('<html'))) {
-          console.warn("Backend returned HTML instead of JSON for enquiry history. Using empty data.");
-          setHistoryCallTrackers([]);
-        } else if (historyData?.success && Array.isArray(historyData.data)) {
-          setHistoryCallTrackers((historyData.data || []).map(mapHistory));
-        } else {
-          setHistoryCallTrackers([]);
-        }
-      } else {
-        console.warn("Error fetching enquiry history:", historyResponse.reason);
         setHistoryCallTrackers([]);
+      } finally {
+        setIsLoading(false);
       }
+    };
 
-      // Build Enquiry number dropdown list from successfully fetched data
-      const allNos = new Set();
-      
-      if (pendingResponse.status === 'fulfilled' && pendingResponse.value?.data?.success) {
-        (pendingResponse.value.data.data || []).forEach((i) => i.lead_no && allNos.add(i.lead_no));
-      }
-      if (directResponse.status === 'fulfilled' && directResponse.value?.data?.success) {
-        (directResponse.value.data.data || []).forEach((i) => i.en_enquiry_no && allNos.add(i.en_enquiry_no));
-      }
-      if (historyResponse.status === 'fulfilled' && historyResponse.value?.data?.success) {
-        (historyResponse.value.data.data || []).forEach((i) => i.enquiry_no && allNos.add(i.enquiry_no));
-      }
-
-      setAvailableEnquiryNos(Array.from(allNos).sort());
-
-    } catch (err) {
-      console.error("Frontend Fetch Error:", err);
-      setPendingCallTrackers([]);
-      setDirectEnquiryPendingTrackers([]);
-      setHistoryCallTrackers([]);
-    } finally {
-      setIsLoading(false);
+    if (currentUser) {
+      fetchCallTrackerData();
     }
-  };
-
-  if (currentUser) {
-    fetchCallTrackerData();
-  }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [currentUser, userType, currentUser?.role]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser, userType, currentUser?.role]);
 
 
   // Enhanced filter function for search and dropdown filters
@@ -1070,22 +1047,22 @@ useEffect(() => {
           )}
 
           {/* Clear Filters Button */}
-          {(callingDaysFilter.length > 0 || enquiryNoFilter.length > 0 || currentStageFilter.length > 0 || 
+          {(callingDaysFilter.length > 0 || enquiryNoFilter.length > 0 || currentStageFilter.length > 0 ||
             (activeTab === "pending" && (companyFilter !== "all" || personFilter !== "all" || phoneFilter !== "all"))) && (
-            <button
-              className="px-3 py-2 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              onClick={() => {
-                setCallingDaysFilter([])
-                setEnquiryNoFilter([])
-                setCurrentStageFilter([])
-                setCompanyFilter("all")
-                setPersonFilter("all")
-                setPhoneFilter("all")
-              }}
-            >
-              Clear Filters
-            </button>
-          )}
+              <button
+                className="px-3 py-2 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                onClick={() => {
+                  setCallingDaysFilter([])
+                  setEnquiryNoFilter([])
+                  setCurrentStageFilter([])
+                  setCompanyFilter("all")
+                  setPersonFilter("all")
+                  setPhoneFilter("all")
+                }}
+              >
+                Clear Filters
+              </button>
+            )}
 
           <button
             className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
@@ -1229,14 +1206,14 @@ useEffect(() => {
                           </th>
                         )} */}
 
-{(apiUserType === "admin" || isAdmin()) && (
-  <th
-    scope="col"
-    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-  >
-    Assigned To
-  </th>
-)}
+                        {(apiUserType === "admin" || isAdmin()) && (
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Assigned To
+                          </th>
+                        )}
                         <th
                           scope="col"
                           className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -1251,7 +1228,7 @@ useEffect(() => {
                           <tr key={tracker.id} className="hover:bg-slate-50">
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                               <div className="flex space-x-2">
-                                <button 
+                                <button
                                   onClick={(e) => {
                                     e.preventDefault()
                                     e.stopPropagation()
@@ -1404,7 +1381,7 @@ useEffect(() => {
                           <tr key={tracker.id} className="hover:bg-slate-50">
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                               <div className="flex space-x-2">
-                                <button 
+                                <button
                                   onClick={(e) => {
                                     e.preventDefault()
                                     e.stopPropagation()
@@ -2036,57 +2013,40 @@ useEffect(() => {
 
       {/* Call Tracker Modal (Process Button) */}
       {showCallTrackerModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4" style={{ left: 0, marginLeft: 0 }}>
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b sticky top-0 bg-white z-10">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold">Call Tracker</h2>
-                <button 
-                  onClick={() => {
-                    setShowCallTrackerModal(false)
-                    setSelectedLeadForCallTracker(null)
-                    document.body.style.overflow = 'auto'
-                    // Show sidebar
-                    const navContainer = document.getElementById('main-nav-container')
-                    if (navContainer) {
-                      navContainer.style.display = 'block'
-                    }
-                    const sidebar = document.querySelector('aside')
-                    if (sidebar) {
-                      sidebar.style.display = ''
-                    }
-                  }} 
-                  className="text-gray-500 hover:text-gray-700"
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4" style={{ left: 0, marginLeft: 0 }}>
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative">
+            <div className="p-6 border-b sticky top-0 bg-white z-10 flex justify-between items-center">
+              <h2 className="text-xl font-bold">Call Tracker</h2>
+              <button
+                onClick={() => {
+                  setShowCallTrackerModal(false)
+                  setSelectedLeadForCallTracker(null)
+                  document.body.style.overflow = 'auto'
+                }}
+                className="text-gray-500 hover:text-gray-700 focus:outline-none"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
             <div className="p-0">
-              <NewCallTracker leadId={selectedLeadForCallTracker} onClose={() => {
-                setShowCallTrackerModal(false)
-                setSelectedLeadForCallTracker(null)
-                document.body.style.overflow = 'auto'
-                // Show sidebar
-                const navContainer = document.getElementById('main-nav-container')
-                if (navContainer) {
-                  navContainer.style.display = 'block'
-                }
-                const sidebar = document.querySelector('aside')
-                if (sidebar) {
-                  sidebar.style.display = ''
-                }
-                // Refresh page data
-                window.location.reload()
-              }} />
+              <NewCallTracker
+                leadId={selectedLeadForCallTracker}
+                onClose={() => {
+                  setShowCallTrackerModal(false)
+                  setSelectedLeadForCallTracker(null)
+                  document.body.style.overflow = 'auto'
+                  // Refresh page data
+                  window.location.reload()
+                }}
+              />
             </div>
           </div>
         </div>

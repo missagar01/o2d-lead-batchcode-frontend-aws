@@ -151,10 +151,16 @@ const isPathAllowed = (
 };
 
 const AppSidebar: FC = () => {
-  const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+  const { isExpanded, isMobileOpen, isHovered, setIsHovered, toggleMobileSidebar } = useSidebar();
   const location = useLocation();
   const { logout, user } = useAuth();
   const isAdmin = useMemo(() => isAdminUser(user), [user]);
+
+  const handleLinkClick = useCallback(() => {
+    if (isMobileOpen) {
+      toggleMobileSidebar();
+    }
+  }, [isMobileOpen, toggleMobileSidebar]);
 
   const leadToOrderNavItem = useMemo(() => {
     // Filter subItems based on page_access
@@ -294,127 +300,109 @@ const AppSidebar: FC = () => {
     [location.pathname, location.search]
   );
 
-  // Determine menu item color based on name
-  const getMenuColor = (name: string) => {
-    if (name === "O2D") {
-      return {
-        activeBg: "bg-indigo-600",
-        defaultBg: "bg-indigo-50",
-        activeText: "text-white",
-        hoverBg: "hover:bg-indigo-100",
-        text: "text-gray-700",
-        badgeBg: "bg-indigo-300 text-indigo-900"
-      };
-    }
-    if (name === "BatchCode") {
-      return {
-        activeBg: "bg-blue-600",
-        defaultBg: "bg-blue-50",
-        activeText: "text-white",
-        hoverBg: "hover:bg-blue-100",
-        text: "text-gray-700",
-        badgeBg: "bg-blue-300 text-blue-900"
-      };
-    }
-    if (name === "Lead to Order") {
-      return {
-        activeBg: "bg-emerald-600",
-        defaultBg: "bg-emerald-50",
-        activeText: "text-white",
-        hoverBg: "hover:bg-emerald-100",
-        text: "text-gray-700",
-        badgeBg: "bg-emerald-300 text-emerald-900"
-      };
-    }
-    // Default for Dashboard
+  // Determine menu item color based on name - unified professional look
+  const getMenuColor = () => {
     return {
-      activeBg: "bg-gray-800",
-      defaultBg: "bg-gray-50",
+      activeBg: "bg-blue-600",
+      defaultBg: "bg-transparent",
       activeText: "text-white",
-      hoverBg: "hover:bg-gray-100",
-      text: "text-gray-700",
-      badgeBg: "bg-gray-300 text-gray-900"
+      hoverBg: "hover:bg-blue-50",
+      text: "text-gray-600",
+      iconColor: "text-gray-500",
+      activeIconColor: "text-white",
+      badgeBg: "bg-blue-100 text-blue-700"
     };
   };
 
   const renderMenuItems = (items: NavItem[]) => (
-    <ul className="flex flex-col gap-1.5">
+    <ul className="flex flex-col gap-1 px-3">
       {items.map((nav) => {
-        const menuColor = getMenuColor(nav.name);
-        const isMainActive =
-          (nav.path && isActive(nav.path)) ||
-          (nav.subItems &&
-            nav.subItems.some((subItem) => isActive(subItem.path)));
-        const baseClasses = `rounded-lg transition-all duration-200 text-sm flex items-center gap-3 font-medium`;
-        const activeClass = `${menuColor.activeBg} ${menuColor.activeText} shadow-md`;
-        const inactiveClass = `${menuColor.text} ${menuColor.defaultBg} ${menuColor.hoverBg}`;
+        const menuColor = getMenuColor();
+        const isMainActive = nav.path && isActive(nav.path);
+
+        // Check if any child is active to highlight parent subtly if needed
+        const isChildActive = nav.subItems?.some(sub => isActive(sub.path));
+
+        const baseClasses = `rounded-md transition-all duration-200 text-sm flex items-center gap-3 font-medium cursor-pointer select-none`;
+
+        // Active Styles
+        const activeClass = `${menuColor.activeBg} ${menuColor.activeText} shadow-sm`;
+
+        // Inactive Styles (but parent of active child gets subtle highlight)
+        const inactiveClass = isChildActive
+          ? `bg-blue-50 text-blue-700`
+          : `${menuColor.text} ${menuColor.defaultBg} ${menuColor.hoverBg}`;
+
         const linkTarget = nav.path ?? "#";
+        const hasSubItems = nav.subItems && nav.subItems.length > 0;
+        // Always expanded as requested
+        const isExpandedState = true;
 
         return (
-          <li key={nav.name}>
+          <li key={nav.name} className="mb-1">
             {nav.path ? (
               <Link
                 to={linkTarget}
-                className={`${baseClasses} px-3 py-2 flex-1 ${isMainActive ? activeClass : inactiveClass
-                  }`}
+                onClick={handleLinkClick}
+                className={`${baseClasses} px-3 py-2.5 w-full ${isMainActive ? activeClass : inactiveClass}`}
               >
                 <span
-                  className={`menu-item-icon-size ${isMainActive ? menuColor.activeText : menuColor.text
-                    }`}
+                  className={`menu-item-icon-size flex-shrink-0 ${isMainActive ? menuColor.activeIconColor : (isChildActive ? "text-blue-600" : menuColor.iconColor)}`}
                 >
                   {nav.icon}
                 </span>
                 {(isExpanded || isHovered || isMobileOpen) && (
-                  <span className="flex-1">{nav.name}</span>
+                  <span className="flex-1 truncate">{nav.name}</span>
                 )}
               </Link>
             ) : (
               <div
-                className={`${baseClasses} px-3 py-2 flex-1 justify-between ${isMainActive ? activeClass : inactiveClass
-                  }`}
+                className={`${baseClasses} px-3 py-2.5 w-full ${isChildActive ? "text-blue-700 bg-blue-50/50" : "text-gray-500 hover:text-gray-700"}`}
               >
-                <span className="flex items-center gap-3">
+                <div className="flex items-center gap-3 w-full overflow-hidden">
                   <span
-                    className={`menu-item-icon-size ${isMainActive ? menuColor.activeText : menuColor.text
-                      }`}
+                    className={`menu-item-icon-size flex-shrink-0 ${isChildActive ? "text-blue-600" : "text-gray-400"}`}
                   >
                     {nav.icon}
                   </span>
                   {(isExpanded || isHovered || isMobileOpen) && (
-                    <span>{nav.name}</span>
+                    <span className="flex-1 font-semibold uppercase text-xs tracking-wider truncate">{nav.name}</span>
                   )}
-                </span>
+                </div>
               </div>
             )}
-            {nav.subItems && (isExpanded || isHovered || isMobileOpen) && (
-              <ul className="mt-2 space-y-1 ml-4 pl-4 border-l-2 border-gray-300">
-                {nav.subItems.map((subItem) => {
+
+            {/* Always show subitems if present and sidebar is open */}
+            {hasSubItems && (isExpanded || isHovered || isMobileOpen) && (
+              <ul className="mt-1 space-y-0.5 relative ml-5 pl-3 border-l-2 border-gray-100">
+                {nav.subItems?.map((subItem) => {
                   const isSubActive = isActive(subItem.path);
                   return (
                     <li key={subItem.name}>
                       <Link
                         to={subItem.path}
-                        className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors duration-200 ${isSubActive
-                          ? `${menuColor.activeBg} ${menuColor.activeText} shadow-sm`
-                          : `${menuColor.text} hover:bg-gray-100 hover:text-gray-900`
+                        onClick={handleLinkClick}
+                        className={`flex items-center justify-between rounded-md px-3 py-2 text-[13px] font-medium transition-colors duration-200 ${isSubActive
+                          ? "bg-blue-50 text-blue-700"
+                          : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
                           }`}
                       >
-                        <span className="flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50"></span>
-                          <span>{subItem.name}</span>
-                        </span>
-                        <span className="flex items-center gap-1 ml-2 text-xs font-semibold uppercase">
-                          {subItem.new && (
-                            <span className={`${menuColor.badgeBg} px-2 py-0.5 rounded-full text-xs`}>
-                              new
-                            </span>
-                          )}
-                          {subItem.pro && (
-                            <span className={`${menuColor.badgeBg} px-2 py-0.5 rounded-full text-xs`}>
-                              pro
-                            </span>
-                          )}
-                        </span>
+                        <span className="truncate">{subItem.name}</span>
+                        {/* Badges */}
+                        {(subItem.new || subItem.pro) && (
+                          <span className="flex items-center gap-1 ml-2 text-[10px] font-bold uppercase transition-opacity">
+                            {subItem.new && (
+                              <span className="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded shadow-sm">
+                                NEW
+                              </span>
+                            )}
+                            {subItem.pro && (
+                              <span className="bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded shadow-sm">
+                                PRO
+                              </span>
+                            )}
+                          </span>
+                        )}
                       </Link>
                     </li>
                   );
@@ -444,10 +432,10 @@ const AppSidebar: FC = () => {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div
-        className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+        className={`pt-6 pb-2 px-6 flex ${!isExpanded && !isHovered ? "justify-center" : "justify-start"
           }`}
       >
-        <Link to="/">
+        <Link to="/" onClick={handleLinkClick}>
           <img
             src={logo}
             alt="SAGAR TMT & PIPES Logo"
@@ -459,17 +447,16 @@ const AppSidebar: FC = () => {
           />
         </Link>
       </div>
-      <div className="flex flex-col flex-1 overflow-y-auto duration-300 ease-linear no-scrollbar">
-        <nav className="mb-6">
-          <div className="px-2 py-4 space-y-3">
+      <div className="flex flex-col flex-1 overflow-y-auto duration-300 ease-linear no-scrollbar py-4">
+        <nav className="space-y-6">
+          <div className="space-y-1">
             <div
-              className={`mb-2 text-xs uppercase text-gray-500 flex items-center gap-2 ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-                }`}
+              className={`px-6 mb-2 text-xs font-semibold tracking-wider text-gray-400 uppercase ${!isExpanded && !isHovered ? "text-center" : "text-left"}`}
             >
               {isExpanded || isHovered || isMobileOpen ? (
-                "Menu"
+                "Main Menu"
               ) : (
-                <HorizontaLDots className="text-gray-500" />
+                <HorizontaLDots className="mx-auto" />
               )}
             </div>
             {renderMenuItems(navItems)}
@@ -481,7 +468,7 @@ const AppSidebar: FC = () => {
       <div className="mt-auto pb-4 pt-4 border-t border-gray-200">
         <button
           onClick={logout}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900 ${isExpanded || isHovered || isMobileOpen
+          className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors duration-200 text-red-600 hover:bg-red-50 ${isExpanded || isHovered || isMobileOpen
             ? "justify-start"
             : "justify-center"
             }`}
@@ -489,7 +476,7 @@ const AppSidebar: FC = () => {
         >
           <LogOut className="h-5 w-5 flex-shrink-0" />
           {(isExpanded || isHovered || isMobileOpen) && (
-            <span>Logout</span>
+            <span>Sign Out</span>
           )}
         </button>
       </div>
