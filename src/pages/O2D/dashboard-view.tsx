@@ -796,37 +796,206 @@ export function DashboardView() {
             </CardContent>
           </Card>
         </div>
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-3 lg:gap-4">
-          {summaryCards.map((card) => (
-            <Card
-              key={card.id}
-              className={cn(
-                "w-full overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1",
-                card.className
-              )}
-            >
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 sm:p-5 pb-2">
-                <CardTitle className={cn("text-xs sm:text-sm font-medium opacity-90", card.titleClassName)}>
-                  {card.title}
-                </CardTitle>
-                <Badge
-                  variant="secondary"
-                  className={cn("text-[10px] sm:text-xs shrink-0 font-semibold border-0", card.badgeClassName)}
-                >
-                  {card.badgeText}
-                </Badge>
+        {/* Summary Cards - New Layout */}
+        <div className="space-y-4">
+          {/* Row 1: Sauda Rate + GD Metrics - 2 Composite Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Sauda Rate Composite Card */}
+            <Card className="border-l-4 border-l-purple-500 bg-gradient-to-br from-purple-50/50 to-white shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-purple-50 to-transparent pb-4">
+                <CardTitle className="text-purple-800 font-bold">Sauda Rate (2026)</CardTitle>
+                <CardDescription className="text-purple-700/80">
+                  Daily average trend
+                </CardDescription>
               </CardHeader>
-              <CardContent className="p-4 sm:p-5 pt-0">
-                <div className={cn("text-2xl sm:text-3xl font-bold tracking-tight", card.valueClassName)}>
-                  {card.value}
-                </div>
-                <p className={cn("text-xs mt-1 font-medium", card.descriptionClassName)}>
-                  {card.description}
-                </p>
+              <CardContent className="p-4">
+                {/* Single Sauda Rate Card */}
+                <Card className="bg-gradient-to-br from-purple-500 via-indigo-500 to-blue-600 text-white border-none shadow-lg hover:shadow-xl transition-all duration-300">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+                    <CardTitle className="text-sm font-bold text-purple-50">
+                      Sauda Rate (2026)
+                    </CardTitle>
+                    <Badge variant="secondary" className="bg-white/20 text-white border-white/20 backdrop-blur-sm text-xs">
+                      Trend
+                    </Badge>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0">
+                    <div className="text-3xl font-bold tracking-tight text-white">
+                      ₹{formatMetricValue(displayMetrics.saudaRate2026)}
+                    </div>
+                    <p className="text-xs mt-1 font-medium text-purple-100">
+                      Daily Avg Trend
+                    </p>
+                  </CardContent>
+                </Card>
               </CardContent>
             </Card>
-          ))}
+
+            {/* GD Metrics Composite Card */}
+            <Card className="border-l-4 border-l-green-500 bg-gradient-to-br from-green-50/50 to-white shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-green-50 to-transparent pb-4">
+                <CardTitle className="text-green-800 font-bold">GD Metrics</CardTitle>
+                <CardDescription className="text-green-700/80">
+                  Gross dispatch statistics
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-4">
+                {/* Inner cards in horizontal grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Monthly GD */}
+                  <Card className="bg-gradient-to-br from-green-400 via-green-500 to-green-600 text-white border-none shadow-lg hover:shadow-xl transition-all duration-300">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+                      <CardTitle className="text-sm font-bold text-green-50">
+                        Monthly GD
+                      </CardTitle>
+                      <Badge variant="secondary" className="bg-white/20 text-white border-white/20 backdrop-blur-sm text-xs">
+                        GD
+                      </Badge>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                      <div className="text-3xl font-bold tracking-tight text-white">
+                        ₹{formatMetricValue(displayMetrics.monthlyGd)}
+                      </div>
+                      <p className="text-xs mt-1 font-medium text-green-100">
+                        Gross Dispatch (Month)
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  {/* Daily GD */}
+                  <Card className="bg-gradient-to-br from-orange-400 via-orange-500 to-amber-500 text-white border-none shadow-lg hover:shadow-xl transition-all duration-300">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+                      <CardTitle className="text-sm font-bold text-orange-50">
+                        Daily GD
+                      </CardTitle>
+                      <Badge variant="secondary" className="bg-white/20 text-white border-white/20 backdrop-blur-sm text-xs">
+                        GD
+                      </Badge>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                      <div className="text-3xl font-bold tracking-tight text-white">
+                        ₹{formatMetricValue(displayMetrics.dailyGd)}
+                      </div>
+                      <p className="text-xs mt-1 font-medium text-orange-100">
+                        Gross Dispatch (Today)
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Row 2: Working Party & Pending Order - 2 Composite Cards with Horizontal Inner Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Working Party Composite Card */}
+            <Card className="border-l-4 border-l-cyan-500 bg-gradient-to-br from-cyan-50/50 to-white shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-cyan-50 to-transparent pb-4">
+                <CardTitle className="text-cyan-800 font-bold">Working Party Metrics</CardTitle>
+                <CardDescription className="text-cyan-700/80">
+                  Current month party statistics
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-4">
+                {/* Inner cards in horizontal grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Monthly Working Party */}
+                  <Card className="bg-gradient-to-br from-cyan-400 via-cyan-500 to-teal-500 text-white border-none shadow-lg hover:shadow-xl transition-all duration-300">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+                      <CardTitle className="text-sm font-bold text-cyan-50">
+                        Monthly Working Party
+                      </CardTitle>
+                      <Badge variant="secondary" className="bg-white/20 text-white border-white/20 backdrop-blur-sm text-xs">
+                        Current Month
+                      </Badge>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                      <div className="text-3xl font-bold tracking-tight text-white">
+                        {formatMetricValue(displayMetrics.monthlyWorkingParty)}
+                      </div>
+                      <p className="text-xs mt-1 font-medium text-cyan-100">
+                        Active parties (Month)
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  {/* Monthly Party Average */}
+                  <Card className="bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-600 text-white border-none shadow-lg hover:shadow-xl transition-all duration-300">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+                      <CardTitle className="text-sm font-bold text-emerald-50">
+                        Monthly Party Average
+                      </CardTitle>
+                      <Badge variant="secondary" className="bg-white/20 text-white border-white/20 backdrop-blur-sm text-xs">
+                        Utilization
+                      </Badge>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                      <div className="text-3xl font-bold tracking-tight text-white">
+                        {displayMetrics.monthlyPartyAverage}
+                      </div>
+                      <p className="text-xs mt-1 font-medium text-emerald-100">
+                        % of 900 Users
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Pending Orders Composite Card */}
+            <Card className="border-l-4 border-l-teal-500 bg-gradient-to-br from-teal-50/50 to-white shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-teal-50 to-transparent pb-4">
+                <CardTitle className="text-teal-800 font-bold">Pending Order Metrics</CardTitle>
+                <CardDescription className="text-teal-700/80">
+                  Order conversion statistics
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-4">
+                {/* Inner cards in horizontal grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Parties Pending Order */}
+                  <Card className="bg-gradient-to-br from-teal-500 via-emerald-600 to-green-700 text-white border-none shadow-lg hover:shadow-xl transition-all duration-300">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+                      <CardTitle className="text-sm font-bold text-teal-50">
+                        Parties Pending Order
+                      </CardTitle>
+                      <Badge variant="secondary" className="bg-white/20 text-white border-white/20 backdrop-blur-sm text-xs">
+                        Pending
+                      </Badge>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                      <div className="text-3xl font-bold tracking-tight text-white">
+                        {formatMetricValue(displayMetrics.pendingOrdersTotal)}
+                      </div>
+                      <p className="text-xs mt-1 font-medium text-teal-100">
+                        Parties with pending orders
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  {/* Conversion Ratio */}
+                  <Card className="bg-gradient-to-br from-pink-400 via-pink-500 to-rose-600 text-white border-none shadow-lg hover:shadow-xl transition-all duration-300">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+                      <CardTitle className="text-sm font-bold text-pink-50">
+                        Conversion Ratio
+                      </CardTitle>
+                      <Badge variant="secondary" className="bg-white/20 text-white border-white/20 backdrop-blur-sm text-xs">
+                        Ratio
+                      </Badge>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                      <div className="text-3xl font-bold tracking-tight text-white">
+                        {displayMetrics.conversionRatio}
+                      </div>
+                      <p className="text-xs mt-1 font-medium text-pink-100">
+                        Pending % (of 900)
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
 
