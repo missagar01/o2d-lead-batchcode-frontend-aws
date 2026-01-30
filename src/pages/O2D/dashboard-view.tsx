@@ -1213,7 +1213,7 @@ export function DashboardView() {
                           const total = chartData.reduce((acc, curr) => acc + curr.value, 0);
                           const percentage = ((datum.value / total) * 100).toFixed(1);
                           return (
-                            <div className="bg-[#1e293b]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl ring-1 ring-white/10 min-w-[220px] animate-in zoom-in-95 duration-200">
+                            <div className="hidden lg:block bg-[#1e293b]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl ring-1 ring-white/10 min-w-[220px] animate-in zoom-in-95 duration-200">
                               <p className="font-black text-white border-b border-white/10 pb-3 mb-3 flex items-center gap-3">
                                 <span className="w-3 h-3 rounded-full shadow-[0_0_10px_currentColor]" style={{ backgroundColor: datum.fill, color: datum.fill }}></span>
                                 {datum.name}

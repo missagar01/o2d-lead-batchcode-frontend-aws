@@ -27,13 +27,13 @@ export default function BatchCodeDashboard() {
     try {
       setLoading(true)
       setError(null)
-      
+
       // For users, only show their own data - skip if not admin
       const isAdmin = role === "admin" || role === "superadmin"
-      
+
       // Use admin overview API
       const response = await batchcodeAPI.getAdminOverview()
-      
+
       if (!response.data?.success) {
         throw new Error(response.data?.message || "Failed to fetch dashboard data")
       }
@@ -68,34 +68,34 @@ export default function BatchCodeDashboard() {
           return String(code).toUpperCase().trim()
         }).filter(Boolean)
       )
-      
+
       // For each SMS Register entry, check if it has a corresponding QC Lab entry
       // The matching might be based on unique_code, sms_short_code, or other fields
       let pendingSMS = smsData.filter(record => {
         const smsCode = String(record.unique_code || record.sms_short_code || '').toUpperCase().trim()
-        
+
         // Direct match check
         if (processedSMSCodes.has(smsCode)) {
           return false // Has QC entry, not pending
         }
-        
+
         // Check if any QC entry's sms_batch_code might reference this SMS
         // This handles cases where formats differ (e.g., "S-2901" vs "2901")
         const hasRelatedQC = qcLabData.some(qcEntry => {
           const qcCode = String(qcEntry.sms_batch_code || '').toUpperCase().trim()
           if (!qcCode) return false
-          
+
           // Check if codes match (handling format differences)
           // Remove "S-" prefix if present for comparison
           const qcCodeNormalized = qcCode.replace(/^S-?/i, '')
           const smsCodeNormalized = smsCode.replace(/^S-?/i, '')
-          
-          return qcCodeNormalized === smsCodeNormalized || 
-                 qcCode === smsCode ||
-                 qcCode.includes(smsCode) ||
-                 smsCode.includes(qcCodeNormalized)
+
+          return qcCodeNormalized === smsCodeNormalized ||
+            qcCode === smsCode ||
+            qcCode.includes(smsCode) ||
+            smsCode.includes(qcCodeNormalized)
         })
-        
+
         return !hasRelatedQC // No matching QC entry found, so it's pending
       })
 
@@ -105,20 +105,20 @@ export default function BatchCodeDashboard() {
       // Filter by user role if not admin
       if (!isAdmin) {
         const username = sessionStorage.getItem("username") || ""
-        pendingHotCoil = pendingHotCoil.filter(item => 
-          item.created_by === username || 
+        pendingHotCoil = pendingHotCoil.filter(item =>
+          item.created_by === username ||
           item.shift_incharge === username ||
           item.operator_name === username ||
           item.mill_incharge === username ||
           item.quality_supervisor === username ||
           item.shift_supervisor === username
         )
-        pendingSMS = pendingSMS.filter(item => 
+        pendingSMS = pendingSMS.filter(item =>
           item.shift_incharge === username ||
           item.created_by === username ||
           item.sms_head === username
         )
-        pendingQC = pendingQC.filter(item => 
+        pendingQC = pendingQC.filter(item =>
           item.shift_incharge === username ||
           item.created_by === username ||
           item.sms_head === username

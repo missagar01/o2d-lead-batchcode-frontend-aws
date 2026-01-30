@@ -10,7 +10,6 @@ import Blank from "./pages/Blank";
 import UserProfiles from "./pages/UserProfiles";
 
 // BatchCode pages
-import BatchCodeDashboard from "./pages/BatchCode/Dashboard";
 import HotCoil from "./pages/BatchCode/HotCoil";
 import QCLab from "./pages/BatchCode/QC-Lab";
 import SMSRegister from "./pages/BatchCode/SMSRegister";
@@ -20,7 +19,6 @@ import Laddel from "./pages/BatchCode/Laddel";
 import Tundis from "./pages/BatchCode/Tundis";
 
 // Lead-to-Order pages
-import LeadToOrderDashboard from "./pages/LeadToOrder/Dashboard";
 import Leads from "./pages/LeadToOrder/Leads";
 import FollowUp from "./pages/LeadToOrder/FollowUp";
 import NewFollowUp from "./pages/LeadToOrder/NewFollowUp";
@@ -66,7 +64,6 @@ export default function App() {
             <Route path="/blank" element={<RouteGuard><Blank /></RouteGuard>} />
 
             {/* BatchCode Routes */}
-            <Route path="/batchcode/dashboard" element={<RouteGuard><BatchCodeDashboard /></RouteGuard>} />
             <Route path="/batchcode/hot-coil" element={<RouteGuard><HotCoil /></RouteGuard>} />
             <Route path="/batchcode/qc-lab" element={<RouteGuard><QCLab /></RouteGuard>} />
             <Route path="/batchcode/sms-register" element={<RouteGuard><SMSRegister /></RouteGuard>} />
@@ -76,7 +73,6 @@ export default function App() {
             <Route path="/batchcode/tundis" element={<RouteGuard><Tundis /></RouteGuard>} />
 
             {/* Lead-to-Order Routes */}
-            <Route path="/lead-to-order/dashboard" element={<RouteGuard><LeadToOrderDashboard /></RouteGuard>} />
             <Route path="/lead-to-order/leads" element={<RouteGuard><Leads /></RouteGuard>} />
             <Route path="/lead-to-order/follow-up" element={<RouteGuard><FollowUp /></RouteGuard>} />
             <Route path="/lead-to-order/follow-up/new" element={<RouteGuard><NewFollowUp /></RouteGuard>} />

@@ -1145,9 +1145,9 @@ function CallTracker() {
           ) : (
             <>
               {activeTab === "pending" && (
-                <div className="rounded-md border overflow-x-auto">
+                <div className="rounded-md border overflow-auto max-h-[70vh] relative">
                   <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-slate-50">
+                    <thead className="bg-slate-50 sticky top-0 z-10 shadow-sm">
                       <tr>
                         <th
                           scope="col"
@@ -1315,12 +1315,13 @@ function CallTracker() {
                     </tbody>
                   </table>
                 </div>
+
               )}
 
               {activeTab === "directEnquiry" && (
-                <div className="rounded-md border overflow-x-auto">
+                <div className="rounded-md border overflow-auto max-h-[70vh] relative">
                   <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-slate-50">
+                    <thead className="bg-slate-50 sticky top-0 z-10 shadow-sm">
                       <tr>
                         <th
                           scope="col"
@@ -1464,12 +1465,13 @@ function CallTracker() {
                     </tbody>
                   </table>
                 </div>
+
               )}
 
               {activeTab === "history" && (
-                <div className="rounded-md border overflow-x-auto">
+                <div className="rounded-md border overflow-auto max-h-[70vh] relative">
                   <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-slate-50">
+                    <thead className="bg-slate-50 sticky top-0 z-10 shadow-sm">
                       <tr>
                         {visibleColumns.timestamp && (
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timestamp</th>
@@ -1762,20 +1764,62 @@ function CallTracker() {
                     </tbody>
                   </table>
                 </div>
+
               )}
             </>
-          )}
-        </div>
-      </div>
+          )
+          }
+        </div >
+      </div >
 
       {/* New Call Tracker Form Modal */}
-      {showNewCallTrackerForm && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto pointer-events-auto">
-            <div className="p-6 border-b">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold">New Call Tracker</h2>
-                <button onClick={() => setShowNewCallTrackerForm(false)} className="text-gray-500 hover:text-gray-700">
+      {
+        showNewCallTrackerForm && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto pointer-events-auto">
+              <div className="p-6 border-b">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-xl font-bold">New Call Tracker</h2>
+                  <button onClick={() => setShowNewCallTrackerForm(false)} className="text-gray-500 hover:text-gray-700">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <CallTrackerForm />
+            </div>
+          </div>
+        )
+      }
+
+      {/* View Popup Modal */}
+      {
+        showPopup && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div
+              className={`absolute inset-0 bg-black/50 backdrop-blur-sm ${fadeIn}`}
+              onClick={() => setShowPopup(false)}
+            ></div>
+            <div
+              className={`relative bg-white rounded-lg shadow-xl w-[95%] sm:w-full sm:max-w-3xl max-h-[90vh] overflow-auto ${slideIn}`}
+            >
+              <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
+                <h3 className="text-lg font-bold text-gray-900">
+                  {activeTab === "pending" || activeTab === "directEnquiry"
+                    ? `Call Tracker Details: ${selectedTracker?.leadId}`
+                    : `Call Tracker History: ${selectedTracker?.enquiryNo}`}
+                </h3>
+                <button
+                  onClick={() => setShowPopup(false)}
+                  className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-6 w-6"
@@ -1787,271 +1831,237 @@ function CallTracker() {
                   </svg>
                 </button>
               </div>
-            </div>
-            <CallTrackerForm />
-          </div>
-        </div>
-      )}
 
-      {/* View Popup Modal */}
-      {showPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className={`absolute inset-0 bg-black/50 backdrop-blur-sm ${fadeIn}`}
-            onClick={() => setShowPopup(false)}
-          ></div>
-          <div
-            className={`relative bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-auto ${slideIn}`}
-          >
-            <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-gray-900">
-                {activeTab === "pending" || activeTab === "directEnquiry"
-                  ? `Call Tracker Details: ${selectedTracker?.leadId}`
-                  : `Call Tracker History: ${selectedTracker?.enquiryNo}`}
-              </h3>
-              <button
-                onClick={() => setShowPopup(false)}
-                className="text-gray-500 hover:text-gray-700 focus:outline-none"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
+              <div className="p-4 sm:p-6 space-y-6">
+                {activeTab === "pending" || activeTab === "directEnquiry" ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Column B - Lead ID */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-500">Lead Number</p>
+                      <p className="text-base font-semibold">{selectedTracker?.leadId}</p>
+                    </div>
 
-            <div className="p-6 space-y-6">
-              {activeTab === "pending" || activeTab === "directEnquiry" ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Column B - Lead ID */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Lead Number</p>
-                    <p className="text-base font-semibold">{selectedTracker?.leadId}</p>
+                    {/* Column C - Receiver Name */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-500">Lead Receiver Name</p>
+                      <p className="text-base">{selectedTracker?.receiverName}</p>
+                    </div>
+
+                    {/* Column D - Lead Source */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-500">Lead Source</p>
+                      <p className="text-base">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${selectedTracker?.priority === "High"
+                            ? "bg-red-100 text-red-800"
+                            : selectedTracker?.priority === "Medium"
+                              ? "bg-amber-100 text-amber-800"
+                              : "bg-slate-100 text-slate-800"
+                            }`}
+                        >
+                          {selectedTracker?.leadSource}
+                        </span>
+                      </p>
+                    </div>
+
+                    {/* Column E - Salesperson Name */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-500">Salesperson Name</p>
+                      <p className="text-base">{selectedTracker?.salespersonName}</p>
+                    </div>
+
+                    {/* Column G - Company Name */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-500">Company Name</p>
+                      <p className="text-base">{selectedTracker?.companyName}</p>
+                    </div>
+
+                    {/* Created Date */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-500">Created Date</p>
+                      <p className="text-base">{selectedTracker?.createdAt}</p>
+                    </div>
+
+                    {/* Status */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-500">Status</p>
+                      <p className="text-base">{selectedTracker?.status}</p>
+                    </div>
+
+                    {/* Priority */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-500">Priority</p>
+                      <p className="text-base">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${selectedTracker?.priority === "High"
+                            ? "bg-red-100 text-red-800"
+                            : selectedTracker?.priority === "Medium"
+                              ? "bg-amber-100 text-amber-800"
+                              : "bg-slate-100 text-slate-800"
+                            }`}
+                        >
+                          {selectedTracker?.priority}
+                        </span>
+                      </p>
+                    </div>
+
+                    {/* Stage */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-500">Stage</p>
+                      <p className="text-base">{selectedTracker?.stage}</p>
+                    </div>
                   </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Enquiry No */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-500">Enquiry No.</p>
+                      <p className="text-base font-semibold">{selectedTracker?.enquiryNo}</p>
+                    </div>
 
-                  {/* Column C - Receiver Name */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Lead Receiver Name</p>
-                    <p className="text-base">{selectedTracker?.receiverName}</p>
+                    {/* Timestamp */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-500">Timestamp</p>
+                      <p className="text-base">{selectedTracker?.timestamp}</p>
+                    </div>
+
+                    {/* Enquiry Status */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-500">Enquiry Status</p>
+                      <p className="text-base">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${selectedTracker?.priority === "High"
+                            ? "bg-red-100 text-red-800"
+                            : selectedTracker?.priority === "Medium"
+                              ? "bg-amber-100 text-amber-800"
+                              : "bg-slate-100 text-slate-800"
+                            }`}
+                        >
+                          {selectedTracker?.enquiryStatus}
+                        </span>
+                      </p>
+                    </div>
+
+                    {/* Current Stage */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-500">Current Stage</p>
+                      <p className="text-base">{selectedTracker?.currentStage}</p>
+                    </div>
+
+                    {/* Next Call Date */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-500">Next Call Date</p>
+                      <p className="text-base">{selectedTracker?.nextCallDate}</p>
+                    </div>
+
+                    {/* Next Call Time */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-500">Next Call Time</p>
+                      <p className="text-base">{selectedTracker?.nextCallTime}</p>
+                    </div>
+
+                    {/* Holding Date */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-500">Holding Date</p>
+                      <p className="text-base">{selectedTracker?.holdingDate}</p>
+                    </div>
+
+                    {/* Order Status */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-500">Order Status</p>
+                      <p className="text-base">{selectedTracker?.orderStatus}</p>
+                    </div>
+
+                    {/* Payment Mode */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-500">Payment Mode</p>
+                      <p className="text-base">{selectedTracker?.paymentMode}</p>
+                    </div>
+
+                    {/* Payment Terms */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-500">Payment Terms</p>
+                      <p className="text-base">{selectedTracker?.paymentTerms}</p>
+                    </div>
                   </div>
+                )}
 
-                  {/* Column D - Lead Source */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Lead Source</p>
+                {/* Customer Feedback - Full width */}
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-gray-500">What Did Customer Say</p>
+                  <div className="p-4 bg-gray-50 rounded-md">
                     <p className="text-base">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${selectedTracker?.priority === "High"
-                          ? "bg-red-100 text-red-800"
-                          : selectedTracker?.priority === "Medium"
-                            ? "bg-amber-100 text-amber-800"
-                            : "bg-slate-100 text-slate-800"
-                          }`}
-                      >
-                        {selectedTracker?.leadSource}
-                      </span>
+                      {activeTab === "pending" || activeTab === "directEnquiry"
+                        ? "No feedback yet"
+                        : selectedTracker?.customerFeedback}
                     </p>
                   </div>
-
-                  {/* Column E - Salesperson Name */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Salesperson Name</p>
-                    <p className="text-base">{selectedTracker?.salespersonName}</p>
-                  </div>
-
-                  {/* Column G - Company Name */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Company Name</p>
-                    <p className="text-base">{selectedTracker?.companyName}</p>
-                  </div>
-
-                  {/* Created Date */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Created Date</p>
-                    <p className="text-base">{selectedTracker?.createdAt}</p>
-                  </div>
-
-                  {/* Status */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Status</p>
-                    <p className="text-base">{selectedTracker?.status}</p>
-                  </div>
-
-                  {/* Priority */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Priority</p>
-                    <p className="text-base">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${selectedTracker?.priority === "High"
-                          ? "bg-red-100 text-red-800"
-                          : selectedTracker?.priority === "Medium"
-                            ? "bg-amber-100 text-amber-800"
-                            : "bg-slate-100 text-slate-800"
-                          }`}
-                      >
-                        {selectedTracker?.priority}
-                      </span>
-                    </p>
-                  </div>
-
-                  {/* Stage */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Stage</p>
-                    <p className="text-base">{selectedTracker?.stage}</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Enquiry No */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Enquiry No.</p>
-                    <p className="text-base font-semibold">{selectedTracker?.enquiryNo}</p>
-                  </div>
-
-                  {/* Timestamp */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Timestamp</p>
-                    <p className="text-base">{selectedTracker?.timestamp}</p>
-                  </div>
-
-                  {/* Enquiry Status */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Enquiry Status</p>
-                    <p className="text-base">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${selectedTracker?.priority === "High"
-                          ? "bg-red-100 text-red-800"
-                          : selectedTracker?.priority === "Medium"
-                            ? "bg-amber-100 text-amber-800"
-                            : "bg-slate-100 text-slate-800"
-                          }`}
-                      >
-                        {selectedTracker?.enquiryStatus}
-                      </span>
-                    </p>
-                  </div>
-
-                  {/* Current Stage */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Current Stage</p>
-                    <p className="text-base">{selectedTracker?.currentStage}</p>
-                  </div>
-
-                  {/* Next Call Date */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Next Call Date</p>
-                    <p className="text-base">{selectedTracker?.nextCallDate}</p>
-                  </div>
-
-                  {/* Next Call Time */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Next Call Time</p>
-                    <p className="text-base">{selectedTracker?.nextCallTime}</p>
-                  </div>
-
-                  {/* Holding Date */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Holding Date</p>
-                    <p className="text-base">{selectedTracker?.holdingDate}</p>
-                  </div>
-
-                  {/* Order Status */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Order Status</p>
-                    <p className="text-base">{selectedTracker?.orderStatus}</p>
-                  </div>
-
-                  {/* Payment Mode */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Payment Mode</p>
-                    <p className="text-base">{selectedTracker?.paymentMode}</p>
-                  </div>
-
-                  {/* Payment Terms */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Payment Terms</p>
-                    <p className="text-base">{selectedTracker?.paymentTerms}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Customer Feedback - Full width */}
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-gray-500">What Did Customer Say</p>
-                <div className="p-4 bg-gray-50 rounded-md">
-                  <p className="text-base">
-                    {activeTab === "pending" || activeTab === "directEnquiry"
-                      ? "No feedback yet"
-                      : selectedTracker?.customerFeedback}
-                  </p>
                 </div>
               </div>
-            </div>
 
-            <div className="border-t p-4 flex justify-end space-x-3">
-              <button
-                onClick={() => setShowPopup(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-              >
-                Close
-              </button>
-              {(activeTab === "pending" || activeTab === "directEnquiry") && (
-                <Link to={`/call-tracker/new?leadId=${selectedTracker?.leadId}`}>
-                  <button className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
-                    Process <ArrowRightIcon className="ml-1 h-4 w-4 inline" />
-                  </button>
-                </Link>
-              )}
+              <div className="border-t p-4 flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowPopup(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                >
+                  Close
+                </button>
+                {(activeTab === "pending" || activeTab === "directEnquiry") && (
+                  <Link to={`/call-tracker/new?leadId=${selectedTracker?.leadId}`}>
+                    <button className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                      Process <ArrowRightIcon className="ml-1 h-4 w-4 inline" />
+                    </button>
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Call Tracker Modal (Process Button) */}
-      {showCallTrackerModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4" style={{ left: 0, marginLeft: 0 }}>
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative">
-            <div className="p-6 border-b sticky top-0 bg-white z-10 flex justify-between items-center">
-              <h2 className="text-xl font-bold">Call Tracker</h2>
-              <button
-                onClick={() => {
-                  setShowCallTrackerModal(false)
-                  setSelectedLeadForCallTracker(null)
-                  document.body.style.overflow = 'auto'
-                }}
-                className="text-gray-500 hover:text-gray-700 focus:outline-none"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+      {
+        showCallTrackerModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4" style={{ left: 0, marginLeft: 0 }}>
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative">
+              <div className="p-6 border-b sticky top-0 bg-white z-10 flex justify-between items-center">
+                <h2 className="text-xl font-bold">Call Tracker</h2>
+                <button
+                  onClick={() => {
+                    setShowCallTrackerModal(false)
+                    setSelectedLeadForCallTracker(null)
+                    document.body.style.overflow = 'auto'
+                  }}
+                  className="text-gray-500 hover:text-gray-700 focus:outline-none"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="p-0">
-              <NewCallTracker
-                leadId={selectedLeadForCallTracker}
-                onClose={() => {
-                  setShowCallTrackerModal(false)
-                  setSelectedLeadForCallTracker(null)
-                  document.body.style.overflow = 'auto'
-                  // Refresh page data
-                  window.location.reload()
-                }}
-              />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="p-0">
+                <NewCallTracker
+                  leadId={selectedLeadForCallTracker}
+                  onClose={() => {
+                    setShowCallTrackerModal(false)
+                    setSelectedLeadForCallTracker(null)
+                    document.body.style.overflow = 'auto'
+                    // Refresh page data
+                    window.location.reload()
+                  }}
+                />
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   )
 }
 
