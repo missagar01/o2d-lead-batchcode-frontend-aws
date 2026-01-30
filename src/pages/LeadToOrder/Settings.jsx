@@ -18,10 +18,7 @@ const PAGE_ROUTES = {
   "o2d": [
     { value: "Dashboard", label: "Dashboard", route: "/" },
     { value: "Orders", label: "Orders", route: "/o2d/orders" },
-    { value: "First Weight", label: "First Weight", route: "/o2d/first-weight" },
-    { value: "Load Vehicle", label: "Load Vehicle", route: "/o2d/load-vehicle" },
-    { value: "Second Weight", label: "Second Weight", route: "/o2d/second-weight" },
-    { value: "Generate Invoice", label: "Generate Invoice", route: "/o2d/generate-invoice" },
+    { value: "Enquiry", label: "Enquiry", route: "/o2d/enquiry" },
     { value: "Pending Vehicles", label: "Pending Vehicles", route: "/o2d/process" },
   ],
   "batchcode": [
@@ -127,11 +124,7 @@ const Settings = () => {
     const ROUTE_TO_PAGE_NAME_MAP = {
       "/": "Dashboard",
       "/o2d/orders": "Orders",
-      "/o2d/first-weight": "First Weight",
-      "/o2d/load-vehicle": "Load Vehicle",
-      "/o2d/second-weight": "Second Weight",
-      "/o2d/generate-invoice": "Generate Invoice",
-      "/o2d/payment": "Payment",
+      "/o2d/enquiry": "Enquiry",
       "/o2d/process": "Pending Vehicles",
       "/o2d/complaint-details": "Complaint Details",
       "/o2d/permissions": "Permissions",

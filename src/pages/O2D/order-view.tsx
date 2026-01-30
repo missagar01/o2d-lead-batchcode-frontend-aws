@@ -24,11 +24,6 @@ export function OrdersView() {
     items: []
   })
 
-  const [balanceTotals, setBalanceTotals] = useState({
-    pending: 0,
-    history: 0
-  })
-
   const fetchOrderData = async () => {
     try {
       setLoading(true)
@@ -94,24 +89,14 @@ export function OrdersView() {
       const pending = processRows(pendingRows, 'Pending');
       const history = processRows(historyRows, 'History');
 
-      // Combine for filter options
+      // Combine for filter options - extract all unique salespersons
       const allOrders = [...pending, ...history];
-
-      // Extract unique values for filters
       const salespersons = [...new Set(allOrders.map(order => order.salesperson).filter(Boolean))].sort()
-      const customers = [...new Set(allOrders.map(order => order.customerName).filter(Boolean))].sort()
-      const items = [...new Set(allOrders.map(order => order.itemName).filter(Boolean))].sort()
 
       setFilterOptions({
         salespersons,
-        customers,
-        items
-      })
-
-      // Calculate totals
-      setBalanceTotals({
-        pending: pending.reduce((sum, order) => sum + order.balanceQty, 0),
-        history: 0
+        customers: [],
+        items: []
       })
 
       setPendingOrders(pending)
@@ -123,6 +108,37 @@ export function OrdersView() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Get filtered customers based on selected salesperson
+  const getFilteredCustomers = (orders: any[]): string[] => {
+    let filteredOrders = orders;
+    if (filters.salesperson) {
+      filteredOrders = orders.filter(order => order.salesperson === filters.salesperson);
+    }
+    return [...new Set(filteredOrders.map(order => order.customerName).filter(Boolean))] as string[];
+  }
+
+  // Get filtered items based on selected salesperson and customer
+  const getFilteredItems = (orders: any[]): string[] => {
+    let filteredOrders = orders;
+    if (filters.salesperson) {
+      filteredOrders = filteredOrders.filter(order => order.salesperson === filters.salesperson);
+    }
+    if (filters.customer) {
+      filteredOrders = filteredOrders.filter(order => order.customerName === filters.customer);
+    }
+    return [...new Set(filteredOrders.map(order => order.itemName).filter(Boolean))] as string[];
+  }
+
+  // Handle salesperson change - reset customer and item
+  const handleSalespersonChange = (value: string) => {
+    setFilters({ ...filters, salesperson: value, customer: '', item: '' });
+  }
+
+  // Handle customer change - reset item
+  const handleCustomerChange = (value: string) => {
+    setFilters({ ...filters, customer: value, item: '' });
   }
 
   const filterOrders = (orders) => {
@@ -142,6 +158,12 @@ export function OrdersView() {
       }
       return true
     })
+  }
+
+  // Calculate total balance from filtered orders
+  const getFilteredBalanceTotal = (orders) => {
+    const filtered = filterOrders(orders);
+    return filtered.reduce((sum, order) => sum + (order.balanceQty || 0), 0);
   }
 
   useEffect(() => {
@@ -199,7 +221,7 @@ export function OrdersView() {
         <div className="px-4 py-2 bg-blue-50 rounded-lg border border-blue-100 w-full sm:w-auto">
           <span className="text-blue-600 text-xs font-semibold uppercase tracking-wider">Total Balance</span>
           <div className="text-xl font-bold text-blue-800 tabular-nums leading-none mt-1">
-            {typeof balanceTotals[type] === 'number' ? balanceTotals[type].toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
+            {getFilteredBalanceTotal(data).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
         </div>
       </div>
@@ -211,7 +233,7 @@ export function OrdersView() {
             <label className="block text-xs font-semibold text-gray-500 mb-1.5 ml-1">Salesperson</label>
             <select
               value={filters.salesperson}
-              onChange={(e) => setFilters({ ...filters, salesperson: e.target.value })}
+              onChange={(e) => handleSalespersonChange(e.target.value)}
               className="w-full pl-3 pr-8 py-2.5 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors cursor-pointer hover:bg-gray-100"
             >
               <option value="">All Salespersons</option>
@@ -225,11 +247,11 @@ export function OrdersView() {
             <label className="block text-xs font-semibold text-gray-500 mb-1.5 ml-1">Customer</label>
             <select
               value={filters.customer}
-              onChange={(e) => setFilters({ ...filters, customer: e.target.value })}
+              onChange={(e) => handleCustomerChange(e.target.value)}
               className="w-full pl-3 pr-8 py-2.5 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors cursor-pointer hover:bg-gray-100"
             >
               <option value="">All Customers</option>
-              {filterOptions.customers.map((c, i) => (
+              {getFilteredCustomers(data).map((c, i) => (
                 <option key={i} value={c}>{c}</option>
               ))}
             </select>
@@ -243,7 +265,7 @@ export function OrdersView() {
               className="w-full pl-3 pr-8 py-2.5 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors cursor-pointer hover:bg-gray-100"
             >
               <option value="">All Items</option>
-              {filterOptions.items.map((it, i) => (
+              {getFilteredItems(data).map((it, i) => (
                 <option key={i} value={it}>{it}</option>
               ))}
             </select>

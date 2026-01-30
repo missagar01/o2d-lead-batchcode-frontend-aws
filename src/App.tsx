@@ -31,14 +31,7 @@ import Settings from "./pages/LeadToOrder/Settings";
 
 // O2D pages
 import { DashboardView as O2DDashboard } from "./pages/O2D/dashboard-view";
-import { FirstWeightView as O2DFirstWeight } from "./pages/O2D/first-weight-view";
-import { LoadVehicleView as O2DLoadVehicle } from "./pages/O2D/load-vehicle-view";
-import { SecondWeightView as O2DSecondWeight } from "./pages/O2D/second-weight-view";
-import { GenerateInvoiceView as O2DGenerateInvoice } from "./pages/O2D/generate-invoice-view";
-import { PaymentView as O2DPayment } from "./pages/O2D/payment-view";
 import { OrdersView as O2DOrders } from "./pages/O2D/order-view";
-import { ComplaintDetailsView as O2DComplaintDetails } from "./pages/O2D/complaint-details-view";
-import { PermissionsView as O2DPermissions } from "./pages/O2D/permissions-view";
 import { PendingVehicles as O2DProcess } from "./pages/O2D/pendding-vehicle";
 import EnquiryView from "./pages/O2D/enq-view";
 
@@ -94,15 +87,8 @@ export default function App() {
 
             {/* O2D Routes */}
             <Route path="/o2d/dashboard" element={<RouteGuard><O2DDashboard /></RouteGuard>} />
-            <Route path="/o2d/first-weight" element={<RouteGuard><O2DFirstWeight /></RouteGuard>} />
-            <Route path="/o2d/load-vehicle" element={<RouteGuard><O2DLoadVehicle /></RouteGuard>} />
-            <Route path="/o2d/second-weight" element={<RouteGuard><O2DSecondWeight /></RouteGuard>} />
-            <Route path="/o2d/generate-invoice" element={<RouteGuard><O2DGenerateInvoice /></RouteGuard>} />
-            <Route path="/o2d/payment" element={<RouteGuard><O2DPayment /></RouteGuard>} />
             <Route path="/o2d/orders" element={<RouteGuard><O2DOrders /></RouteGuard>} />
             <Route path="/o2d/process" element={<RouteGuard><O2DProcess /></RouteGuard>} />
-            <Route path="/o2d/complaint-details" element={<RouteGuard><O2DComplaintDetails /></RouteGuard>} />
-            <Route path="/o2d/permissions" element={<RouteGuard><O2DPermissions /></RouteGuard>} />
             <Route path="/o2d/enquiry" element={<RouteGuard><EnquiryView /></RouteGuard>} />
           </Route>
 

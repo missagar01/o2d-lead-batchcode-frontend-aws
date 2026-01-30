@@ -34,10 +34,6 @@ const o2dItem: NavItem = {
   subItems: [
     { name: "Orders", path: "/o2d/orders", pro: false },
     { name: "Enquiry", path: "/o2d/enquiry", pro: false },
-    { name: "First Weight", path: "/o2d/first-weight", pro: false },
-    { name: "Load Vehicle", path: "/o2d/load-vehicle", pro: false },
-    { name: "Second Weight", path: "/o2d/second-weight", pro: false },
-    { name: "Generate Invoice", path: "/o2d/generate-invoice", pro: false },
     { name: "Pending Vehicles", path: "/o2d/process", pro: false },
   ],
 };
@@ -101,11 +97,6 @@ const isPathAllowed = (
   const PAGE_NAME_TO_ROUTE_MAP: Record<string, string> = {
     "Dashboard": "/",
     "Orders": "/o2d/orders",
-    "First Weight": "/o2d/first-weight",
-    "Load Vehicle": "/o2d/load-vehicle",
-    "Second Weight": "/o2d/second-weight",
-    "Generate Invoice": "/o2d/generate-invoice",
-    "Payment": "/o2d/payment",
     "Pending Vehicles": "/o2d/process",
     "Complaint Details": "/o2d/complaint-details",
     "Permissions": "/o2d/permissions",

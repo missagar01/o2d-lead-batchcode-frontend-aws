@@ -163,31 +163,10 @@ export const API_ENDPOINTS = {
       PENDING: '/api/o2d/gate-entry/pending',
       HISTORY: '/api/o2d/gate-entry/history',
     },
-    FIRST_WEIGHT: {
-      PENDING: '/api/o2d/first-weight/pending',
-      HISTORY: '/api/o2d/first-weight/history',
-    },
-    LOAD_VEHICLE: {
-      PENDING: '/api/o2d/load-vehicle/pending',
-      HISTORY: '/api/o2d/load-vehicle/history',
-    },
-    SECOND_WEIGHT: {
-      PENDING: '/api/o2d/second-weight/pending',
-      HISTORY: '/api/o2d/second-weight/history',
-    },
-    INVOICE: {
-      PENDING: '/api/o2d/invoice/pending',
-      HISTORY: '/api/o2d/invoice/history',
-    },
     GATE_OUT: {
       PENDING: '/api/o2d/gate-out/pending',
       HISTORY: '/api/o2d/gate-out/history',
       CUSTOMERS: '/api/o2d/gate-out/customers',
-    },
-    PAYMENT: {
-      PENDING: '/api/o2d/payment/pending',
-      HISTORY: '/api/o2d/payment/history',
-      CUSTOMERS: '/api/o2d/payment/customers',
     },
     ORDERS: {
       PENDING: '/api/o2d/orders/pending',
