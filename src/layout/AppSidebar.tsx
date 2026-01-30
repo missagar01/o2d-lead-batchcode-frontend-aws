@@ -1,6 +1,5 @@
 import { useCallback, useMemo, type FC, type ReactNode } from "react";
 import { Link, useLocation } from "react-router";
-
 // Assume these icons are imported from an icon library
 import {
   BoxCubeIcon,
@@ -466,23 +465,19 @@ const AppSidebar: FC = () => {
       >
         {/* Brand Header */}
         <div
-          className={`shrink-0 h-[70px] flex items-center border-b border-gray-100 shadow-sm relative z-10 
-            ${(!isExpanded && !isHovered && !isMobileOpen) ? "justify-center px-0" : "justify-start px-6"}`}
+          className={`shrink-0 h-[75px] flex items-center shadow-sm relative z-10 transition-all duration-300
+            ${(!isExpanded && !isHovered && !isMobileOpen) ? "justify-center px-0 bg-white" : "justify-center px-0 bg-[#EE1C23]"}`}
         >
-          <Link to="/" onClick={handleLinkClick} className="flex items-center gap-3 w-full overflow-hidden group">
-            <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-2xl shadow-[0_6px_16px_rgba(37,99,235,0.3)] group-hover:scale-105 transition-transform">
-              S
+          <Link to="/" onClick={handleLinkClick} className="flex items-center w-full h-full overflow-hidden group">
+            <div className={`flex-shrink-0 transition-all duration-300 ease-in-out w-full
+              ${(!isExpanded && !isHovered && !isMobileOpen) ? "h-10" : "h-full"}`}>
+              <img
+                src={logo}
+                alt="SMRPL Logo"
+                className={`w-full h-full transition-transform duration-300 group-hover:scale-105
+                  ${(!isExpanded && !isHovered && !isMobileOpen) ? "object-contain" : "object-fill"}`}
+              />
             </div>
-            {(isExpanded || isHovered || isMobileOpen) && (
-              <div className="flex flex-col leading-none">
-                <span className="font-black text-[#111827] text-3xl tracking-tighter">
-                  SMRPL
-                </span>
-                <span className="text-[10px] font-black text-blue-600 tracking-[0.3em] uppercase mt-1">
-                  ENTERPRISES
-                </span>
-              </div>
-            )}
           </Link>
         </div>
 
