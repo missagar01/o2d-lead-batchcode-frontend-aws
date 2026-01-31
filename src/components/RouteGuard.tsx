@@ -1,6 +1,7 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router";
 import { useAuth } from "../context/AuthContext";
+import { isPathAllowed, getDefaultAllowedPath } from "../utils/accessControl";
 
 interface RouteGuardProps {
   children: React.ReactNode;
@@ -8,82 +9,7 @@ interface RouteGuardProps {
   requiredPage?: string;
 }
 
-// Helper function to check if a path is allowed based on system_access and page_access
-const isPathAllowed = (
-  path: string,
-  user: { system_access?: string | null; page_access?: string | null; role?: string; userType?: string } | null | undefined
-): boolean => {
-  // Check if user is admin
-  const role = (user?.userType || user?.role || "").toString().toLowerCase();
-  const isAdmin = role.includes("admin");
-
-  // Admin can access everything
-  if (isAdmin) {
-    return true;
-  }
-
-  // If no user or no access defined, deny access
-  if (!user || (!user.system_access && !user.page_access)) {
-    return false;
-  }
-
-  // Parse system_access and page_access (comma-separated strings, handle spaces)
-  const systemAccess = user.system_access
-    ? user.system_access.split(",").map(s => s.trim().toLowerCase().replace(/\s+/g, "")).filter(Boolean)
-    : [];
-  const pageAccess = user.page_access
-    ? user.page_access.split(",").map(p => p.trim()).filter(Boolean)
-    : [];
-
-  // Normalize path for comparison (remove query params and trailing slashes)
-  const normalizedPath = path.split("?")[0].replace(/\/$/, "");
-
-  // Determine which system this path belongs to
-  let systemMatch = false;
-
-  if (normalizedPath.startsWith("/o2d") || normalizedPath === "/" || path.includes("?tab=o2d")) {
-    systemMatch = systemAccess.includes("o2d");
-  } else if (normalizedPath.startsWith("/batchcode") || path.includes("?tab=batchcode")) {
-    systemMatch = systemAccess.includes("batchcode");
-  } else if (normalizedPath.startsWith("/lead-to-order") || path.includes("?tab=lead-to-order")) {
-    systemMatch = systemAccess.includes("lead-to-order");
-  }
-
-  // If no system_access but has page_access, check page_access directly
-  if (systemAccess.length === 0 && pageAccess.length > 0) {
-    return pageAccess.some(allowedPath => {
-      const normalizedAllowed = allowedPath.trim().replace(/\/$/, "");
-      // Exact match or path starts with allowed path
-      return normalizedPath === normalizedAllowed || normalizedPath.startsWith(normalizedAllowed + "/");
-    });
-  }
-
-  // Check if specific page is allowed (Prioritize page_access)
-  if (pageAccess.length > 0) {
-    const isPageAllowed = pageAccess.some(allowedPath => {
-      let normalizedAllowed = allowedPath.trim().replace(/\/$/, "");
-      if (!normalizedAllowed.startsWith("/")) {
-        normalizedAllowed = "/" + normalizedAllowed;
-      }
-      // Exact match or path starts with allowed path
-      return normalizedPath === normalizedAllowed || normalizedPath.startsWith(normalizedAllowed + "/");
-    });
-
-    if (isPageAllowed) {
-      return true;
-    }
-  }
-
-  // If system doesn't match and system_access is defined, deny access
-  if (!systemMatch && systemAccess.length > 0) {
-    return false;
-  }
-
-  // If system matches but no specific page_access, allow all pages in that system
-  return systemMatch;
-};
-
-const RouteGuard: React.FC<RouteGuardProps> = ({ children, requiredSystem, requiredPage }) => {
+const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
@@ -96,25 +22,27 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children, requiredSystem, requi
   }
 
   // Check if user has access to this route
-  const hasAccess = isPathAllowed(location.pathname + location.search, user);
+  const currentPath = location.pathname + location.search;
+  const hasAccess = isPathAllowed(currentPath, user);
 
-  // Redirect to login or show access denied
+  // If no access, redirect to login or a safe place instead of showing error
   if (!hasAccess) {
-    // Redirect to login or show access denied
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-        <div className="p-8 bg-white rounded-lg shadow-md max-w-md w-full text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
-          <p className="text-gray-600 mb-6">You do not have permission to access this page.</p>
-          <button
-            onClick={() => window.location.href = "/login"}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-          >
-            Go to Login
-          </button>
-        </div>
-      </div>
-    );
+    if (!user) {
+      return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    // If already logged in but no access to THIS specific path
+    // Redirect them to their designated default allowed path
+    const safePath = getDefaultAllowedPath(user);
+
+    // Safety check: if safePath is the same as current path, we are in a loop
+    if (safePath === currentPath || safePath === location.pathname) {
+      // If we are already on the supposedly safe path and still no access,
+      // fallback to login but this shouldn't happen with correct logic
+      return <Navigate to="/login" replace />;
+    }
+
+    return <Navigate to={safePath} replace />;
   }
 
   return <>{children}</>;

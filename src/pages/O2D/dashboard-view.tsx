@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
 import { Cell, Pie, PieChart, ResponsiveContainer, Legend, Tooltip } from "recharts"
 import { cn } from "../../lib/utils"
-import api, { API_ENDPOINTS } from "../../config/api";
+import { o2dAPI } from "../../services/o2dAPI";
+import { IndiaMap } from "../../components/IndiaMap";
 type DashboardRow = {
   indate?: string | null
   outdate?: string | null
@@ -78,25 +79,20 @@ export function DashboardView() {
     setError(null)
     try {
       // Build query params for proper Redis caching
-      const params = new URLSearchParams()
-      if (selectedParty !== "All Parties") params.append("partyName", selectedParty)
-      if (selectedItem !== "All Items") params.append("itemName", selectedItem)
-      if (selectedSales !== "All Salespersons") params.append("salesPerson", selectedSales)
-      if (selectedState !== "All States") params.append("stateName", selectedState)
+      const params: any = {}
+      if (selectedParty !== "All Parties") params.partyName = selectedParty
+      if (selectedItem !== "All Items") params.itemName = selectedItem
+      if (selectedSales !== "All Salespersons") params.salesPerson = selectedSales
+      if (selectedState !== "All States") params.stateName = selectedState
       if (selectedMonth !== "All Months") {
         const [year, month] = selectedMonth.split("-")
         const fromDate = new Date(parseInt(year), parseInt(month) - 1, 1)
         const toDate = new Date(parseInt(year), parseInt(month), 0)
-        params.append("fromDate", format(fromDate, "yyyy-MM-dd"))
-        params.append("toDate", format(toDate, "yyyy-MM-dd"))
+        params.fromDate = format(fromDate, "yyyy-MM-dd")
+        params.toDate = format(toDate, "yyyy-MM-dd")
       }
 
-      const queryString = params.toString()
-      const url = queryString
-        ? `${API_ENDPOINTS.O2D.DASHBOARD.SUMMARY}?${queryString}`
-        : API_ENDPOINTS.O2D.DASHBOARD.SUMMARY
-
-      const response = await api.get(url)
+      const response = await o2dAPI.getDashboardSummary(params)
       const payload = response.data
       if (!payload?.success || !payload?.data) {
         throw new Error("Invalid dashboard response")
@@ -404,6 +400,21 @@ export function DashboardView() {
       }))
   }, [filteredData])
 
+  const stateDistributionData = useMemo(() => {
+    if (!filteredData) return [];
+    const stateMap: Record<string, number> = {};
+    filteredData.forEach(row => {
+      // Handle multiple potential state field names from backend
+      const stateName = (row.stateName || (row as any).state || (row as any).STATE || "").toString().trim();
+      if (stateName) {
+        stateMap[stateName] = (stateMap[stateName] || 0) + 1;
+      }
+    });
+    return Object.entries(stateMap)
+      .map(([state, count]) => ({ state, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [filteredData]);
+
   const downloadPDF = async () => {
     if (!dashboardRef.current) {
       alert("Dashboard content not ready for download")
@@ -631,23 +642,6 @@ export function DashboardView() {
           <div>
             {lastUpdated && <p className="text-xs text-gray-500">Last updated: {lastUpdated.toLocaleTimeString()}</p>}
           </div>
-          {/* <div className="flex items-center gap-2">
-            <Button onClick={fetchDashboard} variant="outline" size="sm" className="flex items-center gap-1">
-              <RefreshCw className="h-4 w-4" />
-              Refresh
-            </Button>
-            <Button onClick={downloadPDF} className="flex items-center gap-2 ignore-pdf">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-              Download PDF
-            </Button>
-          </div> */}
         </div>
 
         {error && (
@@ -1282,77 +1276,37 @@ export function DashboardView() {
           </CardContent>
         </Card>
 
-        <Card className="w-full overflow-hidden border-none bg-gradient-to-br from-[rgba(20, 7, 204, 1)] via-[rgba(21, 18, 116, 1)] to-[rgb(30,27,75)] shadow-2xl relative">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[rgba(50, 65, 197, 1)] to-[rgba(32, 20, 70, 1)] opacity-60"></div>
-          <CardHeader className="p-6 bg-white/5 backdrop-blur-md border-b border-white/10">
-            <div className="flex items-center gap-4">
-              <div className="p-2.5 bg-indigo-400/20 rounded-xl border border-indigo-400/30">
-                <Trophy className="w-5 h-5 text-indigo-300" />
+
+        {/* Geographic Distribution Map & Top Customers Grid */}
+        {/* <div className="w-full mb-6">
+          <Card className="w-full overflow-hidden border border-slate-200 bg-white shadow-lg relative min-h-[600px]">
+            <CardHeader className="p-4 sm:p-6 bg-slate-50 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <CardTitle className="text-lg font-bold text-slate-800">Geographic Distribution</CardTitle>
+                  <CardDescription className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                    State-wise Dispatch Volume
+                  </CardDescription>
+                </div>
               </div>
-              <div>
-                <CardTitle className="text-xl font-black text-white tracking-tight">Top 10 Customers</CardTitle>
-                <CardDescription className="text-xs font-bold text-white/60 uppercase tracking-widest mt-1">
-                  Performance Leaders by Volume {hasActiveFilters ? "• Filtered" : ""}
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto max-h-[420px] custom-scrollbar">
-              <Table>
-                <TableHeader className="sticky top-0 z-20 bg-[rgb(49,46,129)] backdrop-blur-xl border-b border-white/10">
-                  <TableRow className="hover:bg-transparent border-none">
-                    <TableHead className="text-[11px] font-black text-white uppercase tracking-tighter py-4">Rank</TableHead>
-                    <TableHead className="text-[11px] font-black text-white uppercase tracking-tighter py-4">Customer Name</TableHead>
-                    <TableHead className="text-[11px] font-black text-white uppercase tracking-tighter py-4">Item Name</TableHead>
-                    <TableHead className="text-[11px] font-black text-white uppercase tracking-tighter py-4 text-right">Dispatches</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {top10Customers.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center py-20 text-white/40 font-bold italic">
-                        No performance data found
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    top10Customers.map((customer) => (
-                      <TableRow
-                        key={customer.rank}
-                        className="group/row border-b border-white/5 transition-all duration-300"
-                      >
-                        <TableCell className="py-4">
-                          <span className={cn(
-                            "w-7 h-7 flex items-center justify-center rounded-lg text-[11px] font-black shadow-inner border",
-                            customer.rank === 1 ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" :
-                              customer.rank === 2 ? "bg-slate-300/20 text-slate-100 border-slate-300/30" :
-                                customer.rank === 3 ? "bg-orange-500/20 text-orange-400 border-orange-500/30" :
-                                  "bg-white/5 text-white border-white/10"
-                          )}>
-                            {customer.rank}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-xs font-black text-white py-4">
-                          {customer.name}
-                        </TableCell>
-                        <TableCell className="text-xs font-bold text-white/80 py-4">
-                          <Badge variant="outline" className="bg-white/5 border-white/10 text-[9px] text-white font-black">
-                            {customer.itemNames}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right py-4">
-                          <span className="text-sm font-black text-white font-mono bg-white/5 px-3 py-1 rounded-lg border border-white/5">
-                            {customer.dispatches}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent className="p-0 h-[400px] md:h-[500px] lg:h-[600px] bg-[#0b0f1a] relative">
+              <IndiaMap
+                data={stateDistributionData}
+                onStateClick={(state) => {
+                  setSelectedState(state);
+                  const element = document.getElementById('dashboard-filter-section');
+                  if (element) element.scrollIntoView({ behavior: 'smooth' });
+                }}
+              />
+            </CardContent>
+          </Card>
+        </div> */}
 
         <Card className="w-full overflow-hidden border-none bg-gradient-to-br from-[rgb(6,78,59)] via-[rgb(6,95,70)] to-[rgb(6,78,59)] shadow-2xl relative">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[rgb(52,211,153)] to-[rgb(45,212,191)] opacity-60"></div>
@@ -1459,7 +1413,7 @@ export function DashboardView() {
             )}
           </CardContent>
         </Card>
-      </div>
-    </div>
+      </div >
+    </div >
   )
 }

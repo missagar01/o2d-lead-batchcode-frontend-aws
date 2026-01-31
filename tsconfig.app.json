@@ -19,6 +19,7 @@
     "jsx": "react-jsx",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
     /* Linting */
     "strict": false,
     "noUnusedLocals": false,

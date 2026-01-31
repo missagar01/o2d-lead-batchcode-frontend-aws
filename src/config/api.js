@@ -179,6 +179,8 @@ export const API_ENDPOINTS = {
       TIMELINE: '/api/o2d/process/timeline',
     },
     SIZE_MASTER: '/api/o2d/size-master',
+    CLIENT: '/api/o2d/client',
+    FOLLOWUP: '/api/o2d/followup',
   },
 };
 

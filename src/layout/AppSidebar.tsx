@@ -12,6 +12,7 @@ import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../context/AuthContext";
 import logo from "../assert/Logo.jpeg";
 import { LogOut } from "lucide-react";
+import { isAdminUser, isPathAllowed } from "../utils/accessControl";
 
 type NavItem = {
   name: string;
@@ -27,7 +28,7 @@ const dashboardItem: NavItem = {
   path: "/",
 };
 
-// O2D with submenu - clicking main item goes to dashboard with o2d tab
+// O2D with submenu
 const o2dItem: NavItem = {
   icon: <BoxCubeIcon />,
   name: "O2D",
@@ -35,10 +36,12 @@ const o2dItem: NavItem = {
     { name: "Orders", path: "/o2d/orders", pro: false },
     { name: "Enquiry", path: "/o2d/enquiry", pro: false },
     { name: "Pending Vehicles", path: "/o2d/process", pro: false },
+    { name: "Customers", path: "/o2d/customers", pro: false },
+    { name: "Follow Ups", path: "/o2d/follow-ups", pro: false },
   ],
 };
 
-// BatchCode with submenu - clicking main item goes to dashboard with batchcode tab
+// BatchCode with submenu
 const batchCodeItem: NavItem = {
   icon: <BoxCubeIcon />,
   name: "BatchCode",
@@ -50,7 +53,6 @@ const batchCodeItem: NavItem = {
     { name: "Recoiler", path: "/batchcode/recoiler", pro: false },
     { name: "Pipe Mill", path: "/batchcode/pipe-mill", pro: false },
     { name: "QC Lab", path: "/batchcode/qc-lab", pro: false },
-
   ],
 };
 
@@ -72,114 +74,13 @@ const leadToOrderSettingsItem: NavItem = {
   path: "/lead-to-order/settings",
 };
 
-const isAdminUser = (user: { role?: string; userType?: string } | null | undefined) => {
-  const role = (user?.userType || user?.role || "").toString().toLowerCase();
-  return role.includes("admin");
-};
-
-// Helper function to check if a path is allowed based on system_access and page_access
-const isPathAllowed = (
-  path: string,
-  user: { system_access?: string | null; page_access?: string | null; role?: string; userType?: string } | null | undefined,
-  isAdmin: boolean
-): boolean => {
-  // Admin can access everything
-  if (isAdmin) {
-    return true;
-  }
-
-  // If no user or no access defined, deny access
-  if (!user || (!user.system_access && !user.page_access)) {
-    return false;
-  }
-
-  // Map of page names to routes for new page_access format
-  const PAGE_NAME_TO_ROUTE_MAP: Record<string, string> = {
-    "Dashboard": "/",
-    "Orders": "/o2d/orders",
-    "Pending Vehicles": "/o2d/process",
-    "Complaint Details": "/o2d/complaint-details",
-    "Permissions": "/o2d/permissions",
-    "Enquiry": "/o2d/enquiry",
-    "Hot Coil": "/batchcode/hot-coil",
-    "QC Lab": "/batchcode/qc-lab",
-    "SMS Register": "/batchcode/sms-register",
-    "Recoiler": "/batchcode/recoiler",
-    "Pipe Mill": "/batchcode/pipe-mill",
-    "Laddel": "/batchcode/laddel",
-    "Tundis": "/batchcode/tundis",
-    "Leads": "/lead-to-order/leads",
-    "Follow Up": "/lead-to-order/follow-up",
-    "Call Tracker": "/lead-to-order/call-tracker",
-    "Quotation": "/lead-to-order/quotation",
-  };
-
-  // Parse system_access and page_access (comma-separated strings, handle spaces)
-  const systemAccess = user.system_access
-    ? user.system_access.split(",").map(s => s.trim().toLowerCase().replace(/\s+/g, "")).filter(Boolean)
-    : [];
-  const pageAccess = user.page_access
-    ? user.page_access.split(",").map(p => p.trim()).filter(Boolean)
-    : [];
-
-  // Convert page names to routes if needed
-  const pageRoutes = pageAccess.map(page => {
-    // If it's already a route (starts with /), keep it
-    if (page.startsWith("/")) {
-      return page;
-    }
-    // Otherwise, convert page name to route
-    return PAGE_NAME_TO_ROUTE_MAP[page] || page;
-  });
-
-  // Normalize path for comparison (remove query params and trailing slashes)
-  const normalizedPath = path.split("?")[0].replace(/\/$/, "");
-
-  // Determine which system this path belongs to
-  let systemMatch = false;
-
-  if (normalizedPath.startsWith("/o2d") || normalizedPath === "/" || path.includes("?tab=o2d")) {
-    systemMatch = systemAccess.includes("o2d");
-  } else if (normalizedPath.startsWith("/batchcode") || path.includes("?tab=batchcode")) {
-    systemMatch = systemAccess.includes("batchcode");
-  } else if (normalizedPath.startsWith("/lead-to-order") || path.includes("?tab=lead-to-order")) {
-    systemMatch = systemAccess.includes("lead-to-order");
-  }
-
-  // If system doesn't match, deny access
-  if (!systemMatch && systemAccess.length > 0) {
-    return false;
-  }
-
-  // If no system_access but has page_access, check page_access directly
-  if (systemAccess.length === 0 && pageRoutes.length > 0) {
-    return pageRoutes.some(allowedPath => {
-      const normalizedAllowed = allowedPath.trim().replace(/\/$/, "");
-      // Exact match or path starts with allowed path
-      return normalizedPath === normalizedAllowed || normalizedPath.startsWith(normalizedAllowed + "/");
-    });
-  }
-
-  // Check if specific page is allowed
-  if (pageRoutes.length > 0) {
-    return pageRoutes.some(allowedPath => {
-      const normalizedAllowed = allowedPath.trim().replace(/\/$/, "");
-      // Exact match or path starts with allowed path
-      return normalizedPath === normalizedAllowed || normalizedPath.startsWith(normalizedAllowed + "/");
-    });
-  }
-
-  // If system matches but no specific page_access, allow all pages in that system
-  return systemMatch;
-};
-
 const AppSidebar: FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered, toggleMobileSidebar } = useSidebar();
   const location = useLocation();
   const { logout, user } = useAuth();
   const isAdmin = useMemo(() => isAdminUser(user), [user]);
 
-  let globalItemCounter = 0; // Emerald = #06c082ff (first), Blue = #3b82f6 (second)
+  let globalItemCounter = 0;
 
   const handleLinkClick = useCallback(() => {
     if (isMobileOpen) {
@@ -188,44 +89,26 @@ const AppSidebar: FC = () => {
   }, [isMobileOpen, toggleMobileSidebar]);
 
   const leadToOrderNavItem = useMemo(() => {
-    // Filter subItems based on page_access
     const subItems = leadToOrderBaseSubItems.filter(subItem =>
-      isPathAllowed(subItem.path, user, isAdmin)
+      isPathAllowed(subItem.path, user)
     );
 
     return {
       ...leadToOrderBaseItem,
       subItems,
     };
-  }, [isAdmin, user]);
+  }, [user]);
 
-  // Filter O2D subItems based on access
   const filteredO2dItem = useMemo(() => {
-    // Check if user has o2d system access or any o2d page access
-    const systemAccess = user?.system_access
-      ? user.system_access.split(",").map(s => s.trim().toLowerCase().replace(/\s+/g, "")).filter(Boolean)
-      : [];
-    const pageAccess = user?.page_access
-      ? user.page_access.split(",").map(p => p.trim()).filter(Boolean)
-      : [];
-
-    const hasO2dSystem = systemAccess.includes("o2d");
-    const hasO2dPages = pageAccess.some(p => p.startsWith("/o2d"));
-
-    // If no o2d access at all, don't show
-    if (!isAdmin && !hasO2dSystem && !hasO2dPages) {
+    if (!isAdmin && !isPathAllowed("/o2d", user) && !o2dItem.subItems?.some(s => isPathAllowed(s.path, user))) {
       return null;
     }
 
-    // Filter subItems based on page_access
     const filteredSubItems = o2dItem.subItems?.filter(subItem =>
-      isPathAllowed(subItem.path, user, isAdmin)
+      isPathAllowed(subItem.path, user)
     ) || [];
 
-    // If no subItems are allowed, don't show the parent item
-    if (filteredSubItems.length === 0 && !isAdmin) {
-      return null;
-    }
+    if (filteredSubItems.length === 0 && !isAdmin) return null;
 
     return {
       ...o2dItem,
@@ -233,33 +116,16 @@ const AppSidebar: FC = () => {
     };
   }, [user, isAdmin]);
 
-  // Filter BatchCode subItems based on access
   const filteredBatchCodeItem = useMemo(() => {
-    // Check if user has batchcode system access or any batchcode page access
-    const systemAccess = user?.system_access
-      ? user.system_access.split(",").map(s => s.trim().toLowerCase().replace(/\s+/g, "")).filter(Boolean)
-      : [];
-    const pageAccess = user?.page_access
-      ? user.page_access.split(",").map(p => p.trim()).filter(Boolean)
-      : [];
-
-    const hasBatchcodeSystem = systemAccess.includes("batchcode");
-    const hasBatchcodePages = pageAccess.some(p => p.startsWith("/batchcode"));
-
-    // If no batchcode access at all, don't show
-    if (!isAdmin && !hasBatchcodeSystem && !hasBatchcodePages) {
+    if (!isAdmin && !isPathAllowed("/batchcode", user) && !batchCodeItem.subItems?.some(s => isPathAllowed(s.path, user))) {
       return null;
     }
 
-    // Filter subItems based on page_access
     const filteredSubItems = batchCodeItem.subItems?.filter(subItem =>
-      isPathAllowed(subItem.path, user, isAdmin)
+      isPathAllowed(subItem.path, user)
     ) || [];
 
-    // If no subItems are allowed, don't show the parent item
-    if (filteredSubItems.length === 0 && !isAdmin) {
-      return null;
-    }
+    if (filteredSubItems.length === 0 && !isAdmin) return null;
 
     return {
       ...batchCodeItem,
@@ -267,25 +133,9 @@ const AppSidebar: FC = () => {
     };
   }, [user, isAdmin]);
 
-  // Check if dashboard should be shown - requires explicit page_access
   const showDashboard = useMemo(() => {
-    // Admin can always see dashboard
-    if (isAdmin) {
-      return true;
-    }
-
-    // Check if user has explicit page_access for dashboard
-    const pageAccess = user?.page_access
-      ? user.page_access.split(",").map(p => p.trim()).filter(Boolean)
-      : [];
-
-    // Dashboard is accessible if user has "/" or "/dashboard" in page_access
-    return pageAccess.some(path =>
-      path === "/" ||
-      path === "/dashboard" ||
-      path === "/o2d/dashboard"
-    );
-  }, [user, isAdmin]);
+    return isPathAllowed("/", user) || isPathAllowed("/dashboard", user);
+  }, [user]);
 
   // Combine items in order: Dashboard (shows O2D), O2D items, BatchCode, Lead to Order
   const navItems: NavItem[] = useMemo(() => {

@@ -24,5 +24,20 @@ export const o2dAPI = {
 
   // Enquiry (sub-route of size-master)
   createEnquiry: (data: any) => api.post(`${API_ENDPOINTS.O2D.SIZE_MASTER}/enquiry`, data),
+
+  // Clients
+  getClients: () => api.get(API_ENDPOINTS.O2D.CLIENT),
+  getClient: (id: string) => api.get(`${API_ENDPOINTS.O2D.CLIENT}/${id}`),
+  createClient: (data: any) => api.post(API_ENDPOINTS.O2D.CLIENT, data),
+  updateClient: (id: string, data: any) => api.put(`${API_ENDPOINTS.O2D.CLIENT}/${id}`, data),
+  deleteClient: (id: string) => api.delete(`${API_ENDPOINTS.O2D.CLIENT}/${id}`),
+  getMarketingUsers: () => api.get(`${API_ENDPOINTS.O2D.CLIENT}/marketing-users`),
+
+  // Followups
+  getFollowups: () => api.get(API_ENDPOINTS.O2D.FOLLOWUP),
+  getFollowup: (id: string) => api.get(`${API_ENDPOINTS.O2D.FOLLOWUP}/${id}`),
+  createFollowup: (data: any) => api.post(API_ENDPOINTS.O2D.FOLLOWUP, data),
+  updateFollowup: (id: string, data: any) => api.put(`${API_ENDPOINTS.O2D.FOLLOWUP}/${id}`, data),
+  deleteFollowup: (id: string) => api.delete(`${API_ENDPOINTS.O2D.FOLLOWUP}/${id}`),
 };
 

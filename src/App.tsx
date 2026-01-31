@@ -33,6 +33,9 @@ import { OrdersView as O2DOrders } from "./pages/O2D/order-view";
 import { PendingVehicles as O2DProcess } from "./pages/O2D/pendding-vehicle";
 import EnquiryView from "./pages/O2D/enq-view";
 
+import CustomersPage from "./pages/O2D/CustomersPage";
+import FollowUpsPage from "./pages/O2D/FollowUpsPage";
+
 export default function App() {
   return (
     <>
@@ -86,6 +89,8 @@ export default function App() {
             <Route path="/o2d/orders" element={<RouteGuard><O2DOrders /></RouteGuard>} />
             <Route path="/o2d/process" element={<RouteGuard><O2DProcess /></RouteGuard>} />
             <Route path="/o2d/enquiry" element={<RouteGuard><EnquiryView /></RouteGuard>} />
+            <Route path="/o2d/customers" element={<RouteGuard><CustomersPage /></RouteGuard>} />
+            <Route path="/o2d/follow-ups" element={<RouteGuard><FollowUpsPage /></RouteGuard>} />
           </Route>
 
           {/* Catch all - redirect to login if not authenticated, otherwise home */}

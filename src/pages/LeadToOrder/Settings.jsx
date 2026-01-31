@@ -20,6 +20,8 @@ const PAGE_ROUTES = {
     { value: "Orders", label: "Orders", route: "/o2d/orders" },
     { value: "Enquiry", label: "Enquiry", route: "/o2d/enquiry" },
     { value: "Pending Vehicles", label: "Pending Vehicles", route: "/o2d/process" },
+    { value: "Customers", label: "Customers", route: "/o2d/customers" },
+    { value: "Follow Ups", label: "Follow Ups", route: "/o2d/follow-ups" },
   ],
   "batchcode": [
     { value: "Hot Coil", label: "Hot Coil", route: "/batchcode/hot-coil" },
@@ -128,6 +130,8 @@ const Settings = () => {
       "/o2d/process": "Pending Vehicles",
       "/o2d/complaint-details": "Complaint Details",
       "/o2d/permissions": "Permissions",
+      "/o2d/customers": "Customers",
+      "/o2d/follow-ups": "Follow Ups",
       "/batchcode/hot-coil": "Hot Coil",
       "/batchcode/qc-lab": "QC Lab",
       "/batchcode/sms-register": "SMS Register",
