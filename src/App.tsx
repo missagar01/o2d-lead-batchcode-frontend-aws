@@ -10,7 +10,6 @@ import Blank from "./pages/Blank";
 import UserProfiles from "./pages/UserProfiles";
 
 // BatchCode pages
-import BatchCodeDashboard from "./pages/BatchCode/Dashboard";
 import HotCoil from "./pages/BatchCode/HotCoil";
 import QCLab from "./pages/BatchCode/QC-Lab";
 import SMSRegister from "./pages/BatchCode/SMSRegister";
@@ -20,7 +19,6 @@ import Laddel from "./pages/BatchCode/Laddel";
 import Tundis from "./pages/BatchCode/Tundis";
 
 // Lead-to-Order pages
-import LeadToOrderDashboard from "./pages/LeadToOrder/Dashboard";
 import Leads from "./pages/LeadToOrder/Leads";
 import FollowUp from "./pages/LeadToOrder/FollowUp";
 import NewFollowUp from "./pages/LeadToOrder/NewFollowUp";
@@ -31,17 +29,12 @@ import Settings from "./pages/LeadToOrder/Settings";
 
 // O2D pages
 import { DashboardView as O2DDashboard } from "./pages/O2D/dashboard-view";
-import { GateEntryView as O2DGateEntry } from "./pages/O2D/gate-entry-view";
-import { FirstWeightView as O2DFirstWeight } from "./pages/O2D/first-weight-view";
-import { LoadVehicleView as O2DLoadVehicle } from "./pages/O2D/load-vehicle-view";
-import { SecondWeightView as O2DSecondWeight } from "./pages/O2D/second-weight-view";
-import { GenerateInvoiceView as O2DGenerateInvoice } from "./pages/O2D/generate-invoice-view";
-import { PaymentView as O2DPayment } from "./pages/O2D/payment-view";
 import { OrdersView as O2DOrders } from "./pages/O2D/order-view";
-import { ComplaintDetailsView as O2DComplaintDetails } from "./pages/O2D/complaint-details-view";
-import { PermissionsView as O2DPermissions } from "./pages/O2D/permissions-view";
 import { PendingVehicles as O2DProcess } from "./pages/O2D/pendding-vehicle";
-import { AnalyticsView as O2DAnalytics } from "./pages/O2D/analytics-view";
+import EnquiryView from "./pages/O2D/enq-view";
+
+import CustomersPage from "./pages/O2D/CustomersPage";
+import FollowUpsPage from "./pages/O2D/FollowUpsPage";
 
 export default function App() {
   return (
@@ -74,7 +67,6 @@ export default function App() {
             <Route path="/blank" element={<RouteGuard><Blank /></RouteGuard>} />
 
             {/* BatchCode Routes */}
-            <Route path="/batchcode/dashboard" element={<RouteGuard><BatchCodeDashboard /></RouteGuard>} />
             <Route path="/batchcode/hot-coil" element={<RouteGuard><HotCoil /></RouteGuard>} />
             <Route path="/batchcode/qc-lab" element={<RouteGuard><QCLab /></RouteGuard>} />
             <Route path="/batchcode/sms-register" element={<RouteGuard><SMSRegister /></RouteGuard>} />
@@ -84,7 +76,6 @@ export default function App() {
             <Route path="/batchcode/tundis" element={<RouteGuard><Tundis /></RouteGuard>} />
 
             {/* Lead-to-Order Routes */}
-            <Route path="/lead-to-order/dashboard" element={<RouteGuard><LeadToOrderDashboard /></RouteGuard>} />
             <Route path="/lead-to-order/leads" element={<RouteGuard><Leads /></RouteGuard>} />
             <Route path="/lead-to-order/follow-up" element={<RouteGuard><FollowUp /></RouteGuard>} />
             <Route path="/lead-to-order/follow-up/new" element={<RouteGuard><NewFollowUp /></RouteGuard>} />
@@ -95,17 +86,11 @@ export default function App() {
 
             {/* O2D Routes */}
             <Route path="/o2d/dashboard" element={<RouteGuard><O2DDashboard /></RouteGuard>} />
-            <Route path="/o2d/gate-entry" element={<RouteGuard><O2DGateEntry /></RouteGuard>} />
-            <Route path="/o2d/first-weight" element={<RouteGuard><O2DFirstWeight /></RouteGuard>} />
-            <Route path="/o2d/load-vehicle" element={<RouteGuard><O2DLoadVehicle /></RouteGuard>} />
-            <Route path="/o2d/second-weight" element={<RouteGuard><O2DSecondWeight /></RouteGuard>} />
-            <Route path="/o2d/generate-invoice" element={<RouteGuard><O2DGenerateInvoice /></RouteGuard>} />
-            <Route path="/o2d/payment" element={<RouteGuard><O2DPayment /></RouteGuard>} />
             <Route path="/o2d/orders" element={<RouteGuard><O2DOrders /></RouteGuard>} />
             <Route path="/o2d/process" element={<RouteGuard><O2DProcess /></RouteGuard>} />
-            <Route path="/o2d/complaint-details" element={<RouteGuard><O2DComplaintDetails /></RouteGuard>} />
-            <Route path="/o2d/permissions" element={<RouteGuard><O2DPermissions /></RouteGuard>} />
-            <Route path="/o2d/analytics" element={<RouteGuard><O2DAnalytics /></RouteGuard>} />
+            <Route path="/o2d/enquiry" element={<RouteGuard><EnquiryView /></RouteGuard>} />
+            <Route path="/o2d/customers" element={<RouteGuard><CustomersPage /></RouteGuard>} />
+            <Route path="/o2d/follow-ups" element={<RouteGuard><FollowUpsPage /></RouteGuard>} />
           </Route>
 
           {/* Catch all - redirect to login if not authenticated, otherwise home */}

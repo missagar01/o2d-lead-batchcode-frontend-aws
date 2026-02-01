@@ -24,11 +24,6 @@ export function OrdersView() {
     items: []
   })
 
-  const [balanceTotals, setBalanceTotals] = useState({
-    pending: 0,
-    history: 0
-  })
-
   const fetchOrderData = async () => {
     try {
       setLoading(true)
@@ -94,24 +89,14 @@ export function OrdersView() {
       const pending = processRows(pendingRows, 'Pending');
       const history = processRows(historyRows, 'History');
 
-      // Combine for filter options
+      // Combine for filter options - extract all unique salespersons
       const allOrders = [...pending, ...history];
-
-      // Extract unique values for filters
       const salespersons = [...new Set(allOrders.map(order => order.salesperson).filter(Boolean))].sort()
-      const customers = [...new Set(allOrders.map(order => order.customerName).filter(Boolean))].sort()
-      const items = [...new Set(allOrders.map(order => order.itemName).filter(Boolean))].sort()
 
       setFilterOptions({
         salespersons,
-        customers,
-        items
-      })
-
-      // Calculate totals
-      setBalanceTotals({
-        pending: pending.reduce((sum, order) => sum + order.balanceQty, 0),
-        history: 0
+        customers: [],
+        items: []
       })
 
       setPendingOrders(pending)
@@ -123,6 +108,37 @@ export function OrdersView() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Get filtered customers based on selected salesperson
+  const getFilteredCustomers = (orders: any[]): string[] => {
+    let filteredOrders = orders;
+    if (filters.salesperson) {
+      filteredOrders = orders.filter(order => order.salesperson === filters.salesperson);
+    }
+    return [...new Set(filteredOrders.map(order => order.customerName).filter(Boolean))] as string[];
+  }
+
+  // Get filtered items based on selected salesperson and customer
+  const getFilteredItems = (orders: any[]): string[] => {
+    let filteredOrders = orders;
+    if (filters.salesperson) {
+      filteredOrders = filteredOrders.filter(order => order.salesperson === filters.salesperson);
+    }
+    if (filters.customer) {
+      filteredOrders = filteredOrders.filter(order => order.customerName === filters.customer);
+    }
+    return [...new Set(filteredOrders.map(order => order.itemName).filter(Boolean))] as string[];
+  }
+
+  // Handle salesperson change - reset customer and item
+  const handleSalespersonChange = (value: string) => {
+    setFilters({ ...filters, salesperson: value, customer: '', item: '' });
+  }
+
+  // Handle customer change - reset item
+  const handleCustomerChange = (value: string) => {
+    setFilters({ ...filters, customer: value, item: '' });
   }
 
   const filterOrders = (orders) => {
@@ -142,6 +158,12 @@ export function OrdersView() {
       }
       return true
     })
+  }
+
+  // Calculate total balance from filtered orders
+  const getFilteredBalanceTotal = (orders) => {
+    const filtered = filterOrders(orders);
+    return filtered.reduce((sum, order) => sum + (order.balanceQty || 0), 0);
   }
 
   useEffect(() => {
@@ -188,30 +210,30 @@ export function OrdersView() {
   const renderTable = (data, type) => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-md">
       {/* Header Section */}
-      <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-gray-50 to-white">
+      <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-gradient-to-r from-gray-50 to-white">
         <div className="flex items-center space-x-2">
           <div className={`h-2 w-2 rounded-full ${type === 'pending' ? 'bg-amber-500' : 'bg-emerald-500'}`}></div>
           <div>
-            <h3 className="text-lg font-bold text-gray-800 capitalize">{type} Orders</h3>
-            <p className="text-gray-500 text-xs mt-0.5">Manage and track your {type} status orders</p>
+            <h3 className="text-base sm:text-lg font-bold text-gray-800 capitalize">{type} Orders</h3>
+            <p className="text-gray-500 text-[10px] sm:text-xs mt-0.5">Manage and track your {type} status orders</p>
           </div>
         </div>
-        <div className="px-4 py-2 bg-blue-50 rounded-lg border border-blue-100">
+        <div className="px-4 py-2 bg-blue-50 rounded-lg border border-blue-100 w-full sm:w-auto">
           <span className="text-blue-600 text-xs font-semibold uppercase tracking-wider">Total Balance</span>
           <div className="text-xl font-bold text-blue-800 tabular-nums leading-none mt-1">
-            {typeof balanceTotals[type] === 'number' ? balanceTotals[type].toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
+            {getFilteredBalanceTotal(data).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
         </div>
       </div>
 
       {/* Filters Section */}
-      <div className="p-5 bg-white border-b border-gray-100">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="p-4 sm:p-5 bg-white border-b border-gray-100">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="relative group">
             <label className="block text-xs font-semibold text-gray-500 mb-1.5 ml-1">Salesperson</label>
             <select
               value={filters.salesperson}
-              onChange={(e) => setFilters({ ...filters, salesperson: e.target.value })}
+              onChange={(e) => handleSalespersonChange(e.target.value)}
               className="w-full pl-3 pr-8 py-2.5 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors cursor-pointer hover:bg-gray-100"
             >
               <option value="">All Salespersons</option>
@@ -225,11 +247,11 @@ export function OrdersView() {
             <label className="block text-xs font-semibold text-gray-500 mb-1.5 ml-1">Customer</label>
             <select
               value={filters.customer}
-              onChange={(e) => setFilters({ ...filters, customer: e.target.value })}
+              onChange={(e) => handleCustomerChange(e.target.value)}
               className="w-full pl-3 pr-8 py-2.5 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors cursor-pointer hover:bg-gray-100"
             >
               <option value="">All Customers</option>
-              {filterOptions.customers.map((c, i) => (
+              {getFilteredCustomers(data).map((c, i) => (
                 <option key={i} value={c}>{c}</option>
               ))}
             </select>
@@ -243,7 +265,7 @@ export function OrdersView() {
               className="w-full pl-3 pr-8 py-2.5 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors cursor-pointer hover:bg-gray-100"
             >
               <option value="">All Items</option>
-              {filterOptions.items.map((it, i) => (
+              {getFilteredItems(data).map((it, i) => (
                 <option key={i} value={it}>{it}</option>
               ))}
             </select>
@@ -277,6 +299,7 @@ export function OrdersView() {
         <table className="w-full text-left border-collapse">
           <thead className="bg-gray-50/50 sticky top-0 z-10 backdrop-blur-sm shadow-sm ring-1 ring-black/5">
             <tr>
+              <th className="px-5 py-3.5 text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">S.No</th>
               <th className="px-5 py-3.5 text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Salesperson</th>
               <th className="px-5 py-3.5 text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Customer</th>
               <th className="px-5 py-3.5 text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">VR No</th>
@@ -291,8 +314,9 @@ export function OrdersView() {
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
             {filterOrders(data).length > 0 ? (
-              filterOrders(data).map((order) => (
+              filterOrders(data).map((order, index) => (
                 <tr key={order.id} className="hover:bg-blue-50/30 transition-colors group">
+                  <td className="px-5 py-4 text-sm text-gray-700 whitespace-nowrap font-medium">{index + 1}</td>
                   <td className="px-5 py-4 text-sm text-gray-700 whitespace-nowrap font-medium">{order.salesperson}</td>
                   <td className="px-5 py-4 text-sm text-gray-700 whitespace-nowrap font-medium text-gray-900">{order.customerName}</td>
                   <td className="px-5 py-4 text-sm font-mono text-gray-600 whitespace-nowrap bg-gray-50/50 rounded-sm">{order.vrno}</td>
@@ -324,7 +348,7 @@ export function OrdersView() {
               ))
             ) : (
               <tr>
-                <td colSpan={10} className="px-6 py-12 text-center">
+                <td colSpan={11} className="px-6 py-12 text-center">
                   <div className="flex flex-col items-center justify-center space-y-3">
                     <h3 className="text-gray-900 font-medium">No orders found</h3>
                     <p className="text-gray-500 text-sm mt-1">Try adjusting your filters</p>
@@ -339,11 +363,11 @@ export function OrdersView() {
   )
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Orders</h2>
-          <p className="text-gray-600">Manage all orders</p>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Orders</h2>
+          <p className="text-sm sm:text-base text-gray-600">Manage all orders</p>
         </div>
         <div className="flex space-x-2">
           <button

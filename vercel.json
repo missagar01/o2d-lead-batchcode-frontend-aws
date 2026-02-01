@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "http://65.1.93.56:3004/api/:path*"
+      "destination": "https://o2d-batch-lead.sagartmt.com/api/:path*"
     },
     {
       "source": "/(.*)",

@@ -136,7 +136,7 @@ function NewCallTracker({ leadId: propLeadId, onClose }) {
         // Handle enquiry status response
         if (statusResponse.status === 'fulfilled') {
           const statusData = statusResponse.value?.data;
-          
+
           // Check if response is HTML
           if (typeof statusData === 'string' && (statusData.trim().startsWith('<!DOCTYPE') || statusData.trim().startsWith('<html'))) {
             console.warn("Backend returned HTML instead of JSON for enquiry status dropdown. Using empty data.");
@@ -154,7 +154,7 @@ function NewCallTracker({ leadId: propLeadId, onClose }) {
         // Handle customer feedback response
         if (feedbackResponse.status === 'fulfilled') {
           const feedbackData = feedbackResponse.value?.data;
-          
+
           // Check if response is HTML
           if (typeof feedbackData === 'string' && (feedbackData.trim().startsWith('<!DOCTYPE') || feedbackData.trim().startsWith('<html'))) {
             console.warn("Backend returned HTML instead of JSON for customer feedback dropdown. Using empty data.");
@@ -306,113 +306,113 @@ function NewCallTracker({ leadId: propLeadId, onClose }) {
 
 
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setIsSubmitting(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
 
-  try {
-    let acceptanceFileUrl = "";
-    let apologyVideoUrl = "";
-    let orderNumber = "";
+    try {
+      let acceptanceFileUrl = "";
+      let apologyVideoUrl = "";
+      let orderNumber = "";
 
-    // Upload acceptance file if YES
-    if (currentStage === "order-status" && orderStatusData.orderStatus === "yes") {
-      if (orderStatusData.acceptanceFile) {
-        showNotification("Uploading acceptance file...", "info");
-        acceptanceFileUrl = await uploadFileToDrive(orderStatusData.acceptanceFile);
-        showNotification("Acceptance file uploaded", "success");
+      // Upload acceptance file if YES
+      if (currentStage === "order-status" && orderStatusData.orderStatus === "yes") {
+        if (orderStatusData.acceptanceFile) {
+          showNotification("Uploading acceptance file...", "info");
+          acceptanceFileUrl = await uploadFileToDrive(orderStatusData.acceptanceFile);
+          showNotification("Acceptance file uploaded", "success");
+        }
       }
-    }
 
-    // Upload apology video if NO
-    if (currentStage === "order-status" && orderStatusData.orderStatus === "no") {
-      if (orderStatusData.apologyVideo) {
-        showNotification("Uploading apology video...", "info");
-        apologyVideoUrl = await uploadFileToDrive(orderStatusData.apologyVideo);
-        showNotification("Apology video uploaded", "success");
+      // Upload apology video if NO
+      if (currentStage === "order-status" && orderStatusData.orderStatus === "no") {
+        if (orderStatusData.apologyVideo) {
+          showNotification("Uploading apology video...", "info");
+          apologyVideoUrl = await uploadFileToDrive(orderStatusData.apologyVideo);
+          showNotification("Apology video uploaded", "success");
+        }
       }
-    }
 
-    // Generate order number if YES
-    if (currentStage === "order-status" && orderStatusData.orderStatus === "yes") {
-      const latestOrderNumber = await getLatestOrderNumber();
-      orderNumber = generateNextOrderNumber(latestOrderNumber);
-    }
+      // Generate order number if YES
+      if (currentStage === "order-status" && orderStatusData.orderStatus === "yes") {
+        const latestOrderNumber = await getLatestOrderNumber();
+        orderNumber = generateNextOrderNumber(latestOrderNumber);
+      }
 
-    // ⭐ BUILD PAYLOAD FOR POSTGRES BACKEND
-    const payload = {
-      enquiry_no: formData.enquiryNo,
-      enquiry_status: formData.enquiryStatus,
-      what_did_customer_say: formData.customerFeedback,
-      current_stage: currentStage,
+      // ⭐ BUILD PAYLOAD FOR POSTGRES BACKEND
+      const payload = {
+        enquiry_no: formData.enquiryNo,
+        enquiry_status: formData.enquiryStatus,
+        what_did_customer_say: formData.customerFeedback,
+        current_stage: currentStage,
 
-      // ORDER EXPECTED
-      followup_status: orderExpectedData.followupStatus || null,
-      next_call_date: orderExpectedData.nextCallDate || null,
-      next_call_time: orderExpectedData.nextCallTime || null,
+        // ORDER EXPECTED
+        followup_status: orderExpectedData.followupStatus || null,
+        next_call_date: orderExpectedData.nextCallDate || null,
+        next_call_time: orderExpectedData.nextCallTime || null,
 
-      // ORDER STATUS YES
-      is_order_received_status: orderStatusData.orderStatus || null,
-      acceptance_via: orderStatusData.acceptanceVia || null,
-      payment_mode: orderStatusData.paymentMode || null,
-      // payment_terms_in_days: orderStatusData.paymentTerms || null,
-      payment_terms_in_days: orderStatusData.paymentTerms
-  ? parseInt(orderStatusData.paymentTerms.replace(/\D/g, "")) 
-  : null,
-      transport_mode: orderStatusData.transportMode || null,
-      po_number: orderStatusData.poNumber || null,
-      acceptance_file_upload: acceptanceFileUrl || null,
-      remark: orderStatusData.orderRemark || null,
+        // ORDER STATUS YES
+        is_order_received_status: orderStatusData.orderStatus || null,
+        acceptance_via: orderStatusData.acceptanceVia || null,
+        payment_mode: orderStatusData.paymentMode || null,
+        // payment_terms_in_days: orderStatusData.paymentTerms || null,
+        payment_terms_in_days: orderStatusData.paymentTerms
+          ? parseInt(orderStatusData.paymentTerms.replace(/\D/g, ""))
+          : null,
+        transport_mode: orderStatusData.transportMode || null,
+        po_number: orderStatusData.poNumber || null,
+        acceptance_file_upload: acceptanceFileUrl || null,
+        remark: orderStatusData.orderRemark || null,
 
-      // ORDER STATUS NO
-      if_no_relevant_reason_status: orderStatusData.reasonStatus || null,
-      if_no_relevant_reason_remark: orderStatusData.reasonRemark || null,
+        // ORDER STATUS NO
+        if_no_relevant_reason_status: orderStatusData.reasonStatus || null,
+        if_no_relevant_reason_remark: orderStatusData.reasonRemark || null,
 
-      // ORDER HOLD
-      customer_order_hold_reason_category: orderStatusData.holdReason || null,
-      holding_date: orderStatusData.holdingDate || null,
-      hold_remark: orderStatusData.holdRemark || null,
+        // ORDER HOLD
+        customer_order_hold_reason_category: orderStatusData.holdReason || null,
+        holding_date: orderStatusData.holdingDate || null,
+        hold_remark: orderStatusData.holdRemark || null,
 
-      // SALES DETAILS (Optional)
-      sales_cordinator: null,
-      calling_days: null,
-      // order_no: orderNumber || null,
-      party_name: null,
-      sales_person_name: null
-    };
+        // SALES DETAILS (Optional)
+        sales_cordinator: null,
+        calling_days: null,
+        // order_no: orderNumber || null,
+        party_name: null,
+        sales_person_name: null
+      };
 
-    console.log("Payload sending to backend:", payload);
+      console.log("Payload sending to backend:", payload);
 
-    // ⭐ SEND TO BACKEND AWS POSTGRES using centralized API service
-    const response = await leadToOrderAPI.submitEnquiryTrackerForm(payload);
-    const result = response?.data;
+      // ⭐ SEND TO BACKEND AWS POSTGRES using centralized API service
+      const response = await leadToOrderAPI.submitEnquiryTrackerForm(payload);
+      const result = response?.data;
 
-    // Check if response is HTML
-    if (typeof result === 'string' && (result.trim().startsWith('<!DOCTYPE') || result.trim().startsWith('<html'))) {
-      showNotification("Error: Backend returned invalid response", "error");
-      return;
-    }
+      // Check if response is HTML
+      if (typeof result === 'string' && (result.trim().startsWith('<!DOCTYPE') || result.trim().startsWith('<html'))) {
+        showNotification("Error: Backend returned invalid response", "error");
+        return;
+      }
 
-    if (result?.success) {
-      showNotification("Enquiry tracker saved!", "success");
-      if (onClose) {
-        onClose()
-        // Refresh the page data
-        window.location.reload()
+      if (result?.success) {
+        showNotification("Enquiry tracker saved!", "success");
+        if (onClose) {
+          onClose()
+          // Refresh the page data
+          window.location.reload()
+        } else {
+          navigate("/call-tracker");
+        }
       } else {
-        navigate("/call-tracker");
+        showNotification("Backend error: " + (result?.error || result?.message || "Unknown error"), "error");
       }
-    } else {
-      showNotification("Backend error: " + (result?.error || result?.message || "Unknown error"), "error");
-    }
 
-  } catch (error) {
-    console.error("❌ Submit error:", error);
-    showNotification("Error: " + error.message, "error");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+    } catch (error) {
+      console.error("❌ Submit error:", error);
+      showNotification("Error: " + error.message, "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
 
   // Helper function to get the latest order number from the sheet

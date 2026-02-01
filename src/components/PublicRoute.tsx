@@ -10,11 +10,7 @@ const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
   const { isAuthenticated, loading, user } = useAuth();
 
   const getDefaultRoute = (roleValue?: string) => {
-    const normalized = (roleValue || "").toLowerCase();
-    if (normalized === "admin" || normalized === "superadmin") {
-      return "/dashboard";
-    }
-    return "/lead-to-order/dashboard";
+    return "/dashboard";
   };
 
   if (loading) {

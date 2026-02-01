@@ -67,11 +67,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       try {
         const storedToken = sessionStorage.getItem('token') || localStorage.getItem('token');
         if (storedToken) {
+          const storedUser = sessionStorage.getItem('user') || localStorage.getItem('user');
+          if (storedUser) {
+            try {
+              const parsedUser = JSON.parse(storedUser);
+              setToken(storedToken);
+              setUser(parsedUser);
+              api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+              setLoading(false);
+              return;
+            } catch (e) { }
+          }
           const decoded = decodeToken(storedToken);
           if (decoded) {
             const userAccess = decoded?.user_access || null;
             const accessArray = userAccess ? userAccess.split(',').map((a: string) => a.trim()) : null;
-            
+
             // Helper to normalize "NULL" strings to actual null
             const normalizeValue = (value: unknown): string | null => {
               if (value === null || value === undefined) return null;
@@ -137,7 +148,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
 
       const payload = response.data || {};
-      
+
       // Backend response structure: { success: true, data: { user: {...}, token: "..." } }
       const apiUser = payload.data?.user || payload.user || {};
       const authToken = payload.data?.token || payload.token || payload.access_token;
@@ -148,7 +159,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       // Decode token to get user info
       const decoded = decodeToken(authToken);
-      
+
       // Helper to normalize "NULL" strings to actual null
       const normalizeValue = (value: unknown): string | null => {
         if (value === null || value === undefined) return null;
@@ -156,28 +167,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return typeof value === 'string' ? value : String(value);
       };
 
-      // Parse user_access from user object if available
-      const userAccess = normalizeValue(apiUser.user_access || decoded?.user_access);
-      const pageAccess = normalizeValue(apiUser.page_access || decoded?.page_access);
-      const systemAccess = normalizeValue(apiUser.system_access || decoded?.system_access);
+      // Parse user_access from user object or root data if available
+      const userAccess = normalizeValue(apiUser.user_access || payload.data?.user_access || decoded?.user_access);
+      const pageAccess = normalizeValue(apiUser.page_access || payload.data?.page_access || decoded?.page_access);
+      const systemAccess = normalizeValue(apiUser.system_access || payload.data?.system_access || decoded?.system_access);
+
+      console.log('--- Login Debug Info ---');
+      console.log('API User:', apiUser);
+      console.log('Decoded Token:', decoded);
+      console.log('Extracted Access:', { userAccess, pageAccess, systemAccess });
+
       const accessArray = userAccess ? userAccess.split(',').map((a: string) => a.trim()) : null;
 
       const userData: User = {
-        id: apiUser.id || decoded?.id || decoded?.sub || String(apiUser.id) || null,
-        employee_id: normalizeValue(apiUser.employee_id || decoded?.employee_id),
+        id: apiUser.id || decoded?.id,
+        employee_id: normalizeValue(apiUser.employee_id || decoded?.employee_id) || '',
         username: apiUser.username || apiUser.user_name || decoded?.username || username,
         user_name: apiUser.user_name || apiUser.username || decoded?.user_name || username,
         role: apiUser.role || decoded?.role || 'user',
         userType: apiUser.userType || apiUser.role || decoded?.role || 'user',
-        email_id: normalizeValue(apiUser.email_id || decoded?.email_id),
-        number: normalizeValue(apiUser.number || decoded?.number),
-        department: normalizeValue(apiUser.department || decoded?.department),
-        access: accessArray || apiUser.access || decoded?.access || null,
-        user_access: userAccess,
-        page_access: pageAccess,
-        system_access: systemAccess,
+        email_id: normalizeValue(apiUser.email_id || decoded?.email_id) || '',
+        number: normalizeValue(apiUser.number || decoded?.number) || '',
+        department: normalizeValue(apiUser.department || decoded?.department) || '',
+        user_access: userAccess || '',
+        page_access: pageAccess || '',
+        system_access: systemAccess || '',
+        access: accessArray || [],
       };
 
+      console.log('Final User Data for LocalStorage:', userData);
       setToken(authToken);
       setUser(userData);
       sessionStorage.setItem('token', authToken);
