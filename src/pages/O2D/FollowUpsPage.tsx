@@ -25,7 +25,7 @@ const formatDate = (date: string | null | undefined) => {
     if (!date) return '';
     const d = new Date(date);
     if (isNaN(d.getTime())) return date;
-    return d.toLocaleDateString();
+    return d.toLocaleDateString('en-GB'); // Uses DD/MM/YYYY format
 };
 
 const formatDateTime = (date: string | null | undefined) => {
@@ -46,7 +46,7 @@ const FollowUpsPage: React.FC = () => {
         try {
             const response = await o2dAPI.getFollowups();
             const allFollowups = response.data?.data || [];
-
+            console.log(allFollowups)
             const enrichedFollowups: FollowUp[] = allFollowups.map((f: any) => {
                 const actualOrder = parseFloat(f.actual_order) || 0;
                 const isBooked = actualOrder > 0;
@@ -151,7 +151,7 @@ const FollowUpsPage: React.FC = () => {
                                                         <div className="p-2 bg-gray-100 rounded-lg group-hover:bg-white transition-colors">
                                                             <Calendar className="w-4 h-4 text-blue-500" />
                                                         </div>
-                                                        {formatDateTime(f.date)}
+                                                        {formatDate(f.date)}
                                                     </div>
                                                 </td>
                                                 <td className="p-5 md:p-6 font-black text-gray-900 text-sm md:text-base tracking-tight">{f.customerName}</td>
