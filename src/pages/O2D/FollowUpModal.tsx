@@ -157,7 +157,8 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
                                     required
                                     value={formData.order_date}
                                     onChange={(e) => setFormData({ ...formData, order_date: e.target.value })}
-                                    className="w-full bg-white border border-green-200 rounded-xl p-3 md:p-4 text-gray-800 focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none font-bold text-sm transition-all"
+                                    onClick={(e) => (e.target as any).showPicker?.()}
+                                    className="w-full bg-white border border-green-200 rounded-xl p-3 md:p-4 text-gray-800 focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none font-bold text-sm transition-all cursor-pointer"
                                 />
                             </div>
                         </div>
@@ -181,7 +182,8 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
                                         required={!waitingForResponse}
                                         value={formData.next_calling_date}
                                         onChange={(e) => setFormData({ ...formData, next_calling_date: e.target.value })}
-                                        className="w-full bg-gray-50/50 border border-gray-200 rounded-xl md:rounded-2xl p-3.5 md:p-4 text-gray-800 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none font-bold transition-all focus:bg-white text-sm"
+                                        onClick={(e) => (e.target as any).showPicker?.()}
+                                        className="w-full bg-gray-50/50 border border-gray-200 rounded-xl md:rounded-2xl p-3.5 md:p-4 text-gray-800 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none font-bold transition-all focus:bg-white text-sm cursor-pointer"
                                     />
                                 </div>
                             )}

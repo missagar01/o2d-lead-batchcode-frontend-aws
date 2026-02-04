@@ -25,7 +25,7 @@ const formatDate = (date: string | null | undefined) => {
     if (!date) return '';
     const d = new Date(date);
     if (isNaN(d.getTime())) return date;
-    return d.toLocaleDateString('en-GB'); // Uses DD/MM/YYYY format
+    return d.toLocaleDateString();
 };
 
 const formatDateTime = (date: string | null | undefined) => {
@@ -136,7 +136,7 @@ const FollowUpsPage: React.FC = () => {
                                     <tr className="uppercase text-[10px] md:text-xs font-black tracking-widest">
                                         <th className="sticky top-0 p-5 md:p-6 bg-gray-800 text-white first:rounded-tl-3xl z-30">Date</th>
                                         <th className="sticky top-0 p-5 md:p-6 bg-gray-800 text-white z-30">Customer</th>
-                                        {user?.role === 'Admin' && <th className="sticky top-0 p-5 md:p-6 bg-gray-800 text-white z-30">Sales Person</th>}
+                                        <th className="sticky top-0 p-5 md:p-6 bg-gray-800 text-white z-30">Sales Person</th>
                                         <th className="sticky top-0 p-5 md:p-6 bg-gray-800 text-white text-center z-30">Status</th>
                                         <th className="sticky top-0 p-5 md:p-6 bg-gray-800 text-white z-30">Order Details</th>
                                         <th className="sticky top-0 p-5 md:p-6 bg-gray-800 text-white last:rounded-tr-3xl z-30">Next Call</th>
@@ -155,14 +155,14 @@ const FollowUpsPage: React.FC = () => {
                                                     </div>
                                                 </td>
                                                 <td className="p-5 md:p-6 font-black text-gray-900 text-sm md:text-base tracking-tight">{f.customerName}</td>
-                                                {user?.role === 'Admin' && (
-                                                    <td className="p-5 md:p-6">
-                                                        <div className="flex items-center gap-2 font-bold text-gray-600 text-sm">
-                                                            <UserIcon className="w-4 h-4 text-purple-500" />
-                                                            {f.salesPerson}
-                                                        </div>
-                                                    </td>
-                                                )}
+
+                                                <td className="p-5 md:p-6">
+                                                    <div className="flex items-center gap-2 font-bold text-gray-600 text-sm">
+                                                        <UserIcon className="w-4 h-4 text-purple-500" />
+                                                        {f.salesPerson}
+                                                    </div>
+                                                </td>
+
                                                 <td className="p-5 md:p-6 text-center">
                                                     <span className={`
                                                         inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border-2

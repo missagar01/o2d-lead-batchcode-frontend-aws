@@ -100,76 +100,76 @@ function NewFollowUp({ leadId: propLeadId, leadNo: propLeadNo, onClose }) {
     }, 0)
   }
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setIsSubmitting(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
 
-  try {
-    const itemsJson = items.map(it => ({
-      name: it.name,
-      quantity: it.quantity
-    }));
+    try {
+      const itemsJson = items.map(it => ({
+        name: it.name,
+        quantity: it.quantity
+      }));
 
-    const payload = {
-      leadNo: formData.leadNo,
-      customer_say: document.getElementById("customerFeedback").value,
-      lead_status: leadStatus,
-      enquiry_received_status: enquiryStatus,
-      enquiry_received_date:
-        enquiryStatus === "yes"
-          ? document.getElementById("enquiryDate").value
-          : null,
-      enquiry_approach:
-        enquiryStatus === "yes" ? formData.enquiryApproach : null,
-      project_value:
-        enquiryStatus === "yes"
-          ? document.getElementById("enquiryValue").value
-          : null,
-      item_qty: enquiryStatus === "yes" ? itemsJson : [],
-      total_qty:
-        enquiryStatus === "yes" ? calculateTotalQuantity() : 0,
+      const payload = {
+        leadNo: formData.leadNo,
+        customer_say: document.getElementById("customerFeedback").value,
+        lead_status: leadStatus,
+        enquiry_received_status: enquiryStatus,
+        enquiry_received_date:
+          enquiryStatus === "yes"
+            ? document.getElementById("enquiryDate").value
+            : null,
+        enquiry_approach:
+          enquiryStatus === "yes" ? formData.enquiryApproach : null,
+        project_value:
+          enquiryStatus === "yes"
+            ? document.getElementById("enquiryValue").value
+            : null,
+        item_qty: enquiryStatus === "yes" ? itemsJson : [],
+        total_qty:
+          enquiryStatus === "yes" ? calculateTotalQuantity() : 0,
 
-      next_action:
-        enquiryStatus === "expected"
-          ? document.getElementById("nextAction").value
-          : null,
-      next_call_date:
-        enquiryStatus === "expected"
-          ? document.getElementById("nextCallDate").value
-          : null,
-      next_call_time:
-        enquiryStatus === "expected"
-          ? document.getElementById("nextCallTime").value
-          : null
-    };
+        next_action:
+          enquiryStatus === "expected"
+            ? document.getElementById("nextAction").value
+            : null,
+        next_call_date:
+          enquiryStatus === "expected"
+            ? document.getElementById("nextCallDate").value
+            : null,
+        next_call_time:
+          enquiryStatus === "expected"
+            ? document.getElementById("nextCallTime").value
+            : null
+      };
 
-    const response = await leadToOrderAPI.submitFollowUp(payload);
-    const result = response?.data;
+      const response = await leadToOrderAPI.submitFollowUp(payload);
+      const result = response?.data;
 
-    // Check if response is HTML
-    if (typeof result === 'string' && (result.trim().startsWith('<!DOCTYPE') || result.trim().startsWith('<html'))) {
-      showNotification("Error: Backend returned invalid response", "error");
-      return;
-    }
-
-    if (result?.success) {
-      showNotification("Follow-up submitted successfully", "success");
-      if (onClose) {
-        onClose()
-        // Refresh the page data
-        window.location.reload()
-      } else {
-        navigate("/follow-up");
+      // Check if response is HTML
+      if (typeof result === 'string' && (result.trim().startsWith('<!DOCTYPE') || result.trim().startsWith('<html'))) {
+        showNotification("Error: Backend returned invalid response", "error");
+        return;
       }
-    } else {
-      showNotification("Error: " + (result?.message || "Unknown error"), "error");
+
+      if (result?.success) {
+        showNotification("Follow-up submitted successfully", "success");
+        if (onClose) {
+          onClose()
+          // Refresh the page data
+          window.location.reload()
+        } else {
+          navigate("/follow-up");
+        }
+      } else {
+        showNotification("Error: " + (result?.message || "Unknown error"), "error");
+      }
+    } catch (error) {
+      showNotification("Error submitting: " + error.message, "error");
+    } finally {
+      setIsSubmitting(false);
     }
-  } catch (error) {
-    showNotification("Error submitting: " + error.message, "error");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
 
   // Function to format date as dd/mm/yyyy
@@ -230,22 +230,22 @@ const handleSubmit = async (e) => {
             </div>
 
             <div className="space-y-2">
-  <label htmlFor="customerFeedback" className="block text-sm font-medium text-gray-700">
-    What did the customer say?
-  </label>
-  <input
-    list="customer-feedback-options"
-    id="customerFeedback"
-    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-    placeholder="Select or type customer feedback"
-    required
-  />
-  <datalist id="customer-feedback-options">
-    {customerFeedbackOptions.map((feedback, index) => (
-      <option key={index} value={feedback} />
-    ))}
-  </datalist>
-</div>
+              <label htmlFor="customerFeedback" className="block text-sm font-medium text-gray-700">
+                What did the customer say?
+              </label>
+              <input
+                list="customer-feedback-options"
+                id="customerFeedback"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                placeholder="Select or type customer feedback"
+                required
+              />
+              <datalist id="customer-feedback-options">
+                {customerFeedbackOptions.map((feedback, index) => (
+                  <option key={index} value={feedback} />
+                ))}
+              </datalist>
+            </div>
 
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">Lead Status</label>

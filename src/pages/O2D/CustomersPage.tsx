@@ -280,7 +280,7 @@ const CustomersPage: React.FC = () => {
                 isOpen={isFollowUpModalOpen}
                 onClose={() => setIsFollowUpModalOpen(false)}
                 customer={selectedCustomer}
-                onSuccess={() => { }}
+                onSuccess={fetchData}
             />
         </div>
     );
