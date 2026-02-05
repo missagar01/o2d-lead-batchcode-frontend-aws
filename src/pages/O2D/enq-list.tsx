@@ -80,9 +80,18 @@ const EnqList = () => {
                                 </p>
                             </div>
                         </div>
-                        <div className="flex items-center justify-between md:block md:text-right border-t md:border-t-0 border-slate-100 pt-4 md:pt-0">
-                            <p className="text-sm text-slate-500">Total Enquiries</p>
-                            <p className="text-2xl md:text-3xl font-bold text-blue-600">{enquiries.length}</p>
+                        <div className="flex items-center gap-8 md:text-right border-t md:border-t-0 border-slate-100 pt-4 md:pt-0">
+                            <div className="text-right">
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Count</p>
+                                <p className="text-lg font-bold text-slate-600">{enquiries.length}</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Quantity</p>
+                                <p className="text-2xl md:text-3xl font-bold text-blue-600 flex items-baseline justify-end gap-1">
+                                    {enquiries.reduce((sum, enq) => sum + (Number(enq.quantity) || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                                    <span className="text-sm text-slate-400 font-medium">MT</span>
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
