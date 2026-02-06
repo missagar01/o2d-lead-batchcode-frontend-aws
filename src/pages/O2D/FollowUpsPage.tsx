@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Search, Calendar, Clock, User as UserIcon, LayoutGrid, List } from 'lucide-react';
+import { Search, Calendar, Clock, User as UserIcon, LayoutGrid, List, PlayCircle } from 'lucide-react';
 import { o2dAPI } from "../../services/o2dAPI";
 import { useAuth } from "../../context/AuthContext";
 import FollowUpModal from './FollowUpModal';
@@ -151,7 +151,8 @@ const FollowUpsPage: React.FC = () => {
                             <table className="w-full text-left border-separate border-spacing-0 min-w-[800px] md:min-w-full">
                                 <thead className="z-20">
                                     <tr className="uppercase text-[10px] md:text-xs font-black tracking-widest">
-                                        <th className="sticky top-0 p-5 md:p-6 bg-gray-800 text-white first:rounded-tl-3xl z-30">Date</th>
+                                        <th className="sticky top-0 p-5 md:p-6 bg-gray-800 text-white first:rounded-tl-3xl z-30 text-center">Action</th>
+                                        <th className="sticky top-0 p-5 md:p-6 bg-gray-800 text-white z-30">Date</th>
                                         <th className="sticky top-0 p-5 md:p-6 bg-gray-800 text-white z-30">Customer</th>
                                         <th className="sticky top-0 p-5 md:p-6 bg-gray-800 text-white z-30">Sales Person</th>
                                         <th className="sticky top-0 p-5 md:p-6 bg-gray-800 text-white text-center z-30">Status</th>
@@ -163,15 +164,21 @@ const FollowUpsPage: React.FC = () => {
                                     {filteredFollowups.length > 0 ? (
                                         filteredFollowups.map((f, index) => (
                                             <tr key={f.id || index} className="group hover:bg-blue-50/40 transition-all duration-200">
+                                                <td className="p-5 md:p-6 text-center">
+                                                    <button
+                                                        onClick={() => handleCalendarClick(f)}
+                                                        className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all hover:scale-105 active:scale-95"
+                                                        title="Process Follow-up"
+                                                    >
+                                                        <PlayCircle className="w-4 h-4" />
+                                                        Process
+                                                    </button>
+                                                </td>
                                                 <td className="p-5 md:p-6">
                                                     <div className="flex items-center gap-3 text-gray-700 font-bold text-sm">
-                                                        <button
-                                                            onClick={() => handleCalendarClick(f)}
-                                                            className="p-2 bg-gray-100 rounded-lg group-hover:bg-white transition-all hover:bg-blue-100 hover:scale-110 cursor-pointer active:scale-95"
-                                                            title="Open Follow-up Modal"
-                                                        >
+                                                        <div className="p-2 bg-gray-100 rounded-lg group-hover:bg-white transition-colors">
                                                             <Calendar className="w-4 h-4 text-blue-500" />
-                                                        </button>
+                                                        </div>
                                                         {formatDate(f.date)}
                                                     </div>
                                                 </td>
@@ -224,7 +231,7 @@ const FollowUpsPage: React.FC = () => {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan={user?.role === 'Admin' ? 6 : 5} className="p-20 text-center">
+                                            <td colSpan={7} className="p-20 text-center">
                                                 <div className="flex flex-col items-center">
                                                     <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
                                                         <Search className="w-10 h-10 text-gray-200" />

@@ -72,7 +72,7 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
             />
 
             <div
-                className="relative bg-white border border-gray-100 rounded-t-[2.5rem] sm:rounded-[2rem] w-full max-w-lg overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col max-h-[92vh] animate-in slide-in-from-bottom duration-300"
+                className="relative bg-white border border-gray-100 rounded-t-[2.5rem] sm:rounded-[2rem] w-full max-w-lg overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col max-h-[92vh] animate-in slide-in-from-bottom duration-150"
             >
                 {/* Header */}
                 <div className="px-5 py-4 md:px-8 md:py-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/90 backdrop-blur-md sticky top-0 z-20 shrink-0">
@@ -94,7 +94,7 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
                         <label className="text-[10px] md:text-xs font-black text-gray-400 block uppercase tracking-widest">Is Order Booked?</label>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <label className={`
-                                flex items-center justify-center p-4 md:p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300
+                                flex items-center justify-center p-4 md:p-5 rounded-2xl border-2 cursor-pointer transition-all duration-150
                                 ${formData.order_booked === 'true'
                                     ? 'bg-green-50 border-green-500 text-green-700 shadow-xl shadow-green-100 scale-[1.02]'
                                     : 'bg-white border-gray-100 text-gray-400 hover:bg-gray-50 hover:border-gray-200'}
@@ -112,7 +112,7 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
                             </label>
 
                             <label className={`
-                                flex items-center justify-center p-4 md:p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300
+                                flex items-center justify-center p-4 md:p-5 rounded-2xl border-2 cursor-pointer transition-all duration-150
                                 ${formData.order_booked === 'false'
                                     ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-xl shadow-blue-100 scale-[1.02]'
                                     : 'bg-white border-gray-100 text-gray-400 hover:bg-gray-50 hover:border-gray-200'}
@@ -137,7 +137,7 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
                     {/* CONDITIONAL: Order Booked = YES */}
                     {formData.order_booked === 'true' && (
                         <div
-                            className="space-y-4 md:space-y-6 bg-green-50/20 p-5 md:p-6 rounded-[2rem] border border-green-100 animate-in fade-in zoom-in duration-300"
+                            className="space-y-4 md:space-y-6 bg-green-50/20 p-5 md:p-6 rounded-[2rem] border border-green-100 animate-in fade-in zoom-in duration-150"
                         >
                             <div>
                                 <label className="text-[10px] md:text-xs font-black text-green-700 mb-2 block uppercase tracking-widest">Order Quantity</label>
@@ -167,7 +167,7 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
                     {/* CONDITIONAL: Order Booked = NO */}
                     {formData.order_booked === 'false' && (
                         <div
-                            className="space-y-6 animate-in fade-in zoom-in duration-300"
+                            className="space-y-6 animate-in fade-in zoom-in duration-150"
                         >
                             <div className="flex items-center space-x-3 md:space-x-4 p-4 md:p-5 bg-orange-50/50 border border-orange-100 rounded-2xl">
                                 <AlertCircle className="w-5 h-5 md:w-6 md:h-6 text-orange-500 shrink-0" />
