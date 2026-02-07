@@ -113,14 +113,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setUser(null);
             clearAuthStorage();
             delete api.defaults.headers.common['Authorization'];
-            redirectToLogin();
+            // Don't redirect here - let ProtectedRoute handle it
           }
         } else {
           setToken(null);
           setUser(null);
           clearAuthStorage();
           delete api.defaults.headers.common['Authorization'];
-          redirectToLogin();
+          // Don't redirect here - let ProtectedRoute handle it
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
@@ -128,7 +128,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser(null);
         clearAuthStorage();
         delete api.defaults.headers.common['Authorization'];
-        redirectToLogin();
+        // Don't redirect here - let ProtectedRoute handle it
       } finally {
         setLoading(false);
       }
