@@ -1,57 +1,99 @@
 import React, { useState, useEffect } from 'react';
-import { X, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { X, CheckCircle, Clock, AlertCircle, Calendar } from 'lucide-react';
 import { o2dAPI } from "../../services/o2dAPI";
 import { useAuth } from "../../context/AuthContext";
+import { format } from "date-fns";
 
 interface FollowUpModalProps {
     isOpen: boolean;
     onClose: () => void;
     customer: any;
+    followup?: any;
     onSuccess: () => void;
 }
 
-const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer, onSuccess }) => {
+const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer, followup, onSuccess }) => {
     const { user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         order_booked: 'true', // string 'true'/'false' for radio handling - default to Yes Booked
         order_quantity: '',
         order_date: new Date().toISOString().split('T')[0],
+        date_of_calling: new Date().toISOString().split('T')[0],
         next_calling_date: '',
         status: 'Order Booked' // Default status
     });
 
     const [waitingForResponse, setWaitingForResponse] = useState(false);
 
+    // Helper to format date YYYY-MM-DD -> dd-MM-yyyy for display
+    const formatDisplayDate = (dateString: string) => {
+        if (!dateString) return '';
+        try {
+            return format(new Date(dateString), 'dd-MM-yyyy');
+        } catch {
+            return dateString;
+        }
+    };
+
     useEffect(() => {
         if (isOpen) {
-            // Reset form on open - default to Yes Booked
-            setFormData({
-                order_booked: 'true',
-                order_quantity: '',
-                order_date: new Date().toISOString().split('T')[0],
-                next_calling_date: '',
-                status: 'Order Booked'
-            });
-            setWaitingForResponse(false);
+            if (followup) {
+                setFormData({
+                    order_booked: followup.isBooked ? 'true' : 'false',
+                    order_quantity: followup.quantity || '',
+                    order_date: followup.orderDate ? new Date(followup.orderDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                    date_of_calling: followup.date ? new Date(followup.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                    next_calling_date: followup.nextCall ? new Date(followup.nextCall).toISOString().split('T')[0] : '',
+                    status: followup.status || 'Order Booked'
+                });
+                setWaitingForResponse(followup.status === 'Waiting for Response');
+            } else {
+                // Reset form on open - default to Yes Booked
+                setFormData({
+                    order_booked: 'true',
+                    order_quantity: '',
+                    order_date: new Date().toISOString().split('T')[0],
+                    date_of_calling: new Date().toISOString().split('T')[0],
+                    next_calling_date: '',
+                    status: 'Order Booked'
+                });
+                setWaitingForResponse(false);
+            }
         }
-    }, [isOpen]);
+    }, [isOpen, followup]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         if (e) e.preventDefault();
         setLoading(true);
 
         try {
-            const payload = {
-                client_name: customer?.["Client Name"] || customer?.name || "Unknown",
-                sales_person: user?.user_name || user?.username || '',
-                actual_order: formData.order_booked === 'true' ? parseFloat(formData.order_quantity) : 0,
-                actual_order_date: formData.order_booked === 'true' ? formData.order_date : null,
-                date_of_calling: new Date(),
-                next_calling_date: (formData.order_booked === 'false' && !waitingForResponse) ? formData.next_calling_date : null
+            const clientName = followup?.customerName || customer?.["Client Name"] || customer?.name || "Unknown";
+
+            // Helper to format date YYYY-MM-DD -> dd-MM-yyyy for payload
+            const formatDatePayload = (dateStr: string) => {
+                if (!dateStr) return null;
+                try {
+                    return format(new Date(dateStr), "dd-MM-yyyy");
+                } catch {
+                    return dateStr;
+                }
             };
 
+            const payload = {
+                client_name: clientName,
+                sales_person: user?.user_name || user?.username || '',
+                actual_order: formData.order_booked === 'true' ? parseFloat(formData.order_quantity) : 0,
+                // Format dates to dd-MM-yyyy
+                actual_order_date: formData.order_booked === 'true' ? formatDatePayload(formData.order_date) : null,
+                date_of_calling: formatDatePayload(formData.date_of_calling),
+                next_calling_date: (formData.order_booked === 'false' && !waitingForResponse) ? formatDatePayload(formData.next_calling_date) : null
+            };
+
+            // Always create new follow-up - remove UPDATE logic entirely as requested
+            // This ensures we only add to follow-up history and NEVER touch the client table
             await o2dAPI.createFollowup(payload);
+
             onSuccess();
             onClose();
         } catch (error) {
@@ -78,7 +120,7 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
                 <div className="px-5 py-4 md:px-8 md:py-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/90 backdrop-blur-md sticky top-0 z-20 shrink-0">
                     <div className="min-w-0 flex-1">
                         <h2 className="text-lg md:text-2xl font-black text-gray-800 truncate tracking-tight">
-                            Follow Up: <span className="text-blue-600">{customer?.["Client Name"] || customer?.name}</span>
+                            Follow Up: <span className="text-blue-600">{followup?.customerName || customer?.["Client Name"] || customer?.name}</span>
                         </h2>
                         <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mt-0.5">Interaction History</p>
                     </div>
@@ -152,14 +194,26 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
                             </div>
                             <div>
                                 <label className="text-[10px] md:text-xs font-black text-green-700 mb-2 block uppercase tracking-widest">Order Date</label>
-                                <input
-                                    type="date"
-                                    required
-                                    value={formData.order_date}
-                                    onChange={(e) => setFormData({ ...formData, order_date: e.target.value })}
-                                    onClick={(e) => (e.target as any).showPicker?.()}
-                                    className="w-full bg-white border border-green-200 rounded-xl p-3 md:p-4 text-gray-800 focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none font-bold text-sm transition-all cursor-pointer"
-                                />
+                                <div className="relative w-full group">
+                                    <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none z-20">
+                                        <Calendar className="w-5 h-5 text-green-500/50 group-focus-within:text-green-600 transition-colors" />
+                                    </div>
+                                    <input
+                                        type="date"
+                                        required
+                                        value={formData.order_date}
+                                        onChange={(e) => setFormData({ ...formData, order_date: e.target.value })}
+                                        onClick={(e) => (e.target as any).showPicker?.()}
+                                        className="peer absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                    />
+                                    <input
+                                        type="text"
+                                        readOnly
+                                        value={formatDisplayDate(formData.order_date)}
+                                        placeholder="dd-mm-yyyy"
+                                        className="w-full bg-white border border-green-200 rounded-xl p-3 md:p-4 text-gray-800 peer-focus:ring-4 peer-focus:ring-green-500/10 peer-focus:border-green-500 outline-none font-bold text-sm transition-all"
+                                    />
+                                </div>
                             </div>
                         </div>
                     )}
@@ -174,19 +228,57 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
                                 <span className="text-xs md:text-sm font-bold text-orange-800 leading-tight">Must schedule a future follow-up call with this client</span>
                             </div>
 
-                            {!waitingForResponse && (
-                                <div className="space-y-2">
-                                    <label className="text-[10px] md:text-xs font-black text-gray-400 block uppercase tracking-widest">Next Calling Date</label>
+                            <div className="space-y-2">
+                                <label className="text-[10px] md:text-xs font-black text-gray-400 block uppercase tracking-widest">Date of Calling</label>
+                                <div className="relative w-full group">
+                                    <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none z-20">
+                                        <Calendar className="w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                                    </div>
+                                    <input
+                                        type="date"
+                                        required
+                                        value={formData.date_of_calling}
+                                        onChange={(e) => setFormData({ ...formData, date_of_calling: e.target.value })}
+                                        onClick={(e) => (e.target as any).showPicker?.()}
+                                        className="peer absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                    />
+                                    <input
+                                        type="text"
+                                        readOnly
+                                        value={formatDisplayDate(formData.date_of_calling)}
+                                        placeholder="dd-mm-yyyy"
+                                        className="w-full bg-gray-50/50 border border-gray-200 rounded-xl md:rounded-2xl p-3.5 md:p-4 text-gray-800 peer-focus:ring-4 peer-focus:ring-blue-500/10 peer-focus:border-blue-500 outline-none font-bold transition-all peer-focus:bg-white text-sm"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className={`space-y-2 ${waitingForResponse ? 'opacity-50 pointer-events-none' : ''}`}>
+                                <label className="text-[10px] md:text-xs font-black text-gray-400 block uppercase tracking-widest">Next Calling Date</label>
+                                <div className="relative w-full group">
+                                    {!waitingForResponse && (
+                                        <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none z-20">
+                                            <Calendar className="w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                                        </div>
+                                    )}
                                     <input
                                         type="date"
                                         required={!waitingForResponse}
+                                        disabled={waitingForResponse}
                                         value={formData.next_calling_date}
                                         onChange={(e) => setFormData({ ...formData, next_calling_date: e.target.value })}
-                                        onClick={(e) => (e.target as any).showPicker?.()}
-                                        className="w-full bg-gray-50/50 border border-gray-200 rounded-xl md:rounded-2xl p-3.5 md:p-4 text-gray-800 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none font-bold transition-all focus:bg-white text-sm cursor-pointer"
+                                        onClick={(e) => !waitingForResponse && (e.target as any).showPicker?.()}
+                                        className="peer absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
+                                    />
+                                    <input
+                                        type="text"
+                                        readOnly
+                                        disabled={waitingForResponse}
+                                        value={formatDisplayDate(formData.next_calling_date)}
+                                        placeholder="dd-mm-yyyy"
+                                        className="w-full bg-gray-50/50 border border-gray-200 rounded-xl md:rounded-2xl p-3.5 md:p-4 text-gray-800 peer-focus:ring-4 peer-focus:ring-blue-500/10 peer-focus:border-blue-500 outline-none font-bold transition-all peer-focus:bg-white text-sm disabled:bg-gray-100 disabled:text-gray-400"
                                     />
                                 </div>
-                            )}
+                            </div>
 
                             <label className="relative flex items-center cursor-pointer group w-fit py-2">
                                 <input

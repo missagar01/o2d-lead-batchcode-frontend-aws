@@ -2249,6 +2249,44 @@ export function DashboardView() {
                               )
                             })}
 
+                            {/* Total Row */}
+                            {(() => {
+                              const dataRows = salesPerformance.filter(row => row.salesPerson !== 'Total');
+                              if (dataRows.length === 0) return null;
+
+                              const totalCallings = dataRows.reduce((sum, row) => sum + Number(row.noOfCallings || 0), 0);
+                              const totalOrderClients = dataRows.reduce((sum, row) => sum + Number(row.orderClients || 0), 0);
+                              const totalRsSale = dataRows.reduce((sum, row) => sum + Number(row.totalRsSale || 0), 0);
+
+                              const totalConversionRatio = totalCallings > 0 ? ((totalOrderClients / totalCallings) * 100).toFixed(2) : '0.00';
+                              // Avg Sale for Total = Total Sale / Total Order Clients
+                              const totalAvgSale = totalOrderClients > 0 ? (totalRsSale / totalOrderClients).toFixed(2) : '0.00';
+
+                              return (
+                                <tr className="bg-yellow-50 font-bold border-t-2 border-yellow-200 hover:bg-yellow-100/80 transition-colors">
+                                  <td className="px-6 py-4 font-medium flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-yellow-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                                      Σ
+                                    </div>
+                                    <span className="text-yellow-700">TOTAL</span>
+                                  </td>
+                                  <td className="px-6 py-4 text-center text-yellow-700">{totalCallings}</td>
+                                  <td className="px-6 py-4 text-center text-yellow-700">{totalOrderClients}</td>
+                                  <td className="px-6 py-4 text-center">
+                                    <div className="flex flex-col items-center">
+                                      <span className="text-yellow-700 font-bold">{totalConversionRatio}%</span>
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4 text-center font-mono text-yellow-700">
+                                    {Number(totalRsSale).toLocaleString()}
+                                  </td>
+                                  <td className="px-6 py-4 text-center font-mono">
+                                    <span className="text-yellow-700 font-bold">{totalAvgSale}</span>
+                                  </td>
+                                </tr>
+                              );
+                            })()}
+
                             {/* Average Row */}
                             {(() => {
                               // Filter out the Total row for average calculation
@@ -2303,17 +2341,24 @@ export function DashboardView() {
                     // Calculate statistics
                     const totalCallings = dataRows.reduce((sum, row) => sum + Number(row.noOfCallings || 0), 0);
 
-                    // Get number of days in selected month (or current month if "All Months")
-                    let daysInMonth = 30; // default
+                    // Get number of days to divide by
+                    let daysDivisor = 30; // default
                     if (selectedMonth !== "All Months") {
                       const [year, month] = selectedMonth.split('-').map(Number);
-                      daysInMonth = new Date(year, month, 0).getDate();
+                      const now = new Date();
+                      // If selected month is current month, use today's date
+                      if (year === now.getFullYear() && month === (now.getMonth() + 1)) {
+                        daysDivisor = now.getDate();
+                      } else {
+                        daysDivisor = new Date(year, month, 0).getDate();
+                      }
                     }
 
-                    const avgCallPerDayValue = totalCallings / daysInMonth;
-                    const avgCallPerDay = avgCallPerDayValue.toFixed(2);
-                    // Average Call Per Person = Average Call Per Day / Number of Sales Persons
-                    const avgCallPerPerson = (avgCallPerDayValue / dataRows.length).toFixed(2);
+                    const avgCallPerDayValue = totalCallings / daysDivisor;
+                    const avgCallPerDayRounded = Math.ceil(avgCallPerDayValue);
+                    const avgCallPerDay = avgCallPerDayRounded.toFixed(2);
+                    // Average Call Per Person = Average Call Per Day (Rounded) / Number of Sales Persons
+                    const avgCallPerPerson = (avgCallPerDayRounded / dataRows.length).toFixed(2);
 
                     return (
                       <div className="mt-6 space-y-4 px-6 pb-6">
@@ -2507,8 +2552,6 @@ export function DashboardView() {
             </div>
           </CardContent>
         </Card>
-
-
 
         <Card className="w-full overflow-hidden border-none bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] shadow-[0_20px_50px_rgba(0,0,0,0.3)] relative group">
           {/* Decorative accent line */}

@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
-import { Loader2, FileText, Calendar, User, Package, AlertCircle } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Loader2, FileText, Calendar, User, Package, AlertCircle, Download, Filter, X } from "lucide-react";
 import { o2dAPI } from "../../services/o2dAPI";
 import { useAuth } from "../../context/AuthContext";
-import { format } from "date-fns";
+import { format, parseISO, isWithinInterval, startOfDay, endOfDay } from "date-fns";
+import * as XLSX from "xlsx";
 
 interface EnquiryRecord {
     id: number;
@@ -21,6 +22,10 @@ const EnqList = () => {
     const [loading, setLoading] = useState(false);
     const [enquiries, setEnquiries] = useState<EnquiryRecord[]>([]);
     const [error, setError] = useState<string | null>(null);
+
+    // Filter States
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
 
     useEffect(() => {
         if (user) {
@@ -62,12 +67,66 @@ const EnqList = () => {
         }
     };
 
+    // Filter Logic
+    const filteredEnquiries = useMemo(() => {
+        if (!startDate && !endDate) return enquiries;
+
+        return enquiries.filter((enq) => {
+            if (!enq.enquiry_date) return false;
+            try {
+                const enqDate = parseISO(enq.enquiry_date);
+                const start = startDate ? startOfDay(parseISO(startDate)) : null;
+                const end = endDate ? endOfDay(parseISO(endDate)) : null;
+
+                if (start && end) {
+                    return isWithinInterval(enqDate, { start, end });
+                } else if (start) {
+                    return enqDate >= start;
+                } else if (end) {
+                    return enqDate <= end;
+                }
+                return true;
+            } catch (e) {
+                return false;
+            }
+        });
+    }, [enquiries, startDate, endDate]);
+
+
+    // Download Handler
+    const handleDownload = () => {
+        if (filteredEnquiries.length === 0) return;
+
+        const dataToExport = filteredEnquiries.map(enq => ({
+            "ID": enq.id,
+            "Date": formatDate(enq.enquiry_date),
+            "Customer": enq.customer,
+            "Item Type": enq.item_type,
+            "Size": enq.size,
+            "Thickness (mm)": enq.thickness,
+            "Quantity (MT)": enq.quantity || 0,
+            "Sales Executive": enq.sales_executive
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(dataToExport);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Enquiries");
+
+        const fileName = `Enquiry_List_${startDate || 'All'}_to_${endDate || 'All'}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+    };
+
+    const clearFilters = () => {
+        setStartDate("");
+        setEndDate("");
+    };
+
     return (
         <div className="min-h-screen bg-slate-50/50 p-4 md:p-6 lg:p-8">
             <div className="max-w-[1600px] mx-auto space-y-6">
 
                 {/* Header */}
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-6">
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-6 space-y-6">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
                             <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-3 rounded-xl shadow-lg shadow-blue-500/20 shrink-0">
@@ -83,16 +142,66 @@ const EnqList = () => {
                         <div className="flex items-center gap-8 md:text-right border-t md:border-t-0 border-slate-100 pt-4 md:pt-0">
                             <div className="text-right">
                                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Count</p>
-                                <p className="text-lg font-bold text-slate-600">{enquiries.length}</p>
+                                <p className="text-lg font-bold text-slate-600">{filteredEnquiries.length}</p>
                             </div>
                             <div className="text-right">
                                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Quantity</p>
                                 <p className="text-2xl md:text-3xl font-bold text-blue-600 flex items-baseline justify-end gap-1">
-                                    {enquiries.reduce((sum, enq) => sum + (Number(enq.quantity) || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                                    {filteredEnquiries.reduce((sum, enq) => sum + (Number(enq.quantity) || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                                     <span className="text-sm text-slate-400 font-medium">MT</span>
                                 </p>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Filters & Actions */}
+                    <div className="flex flex-col sm:flex-row items-end sm:items-center justify-between gap-4 pt-4 border-t border-slate-100">
+                        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+                            <div className="flex items-center gap-2 w-full sm:w-auto">
+                                <div className="relative w-full sm:w-auto hover:bg-slate-100/50 rounded-lg transition-colors group">
+                                    <input
+                                        type="date"
+                                        value={startDate}
+                                        onChange={(e) => setStartDate(e.target.value)}
+                                        onClick={(e) => (e.target as HTMLInputElement).showPicker()}
+                                        className="w-full sm:w-40 pl-9 pr-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer relative z-10"
+                                    />
+                                    <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-colors z-20 pointer-events-none" />
+                                    <span className="absolute -top-2 left-2 px-1 bg-white text-[10px] font-bold text-slate-400 uppercase tracking-wider z-20">From</span>
+                                </div>
+                                <span className="text-slate-300 font-bold">-</span>
+                                <div className="relative w-full sm:w-auto hover:bg-slate-100/50 rounded-lg transition-colors group">
+                                    <input
+                                        type="date"
+                                        value={endDate}
+                                        onChange={(e) => setEndDate(e.target.value)}
+                                        onClick={(e) => (e.target as HTMLInputElement).showPicker()}
+                                        className="w-full sm:w-40 pl-9 pr-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer relative z-10"
+                                    />
+                                    <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-colors z-20 pointer-events-none" />
+                                    <span className="absolute -top-2 left-2 px-1 bg-white text-[10px] font-bold text-slate-400 uppercase tracking-wider z-20">To</span>
+                                </div>
+                            </div>
+
+                            {(startDate || endDate) && (
+                                <button
+                                    onClick={clearFilters}
+                                    className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                                    title="Clear Dates"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            )}
+                        </div>
+
+                        <button
+                            onClick={handleDownload}
+                            disabled={filteredEnquiries.length === 0}
+                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg shadow-emerald-600/20 transition-all active:scale-95"
+                        >
+                            <Download className="w-4 h-4" />
+                            <span>Export CSV</span>
+                        </button>
                     </div>
                 </div>
 
@@ -113,21 +222,21 @@ const EnqList = () => {
                                 <p className="text-slate-600 font-medium">Loading enquiries...</p>
                             </div>
                         </div>
-                    ) : enquiries.length === 0 ? (
+                    ) : filteredEnquiries.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-20 px-4 bg-white rounded-2xl border border-slate-200 lg:border-0">
                             <FileText className="w-16 h-16 text-slate-300 mb-4" />
                             <h3 className="text-lg font-semibold text-slate-900 mb-2">No Enquiries Found</h3>
                             <p className="text-slate-500 text-center">
-                                {user?.role === 'admin'
+                                {startDate || endDate ? "No records match your date selection." : (user?.role === 'admin'
                                     ? 'No enquiries have been created yet.'
-                                    : 'You haven\'t created any enquiries yet.'}
+                                    : 'You haven\'t created any enquiries yet.')}
                             </p>
                         </div>
                     ) : (
                         <>
                             {/* Mobile/Tablet Card View (Visible < 1024px) */}
                             <div className="lg:hidden space-y-4">
-                                {enquiries.map((enquiry) => (
+                                {filteredEnquiries.map((enquiry) => (
                                     <div key={enquiry.id} className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm space-y-3">
                                         <div className="flex items-start justify-between">
                                             <div className="flex items-center gap-2">
@@ -226,7 +335,7 @@ const EnqList = () => {
                                             </tr>
                                         </thead>
                                         <tbody className="bg-white divide-y divide-slate-100">
-                                            {enquiries.map((enquiry, index) => (
+                                            {filteredEnquiries.map((enquiry, index) => (
                                                 <tr
                                                     key={enquiry.id}
                                                     className="hover:bg-blue-50/50 transition-colors group"
