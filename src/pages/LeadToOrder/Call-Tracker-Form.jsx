@@ -478,9 +478,10 @@ const CallTrackerForm = ({ onClose = () => window.history.back() }) => {
             <input
               id="enquiryDate"
               type="date"
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-bold text-indigo-900"
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-bold text-indigo-900 cursor-pointer"
               value={formData.enquiryDate}
               onChange={(e) => setFormData({ ...formData, enquiryDate: e.target.value })}
+              onClick={(e) => "showPicker" in HTMLInputElement.prototype && e.target.showPicker()}
               required
             />
           </div>

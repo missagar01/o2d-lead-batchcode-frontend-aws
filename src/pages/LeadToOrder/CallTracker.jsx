@@ -1327,12 +1327,12 @@ function CallTracker() {
 
       {/* New Call Tracker Form Modal */}
       {showNewCallTrackerForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-12 sm:pt-20">
           <div
             className="absolute inset-0 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300"
             onClick={() => setShowNewCallTrackerForm(false)}
           ></div>
-          <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in slide-in-from-bottom duration-300">
+          <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col animate-in slide-in-from-bottom duration-300">
             <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-5 flex justify-between items-center text-white shrink-0">
               <h2 className="text-xl font-bold tracking-tight">New Call Tracker</h2>
               <button
@@ -1504,7 +1504,7 @@ function CallTracker() {
 
       {/* Call Tracker Modal (Process Button) */}
       {showCallTrackerModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] flex items-start justify-center p-4 pt-12 sm:pt-20">
           <div
             className="absolute inset-0 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300"
             onClick={() => {
@@ -1513,7 +1513,7 @@ function CallTracker() {
               document.body.style.overflow = 'auto'
             }}
           ></div>
-          <div className="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[95vh] overflow-hidden flex flex-col animate-in scale-in duration-300">
+          <div className="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden flex flex-col animate-in scale-in duration-300">
             <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-5 flex justify-between items-center text-white shrink-0">
               <h2 className="text-xl font-bold tracking-tight">Process Call Tracker</h2>
               <button
