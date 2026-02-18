@@ -99,7 +99,8 @@ const CustomersPage: React.FC = () => {
             filtered = filtered.filter(c =>
                 (c["Client Name"]?.toLowerCase().includes(lower)) ||
                 (c["Contact Details"]?.toString()?.toLowerCase().includes(lower)) ||
-                (c["Contact Person"]?.toLowerCase().includes(lower))
+                (c["Contact Person"]?.toLowerCase().includes(lower)) ||
+                (c.sales_person?.toLowerCase().includes(lower))
             );
         }
 
@@ -108,10 +109,10 @@ const CustomersPage: React.FC = () => {
             filtered = filtered.filter(c => {
                 // Return true if IDs match OR if the name matches the selected user's name
                 const selectedUser = marketingUsers.find(u => String(u.id) === salesPersonFilterId);
-                const selectedName = selectedUser?.user_name;
+                const selectedName = selectedUser?.user_name?.trim().toLowerCase();
 
                 const matchesId = String(c.sales_person_id) === salesPersonFilterId;
-                const matchesName = selectedName && c.sales_person === selectedName;
+                const matchesName = selectedName && c.sales_person?.trim().toLowerCase() === selectedName;
 
                 return matchesId || matchesName;
             });
