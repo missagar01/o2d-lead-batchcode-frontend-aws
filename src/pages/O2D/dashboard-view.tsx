@@ -77,19 +77,19 @@ function DatePicker({
   const selectedDate = date ? new Date(date) : undefined;
 
   return (
-    <div className="space-y-2">
-      <label className="text-sm font-medium text-slate-700">{label}</label>
+    <div className="space-y-1 sm:space-y-2">
+      <label className="text-[10px] sm:text-sm font-bold text-slate-600 uppercase tracking-wider">{label}</label>
       <Popover>
         <PopoverTrigger asChild>
           <Button
             variant={"outline"}
             className={cn(
-              "w-full justify-start text-left font-normal bg-white border-indigo-200 hover:bg-indigo-50/50 hover:border-indigo-300 transition-all",
+              "w-full justify-start text-left font-medium bg-white border-indigo-200 hover:bg-indigo-50/50 hover:border-indigo-300 transition-all h-8 sm:h-10 px-2 sm:px-4 text-[10px] sm:text-sm shadow-sm",
               !date && "text-muted-foreground"
             )}
           >
-            <CalendarIcon className="mr-2 h-4 w-4 text-indigo-500" />
-            {date ? format(selectedDate!, "PPP") : <span>Pick a date</span>}
+            <CalendarIcon className="mr-1.5 h-3 w-3 sm:mr-2 sm:h-4 sm:w-4 text-indigo-500" />
+            {date ? format(selectedDate!, "MMM d, yyyy") : <span className="text-[10px] sm:text-xs">Pick a date</span>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0 bg-white border border-slate-200 shadow-lg rounded-lg" align="start">
@@ -778,7 +778,7 @@ export function DashboardView() {
 
 
       {/* O2D Dashboard Content wrapped in Main Card */}
-      <Card className="border-none shadow-sm bg-slate-50/30 p-1 sm:p-4 lg:p-8 space-y-4 sm:space-y-8">
+      <Card className="border-none shadow-sm bg-slate-50/10 p-1 sm:p-2 lg:p-8 space-y-3 sm:space-y-8">
         <div className="flex items-center justify-between">
           <div>
             {lastUpdated && <p className="text-[10px] sm:text-xs text-gray-500">Last updated: {lastUpdated.toLocaleTimeString()}</p>}
@@ -820,54 +820,9 @@ export function DashboardView() {
               )}
             </div>
           </CardHeader>
-          <CardContent className="p-2.5 sm:p-4 lg:p-6">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
+          <CardContent className="p-2 sm:p-4 lg:p-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-4 lg:gap-6">
               {/* Salesperson Filter */}
-              {/* <div className="space-y-2">
-                <label className="text-sm font-semibold text-blue-700 flex items-center gap-2">
-                  <div className="w-1 h-4 bg-blue-500 rounded-full"></div>
-                  Salesperson
-                </label>
-                <Select value={selectedSales} onValueChange={setSelectedSales}>
-                  <SelectTrigger className="bg-white border-blue-100 hover:border-blue-300 focus:ring-blue-400 transition-all">
-                    <SelectValue placeholder="Select salesperson" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="All Salespersons">All Salespersons</SelectItem>
-                    {(data?.filters?.salesPersons || []).map((sales) => (
-                      <SelectItem key={sales} value={sales}>{sales}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div> */}
-
-              {/* Month Filter */}
-              {/* <div className="space-y-2">
-                <label className="text-sm font-semibold text-indigo-700 flex items-center gap-2">
-                  <div className="w-1 h-4 bg-indigo-500 rounded-full"></div>
-                  Select Month
-                </label>
-                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                  <SelectTrigger className="bg-white border-indigo-100 hover:border-indigo-300 focus:ring-indigo-400 transition-all">
-                    <SelectValue placeholder="Select month" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="All Months">All Months</SelectItem>
-                    <SelectItem value="Custom Range">Custom Range</SelectItem>
-                    {(() => {
-                      const months = []
-                      const startDate = new Date(2025, 3, 1) // April 2025
-                      const currentDate = new Date()
-                      for (let d = new Date(startDate); d <= currentDate; d.setMonth(d.getMonth() + 1)) {
-                        const val = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`
-                        const label = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-                        months.push(<SelectItem key={val} value={val}>{label}</SelectItem>)
-                      }
-                      return months.reverse()
-                    })()}
-                  </SelectContent>
-                </Select>
-              </div> */}
 
               {/* Date Pickers */}
               <DatePicker
@@ -889,18 +844,18 @@ export function DashboardView() {
             </div>
 
             {hasActiveFilters && (
-              <div className="mt-3 sm:mt-6 flex flex-wrap gap-1.5 sm:gap-2 pt-2 sm:pt-4 border-t border-indigo-50">
+              <div className="mt-2 sm:mt-6 flex flex-wrap gap-1 sm:gap-2 pt-1.5 sm:pt-4 border-t border-indigo-50">
                 {selectedSales !== "All Salespersons" && (
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200 text-[9px] sm:text-xs">
                     Sales: {selectedSales}
                   </Badge>
                 )}
                 {selectedMonth !== "All Months" && selectedMonth !== "Custom Range" && (
-                  <Badge variant="secondary" className="bg-indigo-100 text-indigo-700 border-indigo-200">
+                  <Badge variant="secondary" className="bg-indigo-100 text-indigo-700 border-indigo-200 text-[9px] sm:text-xs">
                     Month: {new Date(selectedMonth + "-01").toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                   </Badge>
                 )}
-                <Badge variant="secondary" className="bg-slate-100 text-slate-700 border-slate-200">
+                <Badge variant="secondary" className="bg-slate-100 text-slate-700 border-slate-200 text-[9px] sm:text-xs">
                   Range: {format(new Date(startDate), "MMM d")} - {format(new Date(endDate), "MMM d, yyyy")}
                 </Badge>
               </div>
@@ -1009,25 +964,25 @@ export function DashboardView() {
               <CardContent className="p-1.5 sm:p-3 lg:p-4">
                 <div className="grid grid-cols-3 gap-1 sm:gap-2 lg:gap-3">
                   <Card className="bg-gradient-to-br from-purple-500 via-indigo-500 to-blue-600 text-white border-none shadow-md">
-                    <CardContent className="p-1.5 sm:p-3 lg:p-4">
-                      <p className="text-[7px] sm:text-xs font-bold text-purple-100 mb-0.5">Sauda Rate</p>
-                      <div className="text-xs sm:text-lg lg:text-2xl font-bold tracking-tight text-white leading-tight">
+                    <CardContent className="p-2 sm:p-3 lg:p-4 flex flex-col items-center text-center">
+                      <p className="text-[9px] sm:text-xs font-bold text-purple-100 mb-1">Sauda Rate</p>
+                      <div className="text-sm sm:text-lg lg:text-2xl font-black tracking-tight text-white leading-tight">
                         ₹{formatMetricValue(displayMetrics.saudaRate2026)}
                       </div>
                     </CardContent>
                   </Card>
                   <Card className="bg-gradient-to-br from-pink-500 via-rose-500 to-red-500 text-white border-none shadow-md">
-                    <CardContent className="p-1.5 sm:p-3 lg:p-4">
-                      <p className="text-[7px] sm:text-xs font-bold text-pink-100 mb-0.5">Monthly Late</p>
-                      <div className="text-xs sm:text-lg lg:text-2xl font-bold tracking-tight text-white leading-tight">
+                    <CardContent className="p-2 sm:p-3 lg:p-4 flex flex-col items-center text-center">
+                      <p className="text-[9px] sm:text-xs font-bold text-pink-100 mb-1">Monthly Late</p>
+                      <div className="text-sm sm:text-lg lg:text-2xl font-black tracking-tight text-white leading-tight">
                         {deliveryStats?.monthly?.score ?? '0%'}
                       </div>
                     </CardContent>
                   </Card>
                   <Card className="bg-gradient-to-br from-indigo-400 via-indigo-500 to-indigo-600 text-white border-none shadow-md">
-                    <CardContent className="p-1 sm:p-2 lg:p-4">
-                      <p className="text-[7px] sm:text-xs font-bold text-indigo-100 mb-0.5">Daily Late</p>
-                      <div className="text-[10px] sm:text-lg lg:text-2xl font-bold tracking-tight text-white leading-tight">
+                    <CardContent className="p-2 sm:p-2 lg:p-4 flex flex-col items-center text-center">
+                      <p className="text-[9px] sm:text-xs font-bold text-indigo-100 mb-1">Daily Late</p>
+                      <div className="text-sm sm:text-lg lg:text-2xl font-black tracking-tight text-white leading-tight">
                         {deliveryStats?.daily?.score ?? '0%'}
                       </div>
                     </CardContent>
@@ -1047,17 +1002,17 @@ export function DashboardView() {
               <CardContent className="p-1 sm:p-2 lg:p-4">
                 <div className="grid grid-cols-2 gap-1 sm:gap-2 lg:gap-3">
                   <Card className="bg-gradient-to-br from-green-400 via-green-500 to-green-600 text-white border-none shadow-md">
-                    <CardContent className="p-1 sm:p-2 lg:p-4">
-                      <p className="text-[7px] sm:text-xs font-bold text-green-100 mb-0.5">Monthly GD</p>
-                      <div className="text-[10px] sm:text-lg lg:text-2xl font-bold tracking-tight text-white leading-tight">
+                    <CardContent className="p-2 sm:p-2 lg:p-4 flex flex-col items-center text-center">
+                      <p className="text-[9px] sm:text-xs font-bold text-green-100 mb-1">Monthly GD</p>
+                      <div className="text-sm sm:text-lg lg:text-2xl font-black tracking-tight text-white leading-tight">
                         ₹{formatMetricValue(displayMetrics.monthlyGd)}
                       </div>
                     </CardContent>
                   </Card>
                   <Card className="bg-gradient-to-br from-orange-400 via-orange-500 to-amber-500 text-white border-none shadow-md">
-                    <CardContent className="p-1 sm:p-2 lg:p-4">
-                      <p className="text-[7px] sm:text-xs font-bold text-orange-100 mb-0.5">Daily GD</p>
-                      <div className="text-[10px] sm:text-lg lg:text-2xl font-bold tracking-tight text-white leading-tight">
+                    <CardContent className="p-2 sm:p-2 lg:p-4 flex flex-col items-center text-center">
+                      <p className="text-[9px] sm:text-xs font-bold text-orange-100 mb-1">Daily GD</p>
+                      <div className="text-sm sm:text-lg lg:text-2xl font-black tracking-tight text-white leading-tight">
                         ₹{formatMetricValue(displayMetrics.dailyGd)}
                       </div>
                     </CardContent>
@@ -1080,17 +1035,17 @@ export function DashboardView() {
               <CardContent className="p-1 sm:p-2 lg:p-4">
                 <div className="grid grid-cols-2 gap-1 sm:gap-2 lg:gap-3">
                   <Card className="bg-gradient-to-br from-cyan-400 via-cyan-500 to-teal-500 text-white border-none shadow-md">
-                    <CardContent className="p-1 sm:p-2 lg:p-4">
-                      <p className="text-[7px] sm:text-xs font-bold text-cyan-100 mb-0.5">Working Party</p>
-                      <div className="text-[10px] sm:text-lg lg:text-2xl font-bold tracking-tight text-white leading-tight">
+                    <CardContent className="p-2 sm:p-2 lg:p-4 flex flex-col items-center text-center">
+                      <p className="text-[9px] sm:text-xs font-bold text-cyan-100 mb-1">Working Party</p>
+                      <div className="text-sm sm:text-lg lg:text-2xl font-black tracking-tight text-white leading-tight">
                         {formatMetricValue(displayMetrics.monthlyWorkingParty)}
                       </div>
                     </CardContent>
                   </Card>
                   <Card className="bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-600 text-white border-none shadow-md">
-                    <CardContent className="p-1 sm:p-2 lg:p-4">
-                      <p className="text-[7px] sm:text-xs font-bold text-emerald-100 mb-0.5">Party Average</p>
-                      <div className="text-[10px] sm:text-lg lg:text-2xl font-bold tracking-tight text-white leading-tight">
+                    <CardContent className="p-2 sm:p-2 lg:p-4 flex flex-col items-center text-center">
+                      <p className="text-[9px] sm:text-xs font-bold text-emerald-100 mb-1">Party Average</p>
+                      <div className="text-sm sm:text-lg lg:text-2xl font-black tracking-tight text-white leading-tight">
                         {displayMetrics.monthlyPartyAverage}
                       </div>
                     </CardContent>
@@ -1110,17 +1065,17 @@ export function DashboardView() {
               <CardContent className="p-1 sm:p-2 lg:p-4">
                 <div className="grid grid-cols-2 gap-1 sm:gap-2 lg:gap-3">
                   <Card className="bg-gradient-to-br from-teal-500 via-emerald-600 to-green-700 text-white border-none shadow-md">
-                    <CardContent className="p-1 sm:p-2 lg:p-4">
-                      <p className="text-[7px] sm:text-xs font-bold text-teal-100 mb-0.5">Parties Pending</p>
-                      <div className="text-[10px] sm:text-lg lg:text-2xl font-bold tracking-tight text-white leading-tight">
+                    <CardContent className="p-2 sm:p-2 lg:p-4 flex flex-col items-center text-center">
+                      <p className="text-[9px] sm:text-xs font-bold text-teal-100 mb-1">Parties Pending</p>
+                      <div className="text-sm sm:text-lg lg:text-2xl font-black tracking-tight text-white leading-tight">
                         {formatMetricValue(displayMetrics.pendingOrdersTotal)}
                       </div>
                     </CardContent>
                   </Card>
                   <Card className="bg-gradient-to-br from-pink-400 via-pink-500 to-rose-600 text-white border-none shadow-md">
-                    <CardContent className="p-1 sm:p-2 lg:p-4">
-                      <p className="text-[7px] sm:text-xs font-bold text-pink-100 mb-0.5">Conversion Ratio</p>
-                      <div className="text-[10px] sm:text-lg lg:text-2xl font-bold tracking-tight text-white leading-tight">
+                    <CardContent className="p-2 sm:p-2 lg:p-4 flex flex-col items-center text-center">
+                      <p className="text-[9px] sm:text-xs font-bold text-pink-100 mb-1">Conversion Ratio</p>
+                      <div className="text-sm sm:text-lg lg:text-2xl font-black tracking-tight text-white leading-tight">
                         {displayMetrics.conversionRatio}
                       </div>
                     </CardContent>
@@ -1143,7 +1098,7 @@ export function DashboardView() {
           </CardHeader>
           <CardContent className="p-1.5 sm:p-4 lg:p-6">
 
-            <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5 gap-1 sm:gap-2 lg:gap-4">
+            <div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-1.5 sm:gap-4">
               {(() => {
                 const summary: DashboardSummary = data?.summary || {};
                 const saudaAvgList = summary.allSaudaAvg || [];
@@ -1208,15 +1163,15 @@ export function DashboardView() {
                         {items.map((item) => (
                           <div
                             key={item.ITEM}
-                            className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-1 sm:p-2 lg:p-3 border border-white/20"
+                            className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-2 sm:p-2 lg:p-3 border border-white/20 flex flex-col items-center text-center"
                           >
-                            <p className="text-[7px] sm:text-[9px] text-white/70 font-bold uppercase tracking-wider mb-0.5">
+                            <p className="text-[9px] sm:text-[10px] text-white/70 font-bold uppercase tracking-wider mb-1">
                               {item.ITEM}
                             </p>
-                            <div className="text-[10px] sm:text-lg lg:text-2xl font-black text-white leading-none">
+                            <div className="text-lg sm:text-lg lg:text-2xl font-black text-white leading-none">
                               ₹{item.AVERAGE || '0'}
                             </div>
-                            <p className="text-[6px] sm:text-[8px] text-white/60 font-medium mt-0.5">
+                            <p className="text-[7px] sm:text-[8px] text-white/60 font-medium mt-1">
                               Average Rate
                             </p>
                           </div>
@@ -1242,7 +1197,7 @@ export function DashboardView() {
           </CardHeader>
           <CardContent className="p-1.5 sm:p-4 lg:p-6">
 
-            <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5 gap-1 sm:gap-2 lg:gap-4">
+            <div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-1.5 sm:gap-4">
               {(() => {
                 const summary: DashboardSummary = data?.summary || {};
                 const salesAvgList = summary.salesAvg || [];
@@ -1307,15 +1262,15 @@ export function DashboardView() {
                         {items.map((item) => (
                           <div
                             key={item.ITEM}
-                            className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-1 sm:p-2 lg:p-3 border border-white/20"
+                            className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-2 sm:p-2 lg:p-3 border border-white/20 flex flex-col items-center text-center"
                           >
-                            <p className="text-[7px] sm:text-[9px] text-white/70 font-bold uppercase tracking-wider mb-0.5">
+                            <p className="text-[9px] sm:text-[10px] text-white/70 font-bold uppercase tracking-wider mb-1">
                               {item.ITEM}
                             </p>
-                            <div className="text-[10px] sm:text-lg lg:text-2xl font-black text-white leading-none">
+                            <div className="text-lg sm:text-lg lg:text-2xl font-black text-white leading-none">
                               ₹{item.AVERAGE || '0'}
                             </div>
-                            <p className="text-[6px] sm:text-[8px] text-white/60 font-medium mt-0.5">
+                            <p className="text-[7px] sm:text-[8px] text-white/60 font-medium mt-1">
                               Sales Average
                             </p>
                           </div>
@@ -1341,7 +1296,7 @@ export function DashboardView() {
           </CardHeader>
           <CardContent className="p-1.5 sm:p-4 lg:p-6">
 
-            <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5 gap-1 sm:gap-2 lg:gap-4">
+            <div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-1.5 sm:gap-4">
               {(() => {
                 const summary: DashboardSummary = data?.summary || {};
                 // Fallback to empty array if undefined
@@ -1398,27 +1353,21 @@ export function DashboardView() {
                           {person}
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="p-1 sm:p-2 lg:p-4 pt-0 sm:pt-1 space-y-0.5 sm:space-y-2">
-                        <div className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-1 sm:p-2 lg:p-3 border border-white/20">
-                          <div className="flex justify-between items-end mb-0.5">
-                            <p className="text-[7px] sm:text-[9px] text-white/70 font-bold uppercase tracking-wider">
-                              Working Parties
-                            </p>
-                            <User className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white/60" />
-                          </div>
-                          <div className="text-[10px] sm:text-2xl lg:text-3xl font-black text-white">
+                      <CardContent className="p-1 sm:p-2 lg:p-4 pt-0 sm:pt-1 flex flex-col gap-1.5 sm:block sm:space-y-2">
+                        <div className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-2 sm:p-2 lg:p-3 border border-white/20 flex flex-col items-center text-center">
+                          <p className="text-[9px] sm:text-[10px] text-white/70 font-bold uppercase tracking-wider mb-1">
+                            Working Party
+                          </p>
+                          <div className="text-lg sm:text-2xl lg:text-3xl font-black text-white">
                             {stat.MONTHLY_WORKING_PARTY || 0}
                           </div>
                         </div>
 
-                        <div className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-1 sm:p-2 lg:p-3 border border-white/20">
-                          <div className="flex justify-between items-end mb-0.5">
-                            <p className="text-[7px] sm:text-[9px] text-white/70 font-bold uppercase tracking-wider">
-                              Participation
-                            </p>
-                            <Percent className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white/60" />
-                          </div>
-                          <div className="text-[10px] sm:text-2xl lg:text-3xl font-black text-white">
+                        <div className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-2 sm:p-2 lg:p-3 border border-white/20 flex flex-col items-center text-center">
+                          <p className="text-[9px] sm:text-[10px] text-white/70 font-bold uppercase tracking-wider mb-1">
+                            Party Average
+                          </p>
+                          <div className="text-lg sm:text-2xl lg:text-3xl font-black text-white">
                             {stat.MONTHLY_PARTY_AVERAGE || '0%'}
                           </div>
                         </div>
@@ -1443,7 +1392,7 @@ export function DashboardView() {
           </CardHeader>
           <CardContent className="p-1.5 sm:p-4 lg:p-6">
 
-            <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5 gap-1 sm:gap-2 lg:gap-4">
+            <div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-1.5 sm:gap-4">
               {(() => {
                 const summary: DashboardSummary = data?.summary || {};
                 const pendingStats = summary.pendingStats || [];
@@ -1499,27 +1448,21 @@ export function DashboardView() {
                           {person}
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="p-1 sm:p-2 lg:p-4 pt-0 sm:pt-1 space-y-0.5 sm:space-y-2">
-                        <div className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-1 sm:p-2 lg:p-3 border border-white/20">
-                          <div className="flex justify-between items-end mb-0.5">
-                            <p className="text-[7px] sm:text-[9px] text-white/70 font-bold uppercase tracking-wider">
-                              Pending Parties
-                            </p>
-                            <AlertCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white/60" />
-                          </div>
-                          <div className="text-[10px] sm:text-2xl lg:text-3xl font-black text-white">
+                      <CardContent className="p-1 sm:p-2 lg:p-4 pt-0 sm:pt-1 flex flex-col gap-1.5 sm:block sm:space-y-2">
+                        <div className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-2 sm:p-2 lg:p-3 border border-white/20 flex flex-col items-center text-center">
+                          <p className="text-[9px] sm:text-[10px] text-white/70 font-bold uppercase tracking-wider mb-1">
+                            Parties Pending
+                          </p>
+                          <div className="text-lg sm:text-2xl lg:text-3xl font-black text-white">
                             {stat.TOTAL || 0}
                           </div>
                         </div>
 
-                        <div className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-1 sm:p-2 lg:p-3 border border-white/20">
-                          <div className="flex justify-between items-end mb-0.5">
-                            <p className="text-[7px] sm:text-[9px] text-white/70 font-bold uppercase tracking-wider">
-                              Conversion Ratio
-                            </p>
-                            <Percent className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white/60" />
-                          </div>
-                          <div className="text-[10px] sm:text-2xl lg:text-3xl font-black text-white">
+                        <div className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-2 sm:p-2 lg:p-3 border border-white/20 flex flex-col items-center text-center">
+                          <p className="text-[9px] sm:text-[10px] text-white/70 font-bold uppercase tracking-wider mb-1">
+                            Conversion Ratio
+                          </p>
+                          <div className="text-lg sm:text-2xl lg:text-3xl font-black text-white">
                             {stat.CONVERSION_RATIO || '0%'}
                           </div>
                         </div>
@@ -1544,7 +1487,7 @@ export function DashboardView() {
           </CardHeader>
           <CardContent className="p-1.5 sm:p-4 lg:p-6">
 
-            <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5 gap-1 sm:gap-2 lg:gap-4">
+            <div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-1.5 sm:gap-4">
               {(() => {
                 const summary: DashboardSummary = data?.summary || {};
                 const gdStats = summary.gdStats || [];
@@ -1603,29 +1546,23 @@ export function DashboardView() {
                           {person}
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="p-1 sm:p-2 lg:p-4 pt-0 sm:pt-1 space-y-0.5 sm:space-y-2">
+                      <CardContent className="p-1 sm:p-2 lg:p-4 pt-0 sm:pt-1 flex flex-col gap-1.5 sm:block sm:space-y-2">
                         {/* Monthly GD */}
-                        <div className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-1 sm:p-2 lg:p-3 border border-white/20">
-                          <div className="flex justify-between items-end mb-0.5">
-                            <p className="text-[7px] sm:text-[9px] text-white/70 font-bold uppercase tracking-wider">
-                              Monthly GD
-                            </p>
-                            <div className="text-[8px] sm:text-[10px] text-white/60">₹</div>
-                          </div>
-                          <div className="text-[10px] sm:text-2xl lg:text-3xl font-black text-white leading-none">
+                        <div className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-2 sm:p-2 lg:p-3 border border-white/20 flex flex-col items-center text-center">
+                          <p className="text-[9px] sm:text-[10px] text-white/70 font-bold uppercase tracking-wider mb-1">
+                            Monthly GD
+                          </p>
+                          <div className="text-lg sm:text-2xl lg:text-3xl font-black text-white leading-none">
                             ₹{monthlyGd.toLocaleString("en-IN")}
                           </div>
                         </div>
 
                         {/* Daily GD */}
-                        <div className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-1 sm:p-2 lg:p-3 border border-white/20">
-                          <div className="flex justify-between items-end mb-0.5">
-                            <p className="text-[7px] sm:text-[9px] text-white/70 font-bold uppercase tracking-wider">
-                              Daily GD
-                            </p>
-                            <div className="text-[8px] sm:text-[10px] text-white/60">₹</div>
-                          </div>
-                          <div className="text-[10px] sm:text-2xl lg:text-3xl font-black text-white leading-none">
+                        <div className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-2 sm:p-2 lg:p-3 border border-white/20 flex flex-col items-center text-center">
+                          <p className="text-[9px] sm:text-[10px] text-white/70 font-bold uppercase tracking-wider mb-1">
+                            Daily GD
+                          </p>
+                          <div className="text-lg sm:text-2xl lg:text-3xl font-black text-white leading-none">
                             ₹{dailyGd.toLocaleString("en-IN")}
                           </div>
                         </div>
@@ -1650,7 +1587,7 @@ export function DashboardView() {
           </CardHeader>
           <CardContent className="p-1.5 sm:p-4 lg:p-6">
 
-            <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5 gap-1 sm:gap-2 lg:gap-4">
+            <div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-1.5 sm:gap-4">
               {(() => {
                 const salespersons = Object.keys(salespersonDeliveryStats).sort();
                 const gradients = [
@@ -1681,29 +1618,29 @@ export function DashboardView() {
                           {person}
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="p-1 sm:p-2 lg:p-4 pt-0 sm:pt-1 space-y-0.5 sm:space-y-3">
+                      <CardContent className="p-1 sm:p-2 lg:p-4 pt-0 sm:pt-1 flex flex-col gap-1.5 sm:block sm:space-y-2">
                         {/* Monthly Late */}
-                        <div className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-1 sm:p-2 lg:p-3 border border-white/20">
-                          <p className="text-[7px] sm:text-[9px] text-white/70 font-bold uppercase tracking-wider mb-0.5">
+                        <div className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-2 sm:p-3 border border-white/20 flex flex-col items-center text-center">
+                          <p className="text-[9px] sm:text-[10px] text-white/70 font-bold uppercase tracking-wider mb-1">
                             Monthly Late
                           </p>
-                          <div className="text-[10px] sm:text-2xl lg:text-3xl font-black text-white leading-none">
+                          <div className="text-sm sm:text-2xl lg:text-3xl font-black text-white leading-none">
                             {stats.monthly.score}
                           </div>
-                          <p className="text-[6px] sm:text-[8px] text-white/60 font-medium mt-0.5">
+                          <p className="text-[7px] sm:text-[8px] text-white/60 font-medium mt-1">
                             {stats.monthly.late} of {stats.monthly.total}
                           </p>
                         </div>
 
                         {/* Daily Late */}
-                        <div className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-1 sm:p-2 lg:p-3 border border-white/20">
-                          <p className="text-[7px] sm:text-[9px] text-white/70 font-bold uppercase tracking-wider mb-0.5">
+                        <div className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-2 sm:p-3 border border-white/20 flex flex-col items-center text-center">
+                          <p className="text-[9px] sm:text-[10px] text-white/70 font-bold uppercase tracking-wider mb-1">
                             Daily Late
                           </p>
-                          <div className="text-[10px] sm:text-2xl lg:text-3xl font-black text-white leading-none">
+                          <div className="text-sm sm:text-2xl lg:text-3xl font-black text-white leading-none">
                             {stats.daily.score}
                           </div>
-                          <p className="text-[6px] sm:text-[8px] text-white/60 font-medium mt-0.5">
+                          <p className="text-[7px] sm:text-[8px] text-white/60 font-medium mt-1">
                             {stats.daily.late} of {stats.daily.total}
                           </p>
                         </div>
@@ -1742,7 +1679,7 @@ export function DashboardView() {
           </CardHeader>
           <CardContent className="p-1.5 sm:p-6">
 
-            <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-1 sm:gap-3 lg:gap-6">
+            <div className="grid grid-cols-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-1.5 sm:gap-6">
               {stateDistributionData.map((item, index) => {
                 const totalVolume = stateDistributionData.reduce((acc, curr) => acc + curr.count, 0);
                 const percentage = totalVolume > 0 ? ((item.count / totalVolume) * 100).toFixed(1) : "0";
@@ -1765,43 +1702,43 @@ export function DashboardView() {
                   <Card
                     key={item.state}
                     className={cn(
-                      "group relative border-none transition-all duration-500 shadow-lg hover:shadow-2xl hover:-translate-y-2 overflow-hidden flex flex-col justify-between min-h-[130px] sm:min-h-[150px] lg:min-h-[170px] bg-gradient-to-br",
+                      "group relative border-none transition-all duration-500 shadow-lg hover:shadow-2xl hover:-translate-y-2 overflow-hidden flex flex-col justify-between min-h-[100px] sm:min-h-[150px] lg:min-h-[170px] bg-gradient-to-br",
                       gradient
                     )}
                   >
                     {/* Decorative Elements */}
-                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
-                      <Trophy className="w-16 h-16 text-white rotate-12" />
+                    <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
+                      <Trophy className="w-8 h-8 sm:w-16 sm:h-16 text-white rotate-12" />
                     </div>
 
-                    <CardHeader className="p-3 sm:p-4 lg:p-5 pb-0 relative z-10">
+                    <CardHeader className="p-1.5 sm:p-4 lg:p-5 pb-0 relative z-10">
                       <div className="flex justify-between items-center">
-                        <div className="flex items-center justify-center min-w-7 h-7 px-2 rounded-lg bg-white/20 backdrop-blur-md border border-white/20 group-hover:bg-white/30 transition-all duration-300">
-                          <span className="text-[10px] font-black text-white uppercase tracking-tighter">
+                        <div className="flex items-center justify-center min-w-5 h-5 sm:min-w-7 sm:h-7 px-1 sm:px-2 rounded-md sm:rounded-lg bg-white/20 backdrop-blur-md border border-white/20 group-hover:bg-white/30 transition-all duration-300">
+                          <span className="text-[7px] sm:text-[10px] font-black text-white uppercase tracking-tighter">
                             {item.state === "Miscellaneous" ? "OTHER" : `Rank #${index + 1}`}
                           </span>
                         </div>
                         <div className="flex flex-col items-end">
-                          <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-md border border-white/20 flex items-center gap-1.5">
-                            <span className="text-[11px] font-black text-white font-mono">{item.count.toLocaleString()}</span>
-                            <span className="text-[8px] font-bold text-white/60 uppercase tracking-widest">Units</span>
+                          <div className="px-1 sm:px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-md border border-white/20 flex items-center gap-1 sm:gap-1.5">
+                            <span className="text-[8px] sm:text-[11px] font-black text-white font-mono">{item.count.toLocaleString()}</span>
+                            <span className="text-[6px] sm:text-[8px] text-white/60 font-bold uppercase tracking-widest">Units</span>
                           </div>
-                          <div className="w-14 h-1.5 bg-black/20 rounded-full mt-2 overflow-hidden border border-white/5">
+                          <div className="w-10 sm:w-14 h-1 sm:h-1.5 bg-black/20 rounded-full mt-1 sm:mt-2 overflow-hidden border border-white/5">
                             <div className="h-full bg-white rounded-full transition-all duration-1000" style={{ width: `${percentage}%` }}></div>
                           </div>
                         </div>
                       </div>
-                      <CardTitle className="text-sm sm:text-base lg:text-lg font-black text-white uppercase tracking-tighter mt-3 sm:mt-4 lg:mt-5 group-hover:tracking-normal transition-all truncate drop-shadow-sm">
+                      <CardTitle className="text-[9px] sm:text-base lg:text-lg font-black text-white uppercase tracking-tighter mt-2 sm:mt-4 lg:mt-5 group-hover:tracking-normal transition-all truncate drop-shadow-sm">
                         {item.state}
                       </CardTitle>
                     </CardHeader>
 
-                    <CardContent className="p-3 sm:p-4 lg:p-5 pt-2 sm:pt-3 flex items-end justify-between relative z-10">
-                      <div className="space-y-0.5">
-                        <span className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-widest leading-none block drop-shadow-md">
+                    <CardContent className="p-1.5 sm:p-4 lg:p-5 pt-1 sm:pt-3 flex items-end justify-between relative z-10">
+                      <div className="space-y-0">
+                        <span className="text-xs sm:text-3xl lg:text-4xl font-black text-white tracking-widest leading-none block drop-shadow-md">
                           {percentage}%
                         </span>
-                        <p className="text-[10px] font-black text-white/60 uppercase tracking-widest">Market Share</p>
+                        <p className="text-[7px] sm:text-[10px] font-black text-white/60 uppercase tracking-widest">Market Share</p>
                       </div>
 
                       {/* Visual Signal Element */}
@@ -1934,21 +1871,21 @@ export function DashboardView() {
                           style={{ background: rowGradient }}
                           className="border-b border-white/10 group transition-none"
                         >
-                          <TableCell className="font-bold text-white/90 py-5 pl-6 text-xs">{index + 1}</TableCell>
-                          <TableCell className="py-5">
-                            <Badge variant="outline" className="font-black uppercase tracking-widest text-[11px] md:text-xs border-white/40 text-white bg-white/10 px-3 py-1">
+                          <TableCell className="font-bold text-white/90 py-2 sm:py-3 lg:py-5 pl-4 sm:pl-6 text-[10px] sm:text-xs">{index + 1}</TableCell>
+                          <TableCell className="py-2 sm:py-3 lg:py-5">
+                            <Badge variant="outline" className="font-black uppercase tracking-widest text-[8px] sm:text-[10px] md:text-xs border-white/40 text-white bg-white/10 px-1.5 sm:px-3 py-0.5 sm:py-1">
                               {item.item_type}
                             </Badge>
                           </TableCell>
-                          <TableCell className="font-black text-white py-5 text-xs md:text-sm">{item.size}</TableCell>
-                          <TableCell className="text-center py-5">
-                            <span className="px-3 py-1.5 bg-white/95 border border-transparent rounded-lg font-mono font-bold text-slate-800 text-[11px] md:text-sm shadow-md inline-block">
+                          <TableCell className="font-black text-white py-2 sm:py-3 lg:py-5 text-[10px] sm:text-xs md:text-sm">{item.size}</TableCell>
+                          <TableCell className="text-center py-2 sm:py-3 lg:py-5">
+                            <span className="px-1.5 sm:px-3 py-0.5 sm:py-1.5 bg-white/95 border border-transparent rounded-md sm:rounded-lg font-mono font-bold text-slate-800 text-[10px] sm:text-[11px] md:text-sm shadow-md inline-block">
                               {item.thickness}
                             </span>
                           </TableCell>
 
-                          <TableCell className="text-right py-5 pr-6">
-                            <span className="font-black text-base md:text-lg text-white font-mono tracking-tighter">
+                          <TableCell className="text-right py-2 sm:py-3 lg:py-5 pr-4 sm:pr-6">
+                            <span className="font-black text-sm sm:text-base md:text-lg text-white font-mono tracking-tighter">
                               {Number(item.total).toLocaleString()}
                             </span>
                           </TableCell>
@@ -2094,24 +2031,24 @@ export function DashboardView() {
                               const avatarColor = idx % 3 === 0 ? "bg-blue-500" : idx % 3 === 1 ? "bg-purple-500" : "bg-indigo-500";
 
                               return (
-                                <tr key={idx} className={`${rowClass} hover:bg-blue-50/80 transition-colors text-[9px] sm:text-sm`}>
-                                  <td className="px-2 sm:px-4 md:px-6 py-1.5 sm:py-4 font-medium flex items-center gap-1.5 sm:gap-3">
-                                    <div className={`w-5 h-5 sm:w-8 sm:h-8 rounded-full ${avatarColor} flex items-center justify-center text-white text-[8px] sm:text-xs font-bold shadow-sm shrink-0`}>
+                                <tr key={idx} className={`${rowClass} hover:bg-emerald-50/80 transition-colors text-[8px] sm:text-[10px]`}>
+                                  <td className="px-2 sm:px-4 md:px-6 py-1 sm:py-1.5 font-medium flex items-center gap-1.5 sm:gap-2">
+                                    <div className={`w-4 h-4 sm:w-6 sm:h-6 rounded-full ${avatarColor} flex items-center justify-center text-white text-[7px] sm:text-[9px] font-bold shadow-sm shrink-0`}>
                                       {initials}
                                     </div>
                                     <span className="truncate max-w-[70px] sm:max-w-none">{row.salesPerson}</span>
                                   </td>
-                                  <td className="px-2 sm:px-4 md:px-6 py-1.5 sm:py-4 text-center">{row.noOfCallings}</td>
-                                  <td className="px-2 sm:px-4 md:px-6 py-1.5 sm:py-4 text-center">{row.orderClients}</td>
-                                  <td className="px-2 sm:px-4 md:px-6 py-1.5 sm:py-4 text-center">
+                                  <td className="px-2 sm:px-4 md:px-6 py-1 sm:py-2.5 text-center">{row.noOfCallings}</td>
+                                  <td className="px-2 sm:px-4 md:px-6 py-1 sm:py-2.5 text-center">{row.orderClients}</td>
+                                  <td className="px-2 sm:px-4 md:px-6 py-1 sm:py-2.5 text-center">
                                     <div className="flex flex-col items-center">
                                       <span className="text-slate-700 font-bold">{row.conversionRatio}%</span>
                                     </div>
                                   </td>
-                                  <td className="px-2 sm:px-4 md:px-6 py-1.5 sm:py-4 text-center font-mono text-slate-700">
+                                  <td className="px-2 sm:px-4 md:px-6 py-1 sm:py-2.5 text-center font-mono text-slate-700">
                                     {row.totalRsSale ? Number(row.totalRsSale).toLocaleString() : '0'}
                                   </td>
-                                  <td className="px-2 sm:px-4 md:px-6 py-1.5 sm:py-4 text-center font-mono">
+                                  <td className="px-2 sm:px-4 md:px-6 py-1 sm:py-2.5 text-center font-mono">
                                     <span className={`${parseFloat(row.avgRsSale) > 50 ? 'text-emerald-600 font-bold' : 'text-slate-600'}`}>
                                       {row.avgRsSale}
                                     </span>
@@ -2134,24 +2071,24 @@ export function DashboardView() {
                               const totalAvgSale = totalOrderClients > 0 ? (totalRsSale / totalOrderClients).toFixed(2) : '0.00';
 
                               return (
-                                <tr className="bg-yellow-50 font-bold border-t-2 border-yellow-200 hover:bg-yellow-100/80 transition-colors">
-                                  <td className="px-6 py-4 font-medium flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-yellow-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                                <tr className="bg-yellow-50 font-bold border-t-2 border-yellow-200 hover:bg-yellow-100/80 transition-colors text-[9px] sm:text-sm">
+                                  <td className="px-3 sm:px-6 py-2 sm:py-3 font-medium flex items-center gap-1.5 sm:gap-3">
+                                    <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-full bg-yellow-600 flex items-center justify-center text-white text-[8px] sm:text-xs font-bold shadow-sm">
                                       Σ
                                     </div>
                                     <span className="text-yellow-700">TOTAL</span>
                                   </td>
-                                  <td className="px-6 py-4 text-center text-yellow-700">{totalCallings}</td>
-                                  <td className="px-6 py-4 text-center text-yellow-700">{totalOrderClients}</td>
-                                  <td className="px-6 py-4 text-center">
+                                  <td className="px-2 sm:px-6 py-2 sm:py-3 text-center text-yellow-700">{totalCallings}</td>
+                                  <td className="px-2 sm:px-6 py-2 sm:py-3 text-center text-yellow-700">{totalOrderClients}</td>
+                                  <td className="px-2 sm:px-6 py-2 sm:py-3 text-center">
                                     <div className="flex flex-col items-center">
                                       <span className="text-yellow-700 font-bold">{totalConversionRatio}%</span>
                                     </div>
                                   </td>
-                                  <td className="px-6 py-4 text-center font-mono text-yellow-700">
+                                  <td className="px-2 sm:px-6 py-2 sm:py-3 text-center font-mono text-yellow-700">
                                     {Number(totalRsSale).toLocaleString()}
                                   </td>
-                                  <td className="px-6 py-4 text-center font-mono">
+                                  <td className="px-2 sm:px-6 py-2 sm:py-3 text-center font-mono">
                                     <span className="text-yellow-700 font-bold">{totalAvgSale}</span>
                                   </td>
                                 </tr>
@@ -2175,24 +2112,24 @@ export function DashboardView() {
                               const avgAvgRsSale = avgOrderClientsValue > 0 ? (avgTotalRsSaleValue / avgOrderClientsValue).toFixed(2) : '0.00';
 
                               return (
-                                <tr className="bg-purple-50 font-bold border-t-2 border-purple-200 hover:bg-purple-100/80 transition-colors">
-                                  <td className="px-6 py-4 font-medium flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                                <tr className="bg-purple-50 font-bold border-t-2 border-purple-200 hover:bg-purple-100/80 transition-colors text-[9px] sm:text-sm">
+                                  <td className="px-3 sm:px-6 py-2 sm:py-3 font-medium flex items-center gap-1.5 sm:gap-3">
+                                    <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-full bg-purple-600 flex items-center justify-center text-white text-[8px] sm:text-xs font-bold shadow-sm">
                                       ø
                                     </div>
                                     <span className="text-purple-700">AVERAGE</span>
                                   </td>
-                                  <td className="px-6 py-4 text-center text-purple-700">{avgCallings}</td>
-                                  <td className="px-6 py-4 text-center text-purple-700">{avgOrderClients}</td>
-                                  <td className="px-6 py-4 text-center">
+                                  <td className="px-2 sm:px-6 py-2 sm:py-3 text-center text-purple-700">{avgCallings}</td>
+                                  <td className="px-2 sm:px-6 py-2 sm:py-3 text-center text-purple-700">{avgOrderClients}</td>
+                                  <td className="px-2 sm:px-6 py-2 sm:py-3 text-center">
                                     <div className="flex flex-col items-center">
                                       <span className="text-purple-700 font-bold">{avgConversionRatio}%</span>
                                     </div>
                                   </td>
-                                  <td className="px-6 py-4 text-center font-mono text-purple-700">
+                                  <td className="px-2 sm:px-6 py-2 sm:py-3 text-center font-mono text-purple-700">
                                     {Number(avgTotalRsSale).toLocaleString()}
                                   </td>
-                                  <td className="px-6 py-4 text-center font-mono">
+                                  <td className="px-2 sm:px-6 py-2 sm:py-3 text-center font-mono">
                                     <span className="text-purple-700 font-bold">{avgAvgRsSale}</span>
                                   </td>
                                 </tr>
@@ -2389,24 +2326,24 @@ export function DashboardView() {
                           const sumAvgRsSale = dataRows.reduce((sum, row) => sum + parseFloat(row.avgRsSale || '0'), 0).toFixed(2);
 
                           return (
-                            <tr className="bg-emerald-50 font-bold border-t-2 border-emerald-200 hover:bg-emerald-100/80 transition-colors">
-                              <td className="px-6 py-4 font-medium flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                            <tr className="bg-emerald-50 font-bold border-t-2 border-emerald-200 hover:bg-emerald-100/80 transition-colors text-[9px] sm:text-sm">
+                              <td className="px-3 sm:px-6 py-2 sm:py-4 font-medium flex items-center gap-1.5 sm:gap-3">
+                                <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white text-[8px] sm:text-xs font-bold shadow-sm">
                                   Σ
                                 </div>
                                 <span className="text-emerald-700">TOTAL</span>
                               </td>
-                              <td className="px-6 py-4 text-center text-emerald-700 font-bold">{totalCallings}</td>
-                              <td className="px-6 py-4 text-center text-emerald-700 font-bold">{totalOrderClients}</td>
-                              <td className="px-6 py-4 text-center">
+                              <td className="px-2 sm:px-6 py-2 sm:py-4 text-center text-emerald-700 font-bold">{totalCallings}</td>
+                              <td className="px-2 sm:px-6 py-2 sm:py-4 text-center text-emerald-700 font-bold">{totalOrderClients}</td>
+                              <td className="px-2 sm:px-6 py-2 sm:py-4 text-center">
                                 <div className="flex flex-col items-center">
                                   <span className="text-emerald-700 font-bold">{totalConversionRatio}%</span>
                                 </div>
                               </td>
-                              <td className="px-6 py-4 text-center font-mono text-emerald-700 font-bold">
+                              <td className="px-2 sm:px-6 py-2 sm:py-4 text-center font-mono text-emerald-700 font-bold">
                                 {Number(totalTotalRsSale).toLocaleString()}
                               </td>
-                              <td className="px-6 py-4 text-center font-mono">
+                              <td className="px-2 sm:px-6 py-2 sm:py-4 text-center font-mono">
                                 <span className="text-emerald-700 font-bold">{sumAvgRsSale}</span>
                               </td>
                             </tr>
