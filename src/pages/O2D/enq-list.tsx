@@ -82,8 +82,9 @@ const EnqList = () => {
 
     const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
         const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-        if (scrollHeight - scrollTop <= clientHeight + 120)
-            setVisibleCount(p => Math.min(p + 50, filteredEnquiries.length));
+        if (scrollHeight - scrollTop <= clientHeight * 2) {
+            setVisibleCount(prev => Math.min(prev + 50, filteredEnquiries.length));
+        }
     };
 
     const handleDownload = () => {
@@ -107,10 +108,10 @@ const EnqList = () => {
     const totalQty = filteredEnquiries.reduce((s, e) => s + (Number(e.quantity) || 0), 0);
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col">
+        <div className="h-screen bg-slate-50 flex flex-col overflow-hidden">
 
-            {/* ── Sticky Top Bar ── */}
-            <div className="sticky top-0 z-20 bg-white border-b border-slate-200 shadow-sm">
+            {/* ── Fixed Top Bar ── */}
+            <div className="shrink-0 z-30 bg-white border-b border-slate-200 shadow-sm">
 
                 {/* Title row */}
                 <div className="flex items-center justify-between px-3 py-2 sm:px-5 sm:py-3">
@@ -297,13 +298,12 @@ const EnqList = () => {
                             )}
                         </div>
 
-                        {/* ─── Desktop Table (>= lg) ─── */}
                         <div className="hidden lg:block">
-                            <table className="w-full border-collapse text-left">
-                                <thead className="sticky top-0 z-10 bg-slate-50 border-b-2 border-slate-200">
+                            <table className="w-full border-separate border-spacing-0 text-left">
+                                <thead className="bg-slate-50">
                                     <tr>
                                         {['#', 'Date', 'Customer', 'Item Type', 'Size', 'Thickness', 'Quantity', 'Sales Executive'].map(h => (
-                                            <th key={h} className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-wider whitespace-nowrap">
+                                            <th key={h} className="sticky top-0 px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-wider whitespace-nowrap bg-slate-50 z-20 shadow-sm border-b-2 border-slate-200">
                                                 {h}
                                             </th>
                                         ))}

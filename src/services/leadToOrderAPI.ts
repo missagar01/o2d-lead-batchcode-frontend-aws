@@ -2,7 +2,7 @@ import api, { API_ENDPOINTS } from '../config/api.js';
 
 export const leadToOrderAPI = {
   // Authentication
-  login: (username: string, password: string) => 
+  login: (username: string, password: string) =>
     api.post(API_ENDPOINTS.LEAD_TO_ORDER.AUTH.LOGIN, { username, password }),
   verifyToken: () => api.get(API_ENDPOINTS.LEAD_TO_ORDER.AUTH.VERIFY_TOKEN),
   createUser: (data: any) => api.post(API_ENDPOINTS.LEAD_TO_ORDER.AUTH.CREATE_USER, data),
@@ -10,7 +10,7 @@ export const leadToOrderAPI = {
 
   // Leads
   createLead: (data: any) => api.post(API_ENDPOINTS.LEAD_TO_ORDER.LEADS, data),
-  
+
   // Lead Dropdowns
   getLeadDropdowns: () => api.get(API_ENDPOINTS.LEAD_TO_ORDER.LEAD_DROPDOWN),
 
@@ -31,21 +31,43 @@ export const leadToOrderAPI = {
   getPendingFMS: () => api.get(API_ENDPOINTS.LEAD_TO_ORDER.ENQUIRY_TRACKER.PENDING),
   getEnquiryHistory: () => api.get(API_ENDPOINTS.LEAD_TO_ORDER.ENQUIRY_TRACKER.HISTORY),
   getDirectEnquiryPending: () => api.get(API_ENDPOINTS.LEAD_TO_ORDER.ENQUIRY_TRACKER.DIRECT_PENDING),
-  getEnquiryById: (type: string, id: string) => 
+  getEnquiryById: (type: string, id: string) =>
     api.get(`${API_ENDPOINTS.LEAD_TO_ORDER.ENQUIRY_TRACKER.VIEW}/${type}/${id}`),
   submitEnquiryTrackerForm: (data: any) => api.post(API_ENDPOINTS.LEAD_TO_ORDER.ENQUIRY_TRACKER.FORM, data),
-  getEnquiryTrackerDropdowns: (column: string) => 
+  getEnquiryTrackerDropdowns: (column: string) =>
     api.get(`${API_ENDPOINTS.LEAD_TO_ORDER.ENQUIRY_TRACKER.DROPDOWNS}/${column}`),
 
   // Quotation
   createQuotation: (data: any) => api.post(API_ENDPOINTS.LEAD_TO_ORDER.QUOTATION.BASE, data),
-  getQuotationByNumber: (quotationNo: string) => 
+  getQuotationByNumber: (quotationNo: string) =>
     api.get(`${API_ENDPOINTS.LEAD_TO_ORDER.QUOTATION.BY_NUMBER}/${quotationNo}`),
+  getNextQuotationNumber: () => api.get(API_ENDPOINTS.LEAD_TO_ORDER.QUOTATION.GET_NEXT_NUMBER),
+  getQuotationDropdowns: () => api.get(API_ENDPOINTS.LEAD_TO_ORDER.QUOTATION.DROPDOWNS),
+  getQuotationNumbers: () => api.get(API_ENDPOINTS.LEAD_TO_ORDER.QUOTATION.NUMBERS),
+  getQuotationDetails: (quotationNo: string) =>
+    api.get(`${API_ENDPOINTS.LEAD_TO_ORDER.QUOTATION.DETAILS}/${quotationNo}`),
+  uploadQuotationPDF: (base64Data: string, quotationNo: string) => {
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: "application/pdf" });
+    const file = new File([blob], `Quotation_${quotationNo}.pdf`, { type: "application/pdf" });
+
+    const formData = new FormData();
+    formData.append("pdf", file);
+    return api.post(API_ENDPOINTS.LEAD_TO_ORDER.QUOTATION.UPLOAD_PDF, formData);
+  },
+  getQuotationLeadNumbers: () => api.get(API_ENDPOINTS.LEAD_TO_ORDER.QUOTATION.LEAD_NUMBERS),
+  getQuotationLeadDetails: (leadNo: string) =>
+    api.get(`${API_ENDPOINTS.LEAD_TO_ORDER.QUOTATION.LEAD_DETAILS}/${leadNo}`),
 
   // Dashboard
-  getDashboardMetrics: (userId?: string, isAdmin?: boolean) => 
+  getDashboardMetrics: (userId?: string, isAdmin?: boolean) =>
     api.get(API_ENDPOINTS.LEAD_TO_ORDER.DASHBOARD.METRICS, { params: { userId, isAdmin } }),
-  getDashboardCharts: (userId?: string, isAdmin?: boolean) => 
+  getDashboardCharts: (userId?: string, isAdmin?: boolean) =>
     api.get(API_ENDPOINTS.LEAD_TO_ORDER.DASHBOARD.CHARTS, { params: { userId, isAdmin } }),
 
   // Products

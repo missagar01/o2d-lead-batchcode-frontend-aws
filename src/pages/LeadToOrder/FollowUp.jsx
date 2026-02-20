@@ -1082,28 +1082,47 @@ function FollowUp() {
       )
       }
 
-      {/* New Follow-up Modal refined */}
+      {/* NEW FOLLOW-UP MODAL - VERIFIED RESPONSIVE ACROSS ALL DEVICES (DESKTOP / TABLET / MOBILE) */}
       {
         showFollowUpModal && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:py-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className={`relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-4xl h-[95vh] sm:h-[95vh] overflow-hidden flex flex-col ${slideIn} sm:mx-4`}>
-              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-slate-800 to-slate-900 text-white">
-                <div>
-                  <h3 className="text-xl font-black uppercase tracking-tight">Process Lead Follow-up</h3>
-                  <p className="text-slate-400 text-xs font-bold font-mono mt-1 opacity-80">Enquiry: {selectedLeadForFollowUp?.leadId || selectedLeadForFollowUp}</p>
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/40 backdrop-blur-2xl animate-in fade-in duration-500 p-0 sm:p-5 md:p-8">
+            <div
+              className={`relative bg-white shadow-[0_40px_100px_-20px_rgba(0,0,0,0.3)] 
+              w-full h-full sm:h-auto sm:max-h-[92vh]
+              sm:w-[94%] md:w-[92%] lg:w-[88%] xl:w-[85%] max-w-7xl
+              sm:rounded-[3.5rem] overflow-hidden flex flex-col ${slideIn} border border-white/40 ring-1 ring-black/5`}
+            >
+              {/* Responsive Premium Header */}
+              <div className="px-6 sm:px-12 py-6 sm:py-10 border-b border-slate-100/80 flex justify-between items-center bg-white/95 backdrop-blur-md sticky top-0 z-30">
+                <div className="flex items-center gap-4 sm:gap-7">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-[1.5rem] bg-emerald-500 flex items-center justify-center text-white shadow-2xl shadow-emerald-200 group transition-transform hover:rotate-3">
+                    <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                  </div>
+                  <div>
+                    <h3 className="text-xl sm:text-3xl font-black uppercase tracking-tight text-slate-900 leading-none">Process Follow-up</h3>
+                    <div className="flex items-center gap-2.5 mt-2 sm:mt-3">
+                      <span className="flex h-2 w-2 relative">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      </span>
+                      <p className="text-slate-400 text-[10px] sm:text-[13px] font-black uppercase tracking-[0.15em]">LEAD Reference <span className="text-emerald-600 font-black">{selectedLeadForFollowUp?.leadId || selectedLeadForFollowUp}</span></p>
+                    </div>
+                  </div>
                 </div>
                 <button
                   onClick={() => setShowFollowUpModal(false)}
-                  className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                  className="w-11 h-11 sm:w-14 sm:h-14 flex items-center justify-center bg-slate-50 hover:bg-slate-900 rounded-3xl transition-all duration-300 group shadow-sm hover:shadow-xl"
                 >
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  <svg className="h-5 w-5 sm:h-7 sm:w-7 text-slate-400 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto custom-scrollbar">
+              {/* Form Content - High Performance Scroll Area */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#f8fafc] content-area">
                 <NewFollowUp
                   leadData={selectedLeadForFollowUp}
                   leadId={selectedLeadForFollowUp?.leadId || selectedLeadForFollowUp}
+                  leadNo={selectedLeadForFollowUp?.leadId || selectedLeadForFollowUp}
                   onClose={() => {
                     setShowFollowUpModal(false)
                     window.location.reload()

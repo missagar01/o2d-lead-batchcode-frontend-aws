@@ -10,12 +10,8 @@ import QuotationPreview from "./quotation-preview"
 import { generatePDFFromData } from "./pdf-generator"
 import { getNextQuotationNumber } from "./quotation-service" // SIMPLIFIED: Only import getNextQuotationNumber
 import { useQuotationData } from "./use-quotation-data"
-import {
-  fetchQuotationDetails,
-  fetchQuotationNumbers,
-  saveQuotationToBackend,
-  uploadPDFToBackend,
-} from "./quotation-api"
+import { leadToOrderAPI } from "../../../services/leadToOrderAPI"
+
 
 function Quotation() {
   const [activeTab, setActiveTab] = useState("edit")
@@ -86,9 +82,12 @@ function Quotation() {
     const fetchExistingQuotations = async () => {
       try {
         setIsLoadingQuotation(true)
-        
-        const quotationNumbers = await fetchQuotationNumbers()
-        setExistingQuotations(quotationNumbers)
+
+        const response = await leadToOrderAPI.getQuotationNumbers()
+        if (response.data && response.data.success) {
+          setExistingQuotations(response.data.quotationNumbers)
+        }
+
       } catch (error) {
         console.error("Error fetching quotation numbers:", error)
         setExistingQuotations([])
@@ -103,145 +102,147 @@ function Quotation() {
   }, [isRevising])
 
   // Updated handleQuotationSelect function
-const handleQuotationSelect = async (quotationNo) => {
-  if (!quotationNo) return;
+  const handleQuotationSelect = async (quotationNo) => {
+    if (!quotationNo) return;
 
-  setIsLoadingQuotation(true);
-  setSelectedQuotation(quotationNo);
+    setIsLoadingQuotation(true);
+    setSelectedQuotation(quotationNo);
 
-  try {
-    const result = await fetchQuotationDetails(quotationNo);
-    
-    // Check if result is undefined or null
-    if (!result) {
-      throw new Error("No data received from server");
-    }
+    try {
+      const response = await leadToOrderAPI.getQuotationDetails(quotationNo);
+      const result = response.data;
 
-    const loadedData = result;
 
-    // Add null checks for all fields
-    if (!loadedData) {
-      throw new Error("Loaded data is undefined");
-    }
+      // Check if result is undefined or null
+      if (!result) {
+        throw new Error("No data received from server");
+      }
 
-    // Safe reference processing with null checks
-    const references = loadedData.consignorName
-      ? loadedData.consignorName
+      const loadedData = result;
+
+      // Add null checks for all fields
+      if (!loadedData) {
+        throw new Error("Loaded data is undefined");
+      }
+
+      // Safe reference processing with null checks
+      const references = loadedData.consignorName
+        ? loadedData.consignorName
           .split(",")
           .map((r) => r.trim())
           .filter((r) => r)
-      : [];
-    setSelectedReferences(references);
+        : [];
+      setSelectedReferences(references);
 
-    // Safe items processing
-    let items = [];
-    const specialDiscountFromItems = Number(loadedData.specialDiscount) || 0;
+      // Safe items processing
+      let items = [];
+      const specialDiscountFromItems = Number(loadedData.specialDiscount) || 0;
 
-    if (loadedData.items && Array.isArray(loadedData.items) && loadedData.items.length > 0) {
-      items = loadedData.items.map((item, index) => ({
-        id: index + 1,
-        code: item.code || "",
-        name: item.name || "",
-        description: item.description || "",
-        gst: Number(item.gst) || 0,
-        qty: Number(item.qty) || 0,
-        units: item.units || "Nos",
-        rate: Number(item.rate) || 0,
-        discount: Number(item.discount) || 0,
-        flatDiscount: Number(item.flatDiscount) || 0,
-        amount: Number(item.amount) || 0
-      }));
-    }
-
-    // Calculate financials with safe defaults
-    const subtotal = items.reduce((sum, item) => sum + Number(item.amount || 0), 0);
-    const totalFlatDiscount = Number(loadedData.totalFlatDiscount) || 0;
-    const cgstRate = Number(loadedData.cgstRate) || 9;
-    const sgstRate = Number(loadedData.sgstRate) || 9;
-    const taxableAmount = Math.max(0, subtotal - totalFlatDiscount);
-    const cgstAmount = Number((taxableAmount * (cgstRate / 100)).toFixed(2));
-    const sgstAmount = Number((taxableAmount * (sgstRate / 100)).toFixed(2));
-    const total = Number((taxableAmount + cgstAmount + sgstAmount - specialDiscountFromItems).toFixed(2));
-
-    // Parse special offers
-    let specialOffers = [""];
-    if (loadedData.specialOffers) {
-      if (typeof loadedData.specialOffers === "string") {
-        specialOffers = loadedData.specialOffers.split("|").filter((offer) => offer.trim());
-        if (specialOffers.length === 0) specialOffers = [""];
-      } else if (Array.isArray(loadedData.specialOffers)) {
-        specialOffers = loadedData.specialOffers;
+      if (loadedData.items && Array.isArray(loadedData.items) && loadedData.items.length > 0) {
+        items = loadedData.items.map((item, index) => ({
+          id: index + 1,
+          code: item.code || "",
+          name: item.name || "",
+          description: item.description || "",
+          gst: Number(item.gst) || 0,
+          qty: Number(item.qty) || 0,
+          units: item.units || "Nos",
+          rate: Number(item.rate) || 0,
+          discount: Number(item.discount) || 0,
+          flatDiscount: Number(item.flatDiscount) || 0,
+          amount: Number(item.amount) || 0
+        }));
       }
+
+      // Calculate financials with safe defaults
+      const subtotal = items.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      const totalFlatDiscount = Number(loadedData.totalFlatDiscount) || 0;
+      const cgstRate = Number(loadedData.cgstRate) || 9;
+      const sgstRate = Number(loadedData.sgstRate) || 9;
+      const taxableAmount = Math.max(0, subtotal - totalFlatDiscount);
+      const cgstAmount = Number((taxableAmount * (cgstRate / 100)).toFixed(2));
+      const sgstAmount = Number((taxableAmount * (sgstRate / 100)).toFixed(2));
+      const total = Number((taxableAmount + cgstAmount + sgstAmount - specialDiscountFromItems).toFixed(2));
+
+      // Parse special offers
+      let specialOffers = [""];
+      if (loadedData.specialOffers) {
+        if (typeof loadedData.specialOffers === "string") {
+          specialOffers = loadedData.specialOffers.split("|").filter((offer) => offer.trim());
+          if (specialOffers.length === 0) specialOffers = [""];
+        } else if (Array.isArray(loadedData.specialOffers)) {
+          specialOffers = loadedData.specialOffers;
+        }
+      }
+
+      // Safe data setting with defaults for ALL fields
+      const updatedQuotationData = {
+        // Quotation basics
+        quotationNo: loadedData.quotationNo || "",
+        date: loadedData.date || new Date().toLocaleDateString('en-GB'),
+        preparedBy: loadedData.preparedBy || "",
+
+        // Consignor details
+        consignorState: loadedData.consignorState || "",
+        consignorName: loadedData.consignorName || "",
+        consignorAddress: loadedData.consignorAddress || "",
+        consignorMobile: loadedData.consignorMobile || "",
+        consignorPhone: loadedData.consignorPhone || "",
+        consignorGSTIN: loadedData.consignorGSTIN || "",
+        consignorStateCode: loadedData.consignorStateCode || "",
+
+        // Consignee details
+        consigneeName: loadedData.consigneeName || "",
+        consigneeAddress: loadedData.consigneeAddress || "",
+        shipTo: loadedData.shipTo || "",
+        consigneeState: loadedData.consigneeState || "",
+        consigneeContactName: loadedData.consigneeContactName || "",
+        consigneeContactNo: loadedData.consigneeContactNo || "",
+        consigneeGSTIN: loadedData.consigneeGSTIN || "",
+        consigneeStateCode: loadedData.consigneeStateCode || "",
+        msmeNumber: loadedData.msmeNumber || "",
+
+        // Terms
+        validity: loadedData.validity || "",
+        paymentTerms: loadedData.paymentTerms || "",
+        delivery: loadedData.delivery || "",
+        freight: loadedData.freight || "",
+        insurance: loadedData.insurance || "",
+        taxes: loadedData.taxes || "",
+
+        // Bank details
+        accountNo: loadedData.accountNo || "",
+        bankName: loadedData.bankName || "",
+        bankAddress: loadedData.bankAddress || "",
+        ifscCode: loadedData.ifscCode || "",
+        email: loadedData.email || "",
+        website: loadedData.website || "",
+        pan: loadedData.pan || "",
+
+        // Items and financials
+        items: items,
+        subtotal: subtotal,
+        totalFlatDiscount: totalFlatDiscount,
+        cgstRate: cgstRate,
+        sgstRate: sgstRate,
+        cgstAmount: cgstAmount,
+        sgstAmount: sgstAmount,
+        total: total,
+
+        // Special offers and notes
+        specialOffers: specialOffers,
+        notes: Array.isArray(loadedData.notes) ? loadedData.notes : loadedData.notes ? [loadedData.notes] : [""],
+      };
+
+      setQuotationData(updatedQuotationData);
+      setSpecialDiscount(specialDiscountFromItems);
+
+    } catch (error) {
+      showNotification("Failed to load quotation data: " + error.message, "error");
+    } finally {
+      setIsLoadingQuotation(false);
     }
-
-    // Safe data setting with defaults for ALL fields
-    const updatedQuotationData = {
-      // Quotation basics
-      quotationNo: loadedData.quotationNo || "",
-      date: loadedData.date || new Date().toLocaleDateString('en-GB'),
-      preparedBy: loadedData.preparedBy || "",
-      
-      // Consignor details
-      consignorState: loadedData.consignorState || "",
-      consignorName: loadedData.consignorName || "",
-      consignorAddress: loadedData.consignorAddress || "",
-      consignorMobile: loadedData.consignorMobile || "",
-      consignorPhone: loadedData.consignorPhone || "",
-      consignorGSTIN: loadedData.consignorGSTIN || "",
-      consignorStateCode: loadedData.consignorStateCode || "",
-      
-      // Consignee details
-      consigneeName: loadedData.consigneeName || "",
-      consigneeAddress: loadedData.consigneeAddress || "",
-      shipTo: loadedData.shipTo || "",
-      consigneeState: loadedData.consigneeState || "",
-      consigneeContactName: loadedData.consigneeContactName || "",
-      consigneeContactNo: loadedData.consigneeContactNo || "",
-      consigneeGSTIN: loadedData.consigneeGSTIN || "",
-      consigneeStateCode: loadedData.consigneeStateCode || "",
-      msmeNumber: loadedData.msmeNumber || "",
-      
-      // Terms
-      validity: loadedData.validity || "",
-      paymentTerms: loadedData.paymentTerms || "",
-      delivery: loadedData.delivery || "",
-      freight: loadedData.freight || "",
-      insurance: loadedData.insurance || "",
-      taxes: loadedData.taxes || "",
-      
-      // Bank details
-      accountNo: loadedData.accountNo || "",
-      bankName: loadedData.bankName || "",
-      bankAddress: loadedData.bankAddress || "",
-      ifscCode: loadedData.ifscCode || "",
-      email: loadedData.email || "",
-      website: loadedData.website || "",
-      pan: loadedData.pan || "",
-      
-      // Items and financials
-      items: items,
-      subtotal: subtotal,
-      totalFlatDiscount: totalFlatDiscount,
-      cgstRate: cgstRate,
-      sgstRate: sgstRate,
-      cgstAmount: cgstAmount,
-      sgstAmount: sgstAmount,
-      total: total,
-      
-      // Special offers and notes
-      specialOffers: specialOffers,
-      notes: Array.isArray(loadedData.notes) ? loadedData.notes : loadedData.notes ? [loadedData.notes] : [""],
-    };
-
-    setQuotationData(updatedQuotationData);
-    setSpecialDiscount(specialDiscountFromItems);
-    
-  } catch (error) {
-    showNotification("Failed to load quotation data: " + error.message, "error");
-  } finally {
-    setIsLoadingQuotation(false);
-  }
-};
+  };
 
   // SIMPLIFIED: Initialize quotation number - no company prefix needed
   useEffect(() => {
@@ -261,7 +262,7 @@ const handleQuotationSelect = async (quotationNo) => {
   }, [setQuotationData])
 
 
-  
+
 
   // Load quotation data from URL if in view mode
   useEffect(() => {
@@ -405,214 +406,222 @@ const handleQuotationSelect = async (quotationNo) => {
   //   }
   // }
 
-const handleGeneratePDF = async () => {
-  setIsGenerating(true);
+  const handleGeneratePDF = async () => {
+    setIsGenerating(true);
 
-  try {
-    // First generate the PDF
-    const base64Data = generatePDFFromData(
-      quotationData,
-      selectedReferences,
-      specialDiscount,
-      hiddenColumns
-    );
-
-    // Create blob and download locally
-    const byteCharacters = atob(base64Data);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
-    const byteArray = new Uint8Array(byteNumbers);
-    const blob = new Blob([byteArray], { type: "application/pdf" });
-
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `Quotation_${quotationData.quotationNo}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
-
-    // Try to upload PDF to backend (optional, don't fail if it doesn't work)
     try {
-      const uploaded = await uploadPDFToBackend(base64Data, quotationData.quotationNo);
-      if (uploaded.success && uploaded.url) {
-        setPdfUrl(uploaded.url);
+      // First generate the PDF
+      const base64Data = generatePDFFromData(
+        quotationData,
+        selectedReferences,
+        specialDiscount,
+        hiddenColumns
+      );
+
+      // Create blob and download locally
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
       }
-    } catch (uploadError) {
-      // Upload failed but PDF was generated, so continue
-    }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: "application/pdf" });
 
-    showNotification("PDF generated and downloaded successfully!", "success");
-  } catch (error) {
-    showNotification("Failed to generate PDF: " + error.message, "error");
-  } finally {
-    setIsGenerating(false);
-  }
-};
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `Quotation_${quotationData.quotationNo}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
 
+      // Try to upload PDF to backend (optional, don't fail if it doesn't work)
+      try {
+        const response = await leadToOrderAPI.uploadQuotationPDF(base64Data, quotationData.quotationNo);
+        const uploaded = response.data;
+        if (uploaded.success && uploaded.url) {
+          setPdfUrl(uploaded.url);
+        }
 
+      } catch (uploadError) {
+        // Upload failed but PDF was generated, so continue
+      }
 
-const handleGenerateLink = async () => {
-  setIsGenerating(true);
-
-  try {
-    // Generate PDF
-    const base64Data = generatePDFFromData(quotationData, selectedReferences, specialDiscount, hiddenColumns);
-
-    // Upload PDF to backend
-    const uploaded = await uploadPDFToBackend(base64Data, quotationData.quotationNo);
-
-    if (!uploaded.success) {
-      showNotification("PDF upload failed", "error");
+      showNotification("PDF generated and downloaded successfully!", "success");
+    } catch (error) {
+      showNotification("Failed to generate PDF: " + error.message, "error");
+    } finally {
       setIsGenerating(false);
-      return;
     }
-
-    // Create local storage link
-    const quotationId = `quotation_${Date.now()}`;
-    localStorage.setItem(quotationId, JSON.stringify(quotationData));
-    const localLink = `${window.location.origin}${window.location.pathname}?view=${quotationId}`;
-
-    setQuotationLink(localLink);
-    setPdfUrl(uploaded.url);
-    setIsGenerating(false);
-    
-    showNotification("Quotation link has been successfully generated and is ready to share.", "success");
-  } catch (error) {
-    showNotification("Failed to generate link: " + error.message, "error");
-    setIsGenerating(false);
-  }
-};
-
-const convertToSQLDate = (dateString) => {
-  if (!dateString) return null;
-  const [day, month, year] = dateString.split("/");
-  return `${year}-${month}-${day}`;
-};
+  };
 
 
-const handleSaveQuotation = async () => {
-  try {
-    setIsSubmitting(true);
 
-    // 1️⃣ Generate PDF from existing function
-    const base64Data = generatePDFFromData(
-      quotationData,
-      selectedReferences,
-      specialDiscount,
-      hiddenColumns
-    );
+  const handleGenerateLink = async () => {
+    setIsGenerating(true);
 
-    // 2️⃣ Upload PDF to S3
-    const uploaded = await uploadPDFToBackend(base64Data, quotationData.quotationNo);
+    try {
+      // Generate PDF
+      const base64Data = generatePDFFromData(quotationData, selectedReferences, specialDiscount, hiddenColumns);
 
-    if (!uploaded.success) {
-      showNotification("PDF upload failed", "error");
+      // Upload PDF to backend
+      const response = await leadToOrderAPI.uploadQuotationPDF(base64Data, quotationData.quotationNo);
+      const uploaded = response.data;
+
+
+      if (!uploaded.success) {
+        showNotification("PDF upload failed", "error");
+        setIsGenerating(false);
+        return;
+      }
+
+      // Create local storage link
+      const quotationId = `quotation_${Date.now()}`;
+      localStorage.setItem(quotationId, JSON.stringify(quotationData));
+      const localLink = `${window.location.origin}${window.location.pathname}?view=${quotationId}`;
+
+      setQuotationLink(localLink);
+      setPdfUrl(uploaded.url);
+      setIsGenerating(false);
+
+      showNotification("Quotation link has been successfully generated and is ready to share.", "success");
+    } catch (error) {
+      showNotification("Failed to generate link: " + error.message, "error");
+      setIsGenerating(false);
+    }
+  };
+
+  const convertToSQLDate = (dateString) => {
+    if (!dateString) return null;
+    const [day, month, year] = dateString.split("/");
+    return `${year}-${month}-${day}`;
+  };
+
+
+  const handleSaveQuotation = async () => {
+    try {
+      setIsSubmitting(true);
+
+      // 1️⃣ Generate PDF from existing function
+      const base64Data = generatePDFFromData(
+        quotationData,
+        selectedReferences,
+        specialDiscount,
+        hiddenColumns
+      );
+
+      // 2️⃣ Upload PDF to S3
+      const uploadRes = await leadToOrderAPI.uploadQuotationPDF(base64Data, quotationData.quotationNo);
+      const uploaded = uploadRes.data;
+
+
+      if (!uploaded.success) {
+        showNotification("PDF upload failed", "error");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // 3️⃣ Save S3 URL
+      const s3PdfUrl = uploaded.url;
+      setPdfUrl(s3PdfUrl);
+
+      // 4️⃣ Calculate totals for backend
+      const taxableAmount = Math.max(
+        0,
+        quotationData.subtotal - quotationData.totalFlatDiscount
+      );
+      const special = Number(specialDiscount) || 0;
+
+      let grandTotal = 0;
+
+      if (quotationData.isIGST) {
+        const igstAmt = taxableAmount * (quotationData.igstRate / 100);
+        grandTotal = taxableAmount + igstAmt - special;
+      } else {
+        const cgstAmt = taxableAmount * (quotationData.cgstRate / 100);
+        const sgstAmt = taxableAmount * (quotationData.sgstRate / 100);
+        grandTotal = taxableAmount + cgstAmt + sgstAmt - special;
+      }
+
+      const finalGrand = Number(grandTotal.toFixed(2));
+
+      // 5️⃣ Prepare items JSON
+      const formattedItems = quotationData.items.map((item) => ({
+        code: item.code,
+        name: item.name,
+        description: item.description,
+        gst: item.gst,
+        qty: item.qty,
+        units: item.units,
+        rate: item.rate,
+        discount: item.discount,
+        flatDiscount: item.flatDiscount,
+        amount: item.amount,
+      }));
+
+      // 6️⃣ Payload for backend save
+      const payload = {
+        quotationNo: quotationData.quotationNo,
+        quotationDate: convertToSQLDate(quotationData.date),
+        preparedBy: quotationData.preparedBy,
+
+        consignerState: quotationData.consignorState,
+        referenceName: quotationData.consignorName,
+        consignerAddress: quotationData.consignorAddress,
+        consignerMobile: quotationData.consignorMobile,
+        consignerPhone: quotationData.consignorPhone,
+        consignerGstin: quotationData.consignorGSTIN,
+        consignerStateCode: quotationData.consignorStateCode,
+
+        companyName: quotationData.consigneeName,
+        consigneeAddress: quotationData.consigneeAddress,
+        shipTo: quotationData.shipTo,
+        consigneeState: quotationData.consigneeState,
+        contactName: quotationData.consigneeContactName,
+        contactNo: quotationData.consigneeContactNo,
+        consigneeGstin: quotationData.consigneeGSTIN,
+        consigneeStateCode: quotationData.consigneeStateCode,
+        msmeNo: quotationData.msmeNumber,
+
+        validity: quotationData.validity,
+        paymentTerms: quotationData.paymentTerms,
+        delivery: quotationData.delivery,
+        freight: quotationData.freight,
+        insurance: quotationData.insurance,
+        taxes: quotationData.taxes,
+        notes: quotationData.notes.join("|"),
+
+        accountNo: quotationData.accountNo,
+        bankName: quotationData.bankName,
+        bankAddress: quotationData.bankAddress,
+        ifscCode: quotationData.ifscCode,
+        email: quotationData.email,
+        website: quotationData.website,
+        pan: quotationData.pan,
+
+        items: formattedItems,
+        pdfUrl: s3PdfUrl,   // 7️⃣ PDF URL stored in backend
+        grandTotal: finalGrand,
+      };
+
+      // 8️⃣ Save to backend
+      const saveRes = await leadToOrderAPI.createQuotation(payload);
+      const result = saveRes.data;
+
+
+      if (!result.success) {
+        showNotification("Error saving quotation to backend", "error");
+        return;
+      }
+
+      showNotification("Quotation + PDF saved successfully!", "success");
+
+    } catch (error) {
+      showNotification("Error: " + error.message, "error");
+    } finally {
       setIsSubmitting(false);
-      return;
     }
-
-    // 3️⃣ Save S3 URL
-    const s3PdfUrl = uploaded.url;
-    setPdfUrl(s3PdfUrl);
-
-    // 4️⃣ Calculate totals for backend
-    const taxableAmount = Math.max(
-      0,
-      quotationData.subtotal - quotationData.totalFlatDiscount
-    );
-    const special = Number(specialDiscount) || 0;
-
-    let grandTotal = 0;
-
-    if (quotationData.isIGST) {
-      const igstAmt = taxableAmount * (quotationData.igstRate / 100);
-      grandTotal = taxableAmount + igstAmt - special;
-    } else {
-      const cgstAmt = taxableAmount * (quotationData.cgstRate / 100);
-      const sgstAmt = taxableAmount * (quotationData.sgstRate / 100);
-      grandTotal = taxableAmount + cgstAmt + sgstAmt - special;
-    }
-
-    const finalGrand = Number(grandTotal.toFixed(2));
-
-    // 5️⃣ Prepare items JSON
-    const formattedItems = quotationData.items.map((item) => ({
-      code: item.code,
-      name: item.name,
-      description: item.description,
-      gst: item.gst,
-      qty: item.qty,
-      units: item.units,
-      rate: item.rate,
-      discount: item.discount,
-      flatDiscount: item.flatDiscount,
-      amount: item.amount,
-    }));
-
-    // 6️⃣ Payload for backend save
-    const payload = {
-      quotationNo: quotationData.quotationNo,
-      quotationDate: convertToSQLDate(quotationData.date),
-      preparedBy: quotationData.preparedBy,
-
-      consignerState: quotationData.consignorState,
-      referenceName: quotationData.consignorName,
-      consignerAddress: quotationData.consignorAddress,
-      consignerMobile: quotationData.consignorMobile,
-      consignerPhone: quotationData.consignorPhone,
-      consignerGstin: quotationData.consignorGSTIN,
-      consignerStateCode: quotationData.consignorStateCode,
-
-      companyName: quotationData.consigneeName,
-      consigneeAddress: quotationData.consigneeAddress,
-      shipTo: quotationData.shipTo,
-      consigneeState: quotationData.consigneeState,
-      contactName: quotationData.consigneeContactName,
-      contactNo: quotationData.consigneeContactNo,
-      consigneeGstin: quotationData.consigneeGSTIN,
-      consigneeStateCode: quotationData.consigneeStateCode,
-      msmeNo: quotationData.msmeNumber,
-
-      validity: quotationData.validity,
-      paymentTerms: quotationData.paymentTerms,
-      delivery: quotationData.delivery,
-      freight: quotationData.freight,
-      insurance: quotationData.insurance,
-      taxes: quotationData.taxes,
-      notes: quotationData.notes.join("|"),
-
-      accountNo: quotationData.accountNo,
-      bankName: quotationData.bankName,
-      bankAddress: quotationData.bankAddress,
-      ifscCode: quotationData.ifscCode,
-      email: quotationData.email,
-      website: quotationData.website,
-      pan: quotationData.pan,
-
-      items: formattedItems,
-      pdfUrl: s3PdfUrl,   // 7️⃣ PDF URL stored in backend
-      grandTotal: finalGrand,
-    };
-
-    // 8️⃣ Save to backend
-    const result = await saveQuotationToBackend(payload);
-
-    if (!result.success) {
-      showNotification("Error saving quotation to backend", "error");
-      return;
-    }
-
-    showNotification("Quotation + PDF saved successfully!", "success");
-
-  } catch (error) {
-    showNotification("Error: " + error.message, "error");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
   return (
     <div className="container mx-auto py-6 px-4">
@@ -622,20 +631,18 @@ const handleSaveQuotation = async () => {
         <div className="border-b">
           <div className="flex">
             <button
-              className={`px-4 py-2 font-medium ${
-                activeTab === "edit"
+              className={`px-4 py-2 font-medium ${activeTab === "edit"
                   ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-tl-lg"
                   : "text-gray-600"
-              }`}
+                }`}
               onClick={() => setActiveTab("edit")}
               disabled={isViewMode}
             >
               Edit Quotation
             </button>
             <button
-              className={`px-4 py-2 font-medium ${
-                activeTab === "preview" ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white" : "text-gray-600"
-              }`}
+              className={`px-4 py-2 font-medium ${activeTab === "preview" ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white" : "text-gray-600"
+                }`}
               onClick={() => setActiveTab("preview")}
             >
               Preview
@@ -646,34 +653,34 @@ const handleSaveQuotation = async () => {
         <div className="p-4">
           {activeTab === "edit" ? (
             <QuotationForm
-            quotationData={quotationData}
-            handleInputChange={handleInputChange}
-            handleItemChange={handleItemChange}
-            handleFlatDiscountChange={handleFlatDiscountChange}
-            handleAddItem={handleAddItem}
-            handleNoteChange={handleNoteChange}
-            addNote={addNote}
-            removeNote={removeNote}
-            hiddenFields={hiddenFields}
-            toggleFieldVisibility={toggleFieldVisibility}
-            isRevising={isRevising}
-            existingQuotations={existingQuotations}
-            selectedQuotation={selectedQuotation}
-            handleQuotationSelect={handleQuotationSelect}
-            isLoadingQuotation={isLoadingQuotation}
-            handleSpecialDiscountChange={handleSpecialDiscountChangeWrapper}
-            specialDiscount={specialDiscount}
-            setSpecialDiscount={setSpecialDiscount}
-            selectedReferences={selectedReferences}
-            setSelectedReferences={setSelectedReferences}
-            imageform={imageform}
-            addSpecialOffer={addSpecialOffer}
-            removeSpecialOffer={removeSpecialOffer}
-            handleSpecialOfferChange={handleSpecialOfferChange}
-            setQuotationData={setQuotationData}
-            hiddenColumns={hiddenColumns}
-            setHiddenColumns={setHiddenColumns}
-          />
+              quotationData={quotationData}
+              handleInputChange={handleInputChange}
+              handleItemChange={handleItemChange}
+              handleFlatDiscountChange={handleFlatDiscountChange}
+              handleAddItem={handleAddItem}
+              handleNoteChange={handleNoteChange}
+              addNote={addNote}
+              removeNote={removeNote}
+              hiddenFields={hiddenFields}
+              toggleFieldVisibility={toggleFieldVisibility}
+              isRevising={isRevising}
+              existingQuotations={existingQuotations}
+              selectedQuotation={selectedQuotation}
+              handleQuotationSelect={handleQuotationSelect}
+              isLoadingQuotation={isLoadingQuotation}
+              handleSpecialDiscountChange={handleSpecialDiscountChangeWrapper}
+              specialDiscount={specialDiscount}
+              setSpecialDiscount={setSpecialDiscount}
+              selectedReferences={selectedReferences}
+              setSelectedReferences={setSelectedReferences}
+              imageform={imageform}
+              addSpecialOffer={addSpecialOffer}
+              removeSpecialOffer={removeSpecialOffer}
+              handleSpecialOfferChange={handleSpecialOfferChange}
+              setQuotationData={setQuotationData}
+              hiddenColumns={hiddenColumns}
+              setHiddenColumns={setHiddenColumns}
+            />
           ) : (
             <QuotationPreview
               quotationData={quotationData}
@@ -735,13 +742,12 @@ const handleSaveQuotation = async () => {
       {/* Popup Notification */}
       {showPopup && (
         <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-          <div className={`relative mx-4 p-6 rounded-lg shadow-2xl max-w-sm w-full transform transition-all duration-300 pointer-events-auto ${
-            popupType === "success"
+          <div className={`relative mx-4 p-6 rounded-lg shadow-2xl max-w-sm w-full transform transition-all duration-300 pointer-events-auto ${popupType === "success"
               ? 'bg-green-50 border-2 border-green-400'
               : popupType === "error"
-              ? 'bg-red-50 border-2 border-red-400'
-              : 'bg-blue-50 border-2 border-blue-400'
-          }`}>
+                ? 'bg-red-50 border-2 border-red-400'
+                : 'bg-blue-50 border-2 border-blue-400'
+            }`}>
             <button
               onClick={() => setShowPopup(false)}
               className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
@@ -766,28 +772,26 @@ const handleSaveQuotation = async () => {
               )}
             </div>
             <div className="text-center">
-              <h3 className={`text-lg font-semibold mb-2 ${
-                popupType === "success" ? 'text-green-800' 
-                : popupType === "error" ? 'text-red-800' 
-                : 'text-blue-800'
-              }`}>
+              <h3 className={`text-lg font-semibold mb-2 ${popupType === "success" ? 'text-green-800'
+                  : popupType === "error" ? 'text-red-800'
+                    : 'text-blue-800'
+                }`}>
                 {popupType === "success" ? "Success!" : popupType === "error" ? "Error!" : "Info"}
               </h3>
               <p className={
-                popupType === "success" ? 'text-green-700' 
-                : popupType === "error" ? 'text-red-700' 
-                : 'text-blue-700'
+                popupType === "success" ? 'text-green-700'
+                  : popupType === "error" ? 'text-red-700'
+                    : 'text-blue-700'
               }>
                 {popupMessage}
               </p>
             </div>
             <div className="mt-4 w-full bg-gray-200 rounded-full h-1">
               <div
-                className={`h-1 rounded-full ${
-                  popupType === "success" ? 'bg-green-500' 
-                  : popupType === "error" ? 'bg-red-500' 
-                  : 'bg-blue-500'
-                }`}
+                className={`h-1 rounded-full ${popupType === "success" ? 'bg-green-500'
+                    : popupType === "error" ? 'bg-red-500'
+                      : 'bg-blue-500'
+                  }`}
                 style={{
                   width: '100%',
                   animation: 'shrink 3s linear forwards'

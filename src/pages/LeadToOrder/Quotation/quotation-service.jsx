@@ -9,14 +9,13 @@ import QuotationForm from "./quotation-form"
 import QuotationPreview from "./quotation-preview"
 import { generatePDFFromData } from "./pdf-generator"
 import { useQuotationData } from "./use-quotation-data"
-import { saveQuotationToBackend } from "./quotation-api";
-import { uploadPDFToBackend, fetchQuotationNumbers } from "./quotation-api"
-const baseURL = import.meta.env.VITE_API_URL;
+import { leadToOrderAPI } from "../../../services/leadToOrderAPI";
 // SIMPLIFIED: Simple QN number generation without company prefix
 export const getNextQuotationNumber = async () => {
   try {
-    const res = await fetch(`${baseURL}/api/lead-to-order/quotations/get-next-number`);
-    const data = await res.json();
+    const response = await leadToOrderAPI.getNextQuotationNumber();
+    const data = response.data;
+
 
     if (data.success) {
       return data.nextNumber;
@@ -99,8 +98,11 @@ function Quotation() {
   useEffect(() => {
     const fetchExistingQuotations = async () => {
       try {
-        const quotationNumbers = await fetchQuotationNumbers()
-        setExistingQuotations(quotationNumbers)
+        const response = await leadToOrderAPI.getQuotationNumbers()
+        if (response.data && response.data.success) {
+          setExistingQuotations(response.data.quotationNumbers)
+        }
+
       } catch (error) {
         setExistingQuotations([])
       }
@@ -156,74 +158,75 @@ function Quotation() {
     }
   }
 
-const handleQuotationSelect = async (quotationNo) => {
-  if (!quotationNo) return;
+  const handleQuotationSelect = async (quotationNo) => {
+    if (!quotationNo) return;
 
-  try {
-    setIsLoadingQuotation(true);
+    try {
+      setIsLoadingQuotation(true);
 
-    const res = await fetch(`${baseURL}/quotation-submit/quotation/${quotationNo}`);
-    const result = await res.json();
+      const response = await leadToOrderAPI.getQuotationByNumber(quotationNo);
+      const result = response.data;
 
-    if (!result.success) {
-      // Quotation not found
-      return;
+
+      if (!result.success) {
+        // Quotation not found
+        return;
+      }
+
+      const q = result.data;
+
+      setQuotationData({
+        ...quotationData,
+        quotationNo: q.quotation_no,
+        date: q.quotation_date,
+        preparedBy: q.prepared_by,
+
+        consignorState: q.consigner_state,
+        consignorName: q.reference_name,
+        consignorAddress: q.consigner_address,
+        consignorMobile: q.consigner_mobile,
+        consignorPhone: q.consigner_phone,
+        consignorGSTIN: q.consigner_gstin,
+        consignorStateCode: q.consigner_state_code,
+
+        consigneeName: q.company_name,
+        consigneeAddress: q.consignee_address,
+        shipTo: q.ship_to,
+        consigneeState: q.consignee_state,
+        consigneeContactName: q.contact_name,
+        consigneeContactNo: q.contact_no,
+        consigneeGSTIN: q.consignee_gstin,
+        consigneeStateCode: q.consignee_state_code,
+        msmeNumber: q.msme_no,
+
+        validity: q.validity,
+        paymentTerms: q.payment_terms,
+        delivery: q.delivery,
+        freight: q.freight,
+        insurance: q.insurance,
+        taxes: q.taxes,
+        notes: q.notes ? q.notes.split("|") : [""],
+
+        accountNo: q.account_no,
+        bankName: q.bank_name,
+        bankAddress: q.bank_address,
+        ifscCode: q.ifsc_code,
+        email: q.email,
+        website: q.website,
+        pan: q.pan,
+
+        items: q.items || [],
+        grandTotal: q.grand_total
+      });
+
+      setActiveTab("edit");
+
+    } catch (error) {
+      // Failed to load quotation
+    } finally {
+      setIsLoadingQuotation(false);
     }
-
-    const q = result.data;
-
-    setQuotationData({
-      ...quotationData,
-      quotationNo: q.quotation_no,
-      date: q.quotation_date,
-      preparedBy: q.prepared_by,
-
-      consignorState: q.consigner_state,
-      consignorName: q.reference_name,
-      consignorAddress: q.consigner_address,
-      consignorMobile: q.consigner_mobile,
-      consignorPhone: q.consigner_phone,
-      consignorGSTIN: q.consigner_gstin,
-      consignorStateCode: q.consigner_state_code,
-
-      consigneeName: q.company_name,
-      consigneeAddress: q.consignee_address,
-      shipTo: q.ship_to,
-      consigneeState: q.consignee_state,
-      consigneeContactName: q.contact_name,
-      consigneeContactNo: q.contact_no,
-      consigneeGSTIN: q.consignee_gstin,
-      consigneeStateCode: q.consignee_state_code,
-      msmeNumber: q.msme_no,
-
-      validity: q.validity,
-      paymentTerms: q.payment_terms,
-      delivery: q.delivery,
-      freight: q.freight,
-      insurance: q.insurance,
-      taxes: q.taxes,
-      notes: q.notes ? q.notes.split("|") : [""],
-
-      accountNo: q.account_no,
-      bankName: q.bank_name,
-      bankAddress: q.bank_address,
-      ifscCode: q.ifsc_code,
-      email: q.email,
-      website: q.website,
-      pan: q.pan,
-
-      items: q.items || [],
-      grandTotal: q.grand_total
-    });
-
-    setActiveTab("edit");
-
-  } catch (error) {
-    // Failed to load quotation
-  } finally {
-    setIsLoadingQuotation(false);
-  }
-};
+  };
 
   const handleGeneratePDF = () => {
     setIsGenerating(true)
@@ -257,7 +260,7 @@ const handleQuotationSelect = async (quotationNo) => {
     }
   }
 
-  
+
   const handleGenerateLink = () => {
     setIsGenerating(true)
 
@@ -300,7 +303,9 @@ const handleQuotationSelect = async (quotationNo) => {
       );
 
       // 2️⃣ Upload PDF to backend
-      const uploaded = await uploadPDFToBackend(base64Data, quotationData.quotationNo);
+      const uploadRes = await leadToOrderAPI.uploadQuotationPDF(base64Data, quotationData.quotationNo);
+      const uploaded = uploadRes.data;
+
 
       if (!uploaded.success) {
         showNotification("PDF upload failed", "error");
@@ -392,7 +397,9 @@ const handleQuotationSelect = async (quotationNo) => {
       };
 
       // 7️⃣ Save to backend
-      const result = await saveQuotationToBackend(payload);
+      const saveRes = await leadToOrderAPI.createQuotation(payload);
+      const result = saveRes.data;
+
 
       if (!result.success) {
         showNotification("Error saving quotation to backend", "error");
@@ -475,20 +482,18 @@ const handleQuotationSelect = async (quotationNo) => {
         <div className="border-b">
           <div className="flex">
             <button
-              className={`px-4 py-2 font-medium ${
-                activeTab === "edit"
-                  ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-tl-lg"
-                  : "text-gray-600"
-              }`}
+              className={`px-4 py-2 font-medium ${activeTab === "edit"
+                ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-tl-lg"
+                : "text-gray-600"
+                }`}
               onClick={() => setActiveTab("edit")}
               disabled={isViewMode}
             >
               Edit Quotation
             </button>
             <button
-              className={`px-4 py-2 font-medium ${
-                activeTab === "preview" ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white" : "text-gray-600"
-              }`}
+              className={`px-4 py-2 font-medium ${activeTab === "preview" ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white" : "text-gray-600"
+                }`}
               onClick={() => setActiveTab("preview")}
             >
               Preview
@@ -588,13 +593,12 @@ const handleQuotationSelect = async (quotationNo) => {
       {/* Popup Notification */}
       {showPopup && (
         <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-          <div className={`relative mx-4 p-6 rounded-lg shadow-2xl max-w-sm w-full transform transition-all duration-300 pointer-events-auto ${
-            popupType === "success"
-              ? 'bg-green-50 border-2 border-green-400'
-              : popupType === "error"
+          <div className={`relative mx-4 p-6 rounded-lg shadow-2xl max-w-sm w-full transform transition-all duration-300 pointer-events-auto ${popupType === "success"
+            ? 'bg-green-50 border-2 border-green-400'
+            : popupType === "error"
               ? 'bg-red-50 border-2 border-red-400'
               : 'bg-blue-50 border-2 border-blue-400'
-          }`}>
+            }`}>
             <button
               onClick={() => setShowPopup(false)}
               className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
@@ -619,28 +623,26 @@ const handleQuotationSelect = async (quotationNo) => {
               )}
             </div>
             <div className="text-center">
-              <h3 className={`text-lg font-semibold mb-2 ${
-                popupType === "success" ? 'text-green-800' 
-                : popupType === "error" ? 'text-red-800' 
-                : 'text-blue-800'
-              }`}>
+              <h3 className={`text-lg font-semibold mb-2 ${popupType === "success" ? 'text-green-800'
+                : popupType === "error" ? 'text-red-800'
+                  : 'text-blue-800'
+                }`}>
                 {popupType === "success" ? "Success!" : popupType === "error" ? "Error!" : "Info"}
               </h3>
               <p className={
-                popupType === "success" ? 'text-green-700' 
-                : popupType === "error" ? 'text-red-700' 
-                : 'text-blue-700'
+                popupType === "success" ? 'text-green-700'
+                  : popupType === "error" ? 'text-red-700'
+                    : 'text-blue-700'
               }>
                 {popupMessage}
               </p>
             </div>
             <div className="mt-4 w-full bg-gray-200 rounded-full h-1">
               <div
-                className={`h-1 rounded-full ${
-                  popupType === "success" ? 'bg-green-500' 
-                  : popupType === "error" ? 'bg-red-500' 
-                  : 'bg-blue-500'
-                }`}
+                className={`h-1 rounded-full ${popupType === "success" ? 'bg-green-500'
+                  : popupType === "error" ? 'bg-red-500'
+                    : 'bg-blue-500'
+                  }`}
                 style={{
                   width: '100%',
                   animation: 'shrink 3s linear forwards'

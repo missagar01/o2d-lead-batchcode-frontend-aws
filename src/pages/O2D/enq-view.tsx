@@ -244,7 +244,7 @@ const EnquiryView = () => {
                                         <Button
                                             variant={"outline"}
                                             className={cn(
-                                                "w-full justify-start text-left font-semibold px-2.5 py-2 sm:px-4 sm:py-2.5 bg-slate-50 border-slate-200 rounded-lg hover:bg-white hover:border-blue-500 transition-all outline-none text-slate-700 shadow-sm h-auto text-xs sm:text-sm",
+                                                "w-full justify-start text-left font-semibold px-2.5 py-2 sm:px-4 sm:py-2.5 bg-slate-50 border-slate-200 rounded-lg hover:bg-white hover:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-slate-700 shadow-sm h-auto text-xs sm:text-sm",
                                                 !date && "text-slate-400"
                                             )}
                                         >
@@ -300,6 +300,7 @@ const EnquiryView = () => {
                                 <input
                                     value={customer}
                                     onChange={(e) => setCustomer(e.target.value)}
+                                    onFocus={(e) => e.target.select()}
                                     className="w-full px-2.5 py-2 sm:px-4 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all outline-none font-semibold text-slate-700 shadow-sm text-xs sm:text-sm"
                                     placeholder="Customer name"
                                     required
@@ -424,6 +425,7 @@ const EnquiryView = () => {
                                             type="number"
                                             value={item.quantity}
                                             onChange={(e) => updateItem(item.id, 'quantity', e.target.value)}
+                                            onFocus={(e) => e.target.select()}
                                             className="w-full pl-2.5 pr-2 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-blue-500 outline-none transition-all font-semibold text-slate-700 text-xs sm:text-sm shadow-sm"
                                             placeholder="0.00"
                                             step="0.01"

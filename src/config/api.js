@@ -139,6 +139,13 @@ export const API_ENDPOINTS = {
     QUOTATION: {
       BASE: '/api/lead-to-order/quotations/quotation',
       BY_NUMBER: '/api/lead-to-order/quotations/quotation',
+      GET_NEXT_NUMBER: '/api/lead-to-order/quotations/get-next-number',
+      DROPDOWNS: '/api/lead-to-order/quotations/dropdowns',
+      UPLOAD_PDF: '/api/lead-to-order/quotations/upload-pdf',
+      NUMBERS: '/api/lead-to-order/quotation-leads/quotation-numbers',
+      DETAILS: '/api/lead-to-order/quotation-leads/quotation-details',
+      LEAD_NUMBERS: '/api/lead-to-order/quotation-leads/lead-numbers',
+      LEAD_DETAILS: '/api/lead-to-order/quotation-leads/lead-details',
     },
     DASHBOARD: {
       METRICS: '/api/lead-to-order/dashboard/metrics',

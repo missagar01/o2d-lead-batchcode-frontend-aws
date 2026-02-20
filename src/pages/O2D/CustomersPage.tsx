@@ -83,8 +83,9 @@ const CustomersPage: React.FC = () => {
 
     const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
         const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-        if (scrollHeight - scrollTop <= clientHeight + 100)
+        if (scrollHeight - scrollTop <= clientHeight * 2) {
             setVisibleCount(prev => Math.min(prev + 50, filteredCustomers.length));
+        }
     };
 
     const handleDelete = async (id: number) => {
@@ -93,10 +94,10 @@ const CustomersPage: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col min-h-screen bg-slate-50">
+        <div className="flex flex-col h-screen bg-slate-50 overflow-hidden">
 
-            {/* ── Sticky Header ── */}
-            <div className="sticky top-0 z-20 bg-white border-b border-slate-200 shadow-sm">
+            {/* ── Fixed Header ── */}
+            <div className="shrink-0 z-30 bg-white border-b border-slate-200 shadow-sm">
                 {/* Title + Add btn */}
                 <div className="px-3 py-2.5 sm:px-5 sm:py-3 flex items-center justify-between gap-3">
                     <div>

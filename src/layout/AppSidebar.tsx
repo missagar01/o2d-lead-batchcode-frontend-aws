@@ -65,6 +65,7 @@ const leadToOrderBaseSubItems = [
   { name: "Follow Up", path: "/lead-to-order/follow-up", pro: false },
   { name: "Call Tracker", path: "/lead-to-order/call-tracker", pro: false },
   { name: "Quotation", path: "/lead-to-order/quotation", pro: false },
+
 ];
 
 const leadToOrderSettingsItem: NavItem = {
