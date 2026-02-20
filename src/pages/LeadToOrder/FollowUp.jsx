@@ -659,78 +659,74 @@ function FollowUp() {
   }, [showFollowUpModal])
 
   return (
-    <div className="min-h-screen bg-slate-50/50 py-4 sm:py-6 lg:py-8 px-4 sm:px-6">
+    <div className="min-h-screen bg-slate-50/50 pb-20 sm:pb-8">
       {/* Header Section */}
-      <div className="max-w-[1600px] mx-auto mb-8">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black bg-gradient-to-r from-teal-600 to-emerald-600 bg-clip-text text-transparent tracking-tight">
-              Follow-Up Manager
-            </h1>
-            <p className="text-slate-500 mt-1 font-medium text-sm sm:text-base flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              {isLoading ? "Refreshing records..." : `${pendingFollowUps.length + historyFollowUps.length} active leads tracked`}
-            </p>
-            {isAdmin() && <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mt-2 flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Admin Access Enabled</p>}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-            {/* Search box refined */}
-            <div className="relative flex-1 lg:flex-none lg:w-80 group">
-              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-emerald-500 transition-colors">
-                <SearchIcon className="h-4 w-4" />
+      <div className="bg-white border-b border-slate-200 px-4 py-4 sm:py-6 lg:py-8 mb-4 sm:mb-8 sticky top-0 z-40">
+        <div className="max-w-[1600px] mx-auto">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+            <div>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-black bg-gradient-to-r from-teal-600 to-emerald-600 bg-clip-text text-transparent tracking-tight">
+                Follow-Up Manager
+              </h1>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <p className="text-slate-500 font-medium text-xs sm:text-sm">
+                  {isLoading ? "Refreshing..." : `${pendingFollowUps.length + historyFollowUps.length} active leads`}
+                </p>
+                {isAdmin() && <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100 ml-2">Admin</span>}
               </div>
-              <input
-                type="text"
-                placeholder="Search leads, companies..."
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-medium text-sm text-slate-700 shadow-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+            </div>
+
+            <div className="w-full lg:w-80 group">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-emerald-500 transition-colors">
+                  <SearchIcon className="h-4 w-4" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search leads, companies..."
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-medium text-sm text-slate-700 shadow-sm"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Tab System refined */}
-        <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-b border-slate-200">
-          <div className="flex items-center">
-            <button
-              onClick={() => setActiveTab("pending")}
-              className={`px-6 py-3 text-sm font-bold transition-all border-b-2 relative ${activeTab === "pending"
-                ? "text-emerald-600 border-emerald-600 bg-emerald-50/50"
-                : "text-slate-400 border-transparent hover:text-slate-600"
-                }`}
-            >
-              Pending Calls
-              {activeTab === "pending" && <span className="ml-2 px-2 py-0.5 bg-emerald-600 text-white text-[10px] rounded-full">{filteredPendingFollowUps.length}</span>}
-            </button>
-            <button
-              onClick={() => setActiveTab("history")}
-              className={`px-6 py-3 text-sm font-bold transition-all border-b-2 relative ${activeTab === "history"
-                ? "text-emerald-600 border-emerald-600 bg-emerald-50/50"
-                : "text-slate-400 border-transparent hover:text-slate-600"
-                }`}
-            >
-              Follow-up History
-              {activeTab === "history" && <span className="ml-2 px-2 py-0.5 bg-emerald-600 text-white text-[10px] rounded-full">{filteredHistoryFollowUps.length}</span>}
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2 pb-2 mr-2">
-            <button
-              onClick={() => setShowColumnDropdown(!showColumnDropdown)}
-              className="flex items-center gap-2 px-4 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7" /></svg>
-              Columns
-            </button>
-          </div>
+      <div className="max-w-[1600px] mx-auto px-3 sm:px-6">
+        {/* Tab System - More mobile friendly with full width on small screens */}
+        <div className="flex items-center bg-white p-1 rounded-xl border border-slate-200 shadow-sm mb-6">
+          <button
+            onClick={() => setActiveTab("pending")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-bold transition-all rounded-lg ${activeTab === "pending"
+              ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200"
+              : "text-slate-500 hover:text-slate-700"
+              }`}
+          >
+            Pending Calls
+            <span className={`px-2 py-0.5 text-[10px] rounded-full ${activeTab === "pending" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"}`}>
+              {filteredPendingFollowUps.length}
+            </span>
+          </button>
+          <button
+            onClick={() => setActiveTab("history")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-bold transition-all rounded-lg ${activeTab === "history"
+              ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200"
+              : "text-slate-500 hover:text-slate-700"
+              }`}
+          >
+            History
+            <span className={`px-2 py-0.5 text-[10px] rounded-full ${activeTab === "history" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"}`}>
+              {filteredHistoryFollowUps.length}
+            </span>
+          </button>
         </div>
 
-        {/* Filter Bar refined */}
-        <div className="mt-6 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm relative z-30">
+        {/* Filter Bar - Collapsible on mobile? For now just responsive grid */}
+        <div className="mb-6 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Status Filter */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Enquiry Status</label>
               <select
@@ -744,42 +740,36 @@ function FollowUp() {
               </select>
             </div>
 
-            {/* Date Schedule Filter */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Call Schedule</label>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 <button
                   onClick={() => setDateFilter("all")}
-                  className={`flex-1 px-2 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${dateFilter === "all" ? "bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-100" : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
-                    }`}
+                  className={`flex-1 min-w-[50px] px-2 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${dateFilter === "all" ? "bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-100" : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"}`}
                 >
                   All
                 </button>
                 <button
                   onClick={() => setDateFilter("today")}
-                  className={`flex-1 px-2 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${dateFilter === "today" ? "bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-100" : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
-                    }`}
+                  className={`flex-1 min-w-[70px] px-2 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${dateFilter === "today" ? "bg-emerald-600 text-white border-emerald-600" : "bg-white text-slate-500 border-slate-200"}`}
                 >
                   Today ({dateFilterCounts.today})
                 </button>
                 <button
                   onClick={() => setDateFilter("overdue")}
-                  className={`flex-1 px-2 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${dateFilter === "overdue" ? "bg-red-500 text-white border-red-500 shadow-lg shadow-red-100" : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
-                    }`}
+                  className={`flex-1 min-w-[70px] px-2 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${dateFilter === "overdue" ? "bg-rose-500 text-white border-rose-500" : "bg-white text-slate-500 border-slate-200"}`}
                 >
                   Overdue ({dateFilterCounts.overdue})
                 </button>
                 <button
                   onClick={() => setDateFilter("upcoming")}
-                  className={`flex-1 px-2 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${dateFilter === "upcoming" ? "bg-blue-500 text-white border-blue-500 shadow-lg shadow-blue-100" : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
-                    }`}
+                  className={`flex-1 min-w-[70px] px-2 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${dateFilter === "upcoming" ? "bg-blue-500 text-white border-blue-500" : "bg-white text-slate-500 border-slate-200"}`}
                 >
                   Future
                 </button>
               </div>
             </div>
 
-            {/* Entity Filters (Only for Pending) */}
             {activeTab === "pending" && (
               <>
                 <div className="space-y-1.5">
@@ -811,24 +801,146 @@ function FollowUp() {
               </>
             )}
           </div>
-        </div>
-      </div>
 
-      {/* Main Table Container refined */}
-      <div className="max-w-[1600px] mx-auto bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 overflow-hidden relative z-10 transition-all">
-        <div className="p-0">
+          <div className="flex justify-end mt-4 pt-4 border-t border-slate-100">
+            <button
+              onClick={() => setShowColumnDropdown(!showColumnDropdown)}
+              className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-100 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7" /></svg>
+              Display Columns
+            </button>
+          </div>
+        </div>
+
+        {/* Main List Container */}
+        <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 overflow-hidden min-h-[400px]">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 px-4">
-              <div className="relative flex h-20 w-20">
+              <div className="relative flex h-16 w-16">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-20"></span>
-                <Loader2 className="h-10 w-10 text-emerald-600 absolute inset-0 m-auto animate-spin" />
+                <Loader2 className="h-8 w-8 text-emerald-600 absolute inset-0 m-auto animate-spin" />
               </div>
-              <h3 className="text-xl font-black text-slate-800 mt-6 uppercase tracking-widest">Optimizing Workspace...</h3>
-              <p className="text-slate-500 font-medium text-sm mt-2">Connecting to secure leads database</p>
+              <h3 className="text-sm font-black text-slate-800 mt-6 uppercase tracking-widest">Loading Records...</h3>
             </div>
           ) : (
-            <div className="relative">
-              <div className="overflow-x-auto custom-scrollbar">
+            <div className="">
+              {/* MOBILE CARD VIEW - Primary for this redesign */}
+              <div className="lg:hidden divide-y divide-slate-100">
+                {activeTab === "pending" ? (
+                  filteredPendingFollowUps.length > 0 ? (
+                    filteredPendingFollowUps.map((followUp, idx) => (
+                      <div key={idx} className={`p-4 active:bg-slate-50 transition-colors ${isOverdue(followUp.timestamp) ? 'bg-rose-50/30' : ''}`}>
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="space-y-1">
+                            <span className="inline-block text-[9px] font-black font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 uppercase tracking-tighter">
+                              {followUp.leadId}
+                            </span>
+                            <h4 className="text-sm font-black text-slate-800 line-clamp-1">{followUp.companyName}</h4>
+                            {followUp.location && <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">{followUp.location}</p>}
+                          </div>
+                          <div className="flex flex-col items-end gap-1.5">
+                            <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${isOverdue(followUp.timestamp) ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-600'}`}>
+                              {followUp.timestamp}
+                            </span>
+                            <span className={`text-[9px] font-bold ${isOverdue(followUp.timestamp) ? 'text-rose-500 animate-pulse' : 'text-slate-400'}`}>
+                              {isOverdue(followUp.timestamp) ? '● Overdue' : '● Scheduled'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-4 mt-3 py-2 px-3 bg-slate-50 rounded-xl border border-slate-100/50">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-0.5">Contact</p>
+                            <p className="text-xs font-bold text-slate-700 truncate">{followUp.personName}</p>
+                            <a href={`tel:${followUp.phoneNumber}`} className="text-[10px] font-black text-emerald-600 hover:underline">{followUp.phoneNumber}</a>
+                          </div>
+                          <div className="w-px h-8 bg-slate-200"></div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-0.5">Source</p>
+                            <span className="text-[10px] font-black text-indigo-600 uppercase">{followUp.leadSource}</span>
+                          </div>
+                        </div>
+
+                        {followUp.customerSay && (
+                          <div className="mt-3 p-3 bg-white border border-slate-100 rounded-xl">
+                            <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">Last Feedback</p>
+                            <p className="text-xs text-slate-500 italic leading-relaxed line-clamp-2">"{followUp.customerSay}"</p>
+                          </div>
+                        )}
+
+                        <div className="mt-4">
+                          <button
+                            onClick={() => {
+                              setSelectedLeadForFollowUp(followUp.leadId)
+                              setShowFollowUpModal(true)
+                            }}
+                            className="w-full py-3 bg-emerald-600 text-white rounded-xl shadow-lg shadow-emerald-100 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                            Call & Process Lead
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="py-20 text-center opacity-40">
+                      <p className="text-xs font-black uppercase tracking-widest text-slate-400">No Pending Calls</p>
+                    </div>
+                  )
+                ) : (
+                  filteredHistoryFollowUps.length > 0 ? (
+                    filteredHistoryFollowUps.map((followUp, idx) => (
+                      <div key={idx} className="p-4 active:bg-slate-50 transition-colors">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="space-y-1">
+                            <span className="inline-block text-[9px] font-black font-mono text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                              {followUp.leadNo}
+                            </span>
+                            <h4 className="text-sm font-black text-slate-800 line-clamp-1">{followUp.companyName}</h4>
+                          </div>
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${followUp.status === 'Completed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700 border border-amber-100'}`}>
+                            {followUp.status}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 mt-3">
+                          <div className="p-2 bg-slate-50 rounded-lg">
+                            <p className="text-[8px] font-black uppercase text-slate-400 tracking-tighter mb-0.5">Enquiry</p>
+                            <p className="text-[10px] font-bold text-slate-700 truncate">{followUp.enquiryReceivedStatus || '—'}</p>
+                          </div>
+                          <div className="p-2 bg-slate-50 rounded-lg">
+                            <p className="text-[8px] font-black uppercase text-slate-400 tracking-tighter mb-0.5">Value</p>
+                            <p className="text-[10px] font-bold text-emerald-600 truncate">{followUp.projectApproxValue ? `₹${followUp.projectApproxValue}` : '—'}</p>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 flex gap-2">
+                          <button
+                            onClick={() => {
+                              setSelectedFollowUp(followUp)
+                              setShowPopup(true)
+                            }}
+                            className="flex-1 py-2 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all active:scale-[0.98]"
+                          >
+                            View Details
+                          </button>
+                          <a href={`tel:${followUp.phoneNumber}`} className="p-2 aspect-square flex items-center justify-center bg-emerald-50 text-emerald-600 rounded-lg border border-emerald-100">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                          </a>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="py-20 text-center opacity-40">
+                      <p className="text-xs font-black uppercase tracking-widest text-slate-400">No History Records</p>
+                    </div>
+                  )
+                )}
+              </div>
+
+              {/* DESKTOP TABLE VIEW - Keep intact as requested but refined */}
+              <div className="hidden lg:block overflow-x-auto custom-scrollbar">
                 {activeTab === "pending" ? (
                   <table className="w-full text-left border-collapse min-w-[1200px]">
                     <thead>
@@ -843,66 +955,42 @@ function FollowUp() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {filteredPendingFollowUps.length > 0 ? (
-                        filteredPendingFollowUps.map((followUp, idx) => (
-                          <tr key={idx} className="group hover:bg-emerald-50/30 transition-all duration-200">
-                            <td className="sticky left-0 z-10 bg-white group-hover:bg-emerald-50/30 px-6 py-4 border-r border-slate-100 transition-colors">
-                              <button
-                                onClick={() => {
-                                  setSelectedLeadForFollowUp(followUp.leadId)
-                                  setShowFollowUpModal(true)
-                                }}
-                                className="px-4 py-2 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg shadow-emerald-200 hover:bg-emerald-700 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 whitespace-nowrap"
-                              >
-                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                Call Now
-                              </button>
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className="text-xs font-black font-mono text-slate-700 bg-slate-100 px-2 py-1 rounded">{followUp.leadId}</span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="flex flex-col">
-                                <span className="text-xs font-black text-slate-700">{followUp.timestamp}</span>
-                                <span className={`text-[10px] font-bold ${isOverdue(followUp.timestamp) ? "text-red-500 animate-pulse" : "text-slate-400"}`}>
-                                  {isOverdue(followUp.timestamp) ? "● Overdue" : "● Scheduled"}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="flex flex-col">
-                                <span className="text-sm font-black text-slate-800">{followUp.companyName}</span>
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{followUp.location}</span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="flex flex-col">
-                                <span className="text-sm font-bold text-slate-700">{followUp.personName}</span>
-                                <a href={`tel:${followUp.phoneNumber}`} className="text-xs font-black text-emerald-600 hover:underline">{followUp.phoneNumber}</a>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <p className="text-xs text-slate-500 font-medium max-w-xs line-clamp-2 italic leading-relaxed">"{followUp.customerSay}"</p>
-                            </td>
-                            <td className="px-6 py-4 text-center">
-                              <span className="px-3 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase tracking-widest rounded-full border border-indigo-100 shadow-sm">{followUp.leadSource}</span>
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan="7" className="py-20 text-center">
-                            <div className="flex flex-col items-center opacity-40">
-                              <svg className="w-16 h-16 text-slate-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-                              <p className="text-sm font-black uppercase tracking-widest text-slate-400">Database Empty</p>
+                      {filteredPendingFollowUps.map((followUp, idx) => (
+                        <tr key={idx} className="group hover:bg-emerald-50/30 transition-all duration-200">
+                          <td className="sticky left-0 z-10 bg-white group-hover:bg-emerald-50/30 px-6 py-4 border-r border-slate-100">
+                            <button
+                              onClick={() => {
+                                setSelectedLeadForFollowUp(followUp.leadId)
+                                setShowFollowUpModal(true)
+                              }}
+                              className="px-4 py-2 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg shadow-emerald-200 hover:bg-emerald-700 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 whitespace-nowrap"
+                            >
+                              Call & Process
+                            </button>
+                          </td>
+                          <td className="px-6 py-4 font-mono text-xs font-black text-slate-700">{followUp.leadId}</td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col">
+                              <span className="text-xs font-black text-slate-700">{followUp.timestamp}</span>
+                              <span className={`text-[10px] font-bold ${isOverdue(followUp.timestamp) ? "text-red-500 animate-pulse" : "text-slate-400"}`}>
+                                {isOverdue(followUp.timestamp) ? "● Overdue" : "● Scheduled"}
+                              </span>
                             </div>
                           </td>
+                          <td className="px-6 py-4">
+                            <span className="text-sm font-black text-slate-800">{followUp.companyName}</span>
+                          </td>
+                          <td className="px-6 py-4 font-bold text-xs">
+                            <a href={`tel:${followUp.phoneNumber}`} className="text-emerald-600 underline">{followUp.phoneNumber}</a>
+                          </td>
+                          <td className="px-6 py-4 max-w-xs truncate italic text-xs text-slate-500">"{followUp.customerSay}"</td>
+                          <td className="px-6 py-4 uppercase font-black text-[10px] text-indigo-600">{followUp.leadSource}</td>
                         </tr>
-                      )}
+                      ))}
                     </tbody>
                   </table>
                 ) : (
-                  <table className="w-full text-left border-collapse min-w-[2000px]">
+                  <table className="w-full text-left border-collapse min-w-[1200px]">
                     <thead>
                       <tr className="bg-slate-900 border-b border-slate-800">
                         <th className="sticky left-0 z-20 bg-slate-900 px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest border-r border-slate-800">Action</th>
@@ -912,49 +1000,24 @@ function FollowUp() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {filteredHistoryFollowUps.length > 0 ? (
-                        filteredHistoryFollowUps.map((followUp, idx) => (
-                          <tr key={idx} className="group hover:bg-slate-50 transition-colors">
-                            <td className="sticky left-0 z-10 bg-white group-hover:bg-slate-50 px-6 py-4 border-r border-slate-100 transition-colors">
-                              <button
-                                onClick={() => {
-                                  setSelectedFollowUp(followUp)
-                                  setShowPopup(true)
-                                }}
-                                className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
-                              >
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                              </button>
-                            </td>
-                            {columnOptions.filter(col => visibleColumns[col.key]).map(col => (
-                              <td key={col.key} className="px-6 py-4">
-                                {col.key === 'status' ? (
-                                  <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border ${followUp.status === 'Completed' ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
-                                    followUp.status === 'Pending' ? "bg-amber-50 text-amber-700 border-amber-100" : "bg-red-50 text-red-700 border-red-100"
-                                    }`}>
-                                    {followUp.status}
-                                  </span>
-                                ) : col.key === 'itemQty' ? (
-                                  <div className="flex flex-wrap gap-1">
-                                    {safeItemQtyParse(followUp.itemQty).filter(i => i.name && i.quantity !== "0").slice(0, 2).map((i, k) => (
-                                      <span key={k} className="px-2 py-0.5 bg-slate-100 text-slate-600 text-[9px] font-bold rounded">{i.name} ({i.quantity})</span>
-                                    ))}
-                                    {safeItemQtyParse(followUp.itemQty).length > 2 && <span className="text-[9px] font-bold text-slate-400">+{safeItemQtyParse(followUp.itemQty).length - 2} more</span>}
-                                  </div>
-                                ) : (
-                                  <span className="text-xs font-bold text-slate-700">{followUp[col.key === 'leadNo' ? 'leadNo' : col.key] || '-'}</span>
-                                )}
-                              </td>
-                            ))}
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={columnOptions.filter(col => visibleColumns[col.key]).length + 1} className="py-20 text-center">
-                            <p className="text-sm font-black uppercase tracking-widest text-slate-400">No History Records</p>
+                      {filteredHistoryFollowUps.map((followUp, idx) => (
+                        <tr key={idx} className="group hover:bg-slate-50">
+                          <td className="sticky left-0 z-10 bg-white group-hover:bg-slate-50 px-6 py-4 border-r border-slate-100">
+                            <button onClick={() => { setSelectedFollowUp(followUp); setShowPopup(true); }} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg">
+                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            </button>
                           </td>
+                          {columnOptions.filter(col => visibleColumns[col.key]).map(col => (
+                            <td key={col.key} className="px-6 py-4 text-xs font-bold text-slate-700">
+                              {col.key === 'status' ? (
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${followUp.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                  {followUp.status}
+                                </span>
+                              ) : followUp[col.key] || '-'}
+                            </td>
+                          ))}
                         </tr>
-                      )}
+                      ))}
                     </tbody>
                   </table>
                 )}
@@ -1016,39 +1079,42 @@ function FollowUp() {
             </div>
           </div>
         </div>
-      )}
+      )
+      }
 
       {/* New Follow-up Modal refined */}
-      {showFollowUpModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center py-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className={`relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[95vh] overflow-hidden flex flex-col ${slideIn} mx-4`}>
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-slate-800 to-slate-900 text-white">
-              <div>
-                <h3 className="text-xl font-black uppercase tracking-tight">Process Lead Follow-up</h3>
-                <p className="text-slate-400 text-xs font-bold font-mono mt-1 opacity-80">Enquiry: {selectedLeadForFollowUp?.leadId || selectedLeadForFollowUp}</p>
+      {
+        showFollowUpModal && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:py-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className={`relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-4xl h-[95vh] sm:h-[95vh] overflow-hidden flex flex-col ${slideIn} sm:mx-4`}>
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-slate-800 to-slate-900 text-white">
+                <div>
+                  <h3 className="text-xl font-black uppercase tracking-tight">Process Lead Follow-up</h3>
+                  <p className="text-slate-400 text-xs font-bold font-mono mt-1 opacity-80">Enquiry: {selectedLeadForFollowUp?.leadId || selectedLeadForFollowUp}</p>
+                </div>
+                <button
+                  onClick={() => setShowFollowUpModal(false)}
+                  className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
               </div>
-              <button
-                onClick={() => setShowFollowUpModal(false)}
-                className="p-2 hover:bg-white/20 rounded-full transition-colors"
-              >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
-              <NewFollowUp
-                leadData={selectedLeadForFollowUp}
-                leadId={selectedLeadForFollowUp?.leadId || selectedLeadForFollowUp}
-                onClose={() => {
-                  setShowFollowUpModal(false)
-                  window.location.reload()
-                }}
-              />
+              <div className="flex-1 overflow-y-auto custom-scrollbar">
+                <NewFollowUp
+                  leadData={selectedLeadForFollowUp}
+                  leadId={selectedLeadForFollowUp?.leadId || selectedLeadForFollowUp}
+                  onClose={() => {
+                    setShowFollowUpModal(false)
+                    window.location.reload()
+                  }}
+                />
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   )
 }
 

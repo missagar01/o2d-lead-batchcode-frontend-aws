@@ -202,344 +202,298 @@ function NewFollowUp({ leadId: propLeadId, leadNo: propLeadNo, onClose }) {
   }
 
   return (
-    <div className="w-full">
-      <div className="bg-white rounded-lg shadow-md">
-        {!onClose && (
-          <div className="p-6 border-b">
-            <h2 className="text-xl font-bold">Lead Follow-Up</h2>
-            <p className="text-sm text-slate-500">
-              Record details of the follow-up call
-              {leadId && <span className="font-medium"> for Lead #{leadId}</span>}
-            </p>
+    <div className="w-full h-full flex flex-col bg-slate-50 md:bg-white sm:rounded-lg">
+      {!onClose && (
+        <div className="p-4 sm:p-6 border-b bg-white">
+          <h2 className="text-xl font-bold text-slate-800">Lead Follow-Up</h2>
+          <p className="text-sm text-slate-500">
+            Record details of the follow-up call
+            {leadId && <span className="font-medium text-emerald-600"> for Lead #{leadId}</span>}
+          </p>
+        </div>
+      )}
+      <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
+        <div className="p-4 sm:p-6 space-y-5 overflow-y-auto pb-24 sm:pb-6">
+          <div className="space-y-1.5">
+            <label htmlFor="enquiryNo" className="block text-xs font-black uppercase tracking-widest text-slate-400 ml-1">
+              Lead No.
+            </label>
+            <input
+              id="enquiryNo"
+              className="w-full px-4 py-3 bg-white sm:bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-medium text-slate-700 shadow-sm"
+              placeholder="LD-001"
+              value={formData.leadNo}
+              onChange={handleChange}
+              required
+            />
           </div>
-        )}
-        <form onSubmit={handleSubmit}>
-          <div className="p-6 space-y-6">
-            <div className="space-y-2">
-              <label htmlFor="enquiryNo" className="block text-sm font-medium text-gray-700">
-                Lead No.
-              </label>
-              <input
-                id="enquiryNo"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                placeholder="LD-001"
-                value={formData.leadNo}
-                onChange={handleChange}
-                required
-              />
-            </div>
 
-            <div className="space-y-2">
-              <label htmlFor="customerFeedback" className="block text-sm font-medium text-gray-700">
-                What did the customer say?
-              </label>
-              <input
-                list="customer-feedback-options"
-                id="customerFeedback"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                placeholder="Select or type customer feedback"
-                required
-              />
-              <datalist id="customer-feedback-options">
-                {customerFeedbackOptions.map((feedback, index) => (
-                  <option key={index} value={feedback} />
-                ))}
-              </datalist>
-            </div>
+          <div className="space-y-1.5">
+            <label htmlFor="customerFeedback" className="block text-xs font-black uppercase tracking-widest text-slate-400 ml-1">
+              What did the customer say?
+            </label>
+            <input
+              list="customer-feedback-options"
+              id="customerFeedback"
+              className="w-full px-4 py-3 bg-white sm:bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-medium text-slate-700 shadow-sm"
+              placeholder="Select or type customer feedback"
+              required
+            />
+            <datalist id="customer-feedback-options">
+              {customerFeedbackOptions.map((feedback, index) => (
+                <option key={index} value={feedback} />
+              ))}
+            </datalist>
+          </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Lead Status</label>
-              <div className="space-y-1">
-                <div className="flex items-center space-x-2">
+          <div className="space-y-3 p-4 bg-white sm:bg-slate-50 border border-slate-200 rounded-2xl">
+            <label className="block text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Lead Status</label>
+            <div className="flex flex-wrap gap-3">
+              {[
+                { id: "hot", label: "Hot", value: "Hot", color: "red" },
+                { id: "warm", label: "Warm", value: "Warm", color: "amber" },
+                { id: "cold", label: "Cold", value: "Cold", color: "blue" }
+              ].map((opt) => (
+                <label key={opt.id} className="flex-1 min-w-[80px] cursor-pointer">
                   <input
                     type="radio"
-                    id="hot"
+                    id={opt.id}
                     name="leadStatus"
-                    value="hot"
-                    checked={leadStatus === "Hot"}
-                    onChange={() => setLeadStatus("Hot")}
-                    className="h-4 w-4 text-red-600 focus:ring-red-500"
+                    value={opt.id}
+                    checked={leadStatus === opt.value}
+                    onChange={() => setLeadStatus(opt.value)}
+                    className="sr-only peer"
                   />
-                  <label htmlFor="hot" className="text-sm text-gray-700">
-                    Hot
-                  </label>
-                </div>
-                <div className="flex items-center space-x-2">
+                  <div className={`text-center py-2.5 rounded-xl border-2 transition-all font-bold text-sm ${leadStatus === opt.value
+                      ? `bg-${opt.color}-50 border-${opt.color}-500 text-${opt.color}-700 shadow-sm`
+                      : "bg-white border-slate-100 text-slate-400 hover:border-slate-200"
+                    }`}>
+                    {opt.label}
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-3 p-4 bg-white sm:bg-slate-50 border border-slate-200 rounded-2xl">
+            <label className="block text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Enquiry Received Status</label>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[
+                { id: "yes", label: "Yes", value: "yes" },
+                { id: "expected", label: "Expected", value: "expected" },
+                { id: "not-interested", label: "Not Interested", value: "not-interested" }
+              ].map((opt) => (
+                <label key={opt.id} className="cursor-pointer">
                   <input
                     type="radio"
-                    id="warm"
-                    name="leadStatus"
-                    value="warm"
-                    checked={leadStatus === "Warm"}
-                    onChange={() => setLeadStatus("Warm")}
-                    className="h-4 w-4 text-amber-600 focus:ring-amber-500"
+                    id={opt.id}
+                    name="enquiryStatus"
+                    value={opt.id}
+                    checked={enquiryStatus === opt.value}
+                    onChange={() => setEnquiryStatus(opt.value)}
+                    className="sr-only peer"
                   />
-                  <label htmlFor="warm" className="text-sm text-gray-700">
-                    Warm
-                  </label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    id="cold"
-                    name="leadStatus"
-                    value="cold"
-                    checked={leadStatus === "Cold"}
-                    onChange={() => setLeadStatus("Cold")}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                  />
-                  <label htmlFor="cold" className="text-sm text-gray-700">
-                    Cold
-                  </label>
-                </div>
+                  <div className={`text-center py-3 rounded-xl border-2 transition-all font-bold text-sm ${enquiryStatus === opt.value
+                      ? "bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm"
+                      : "bg-white border-slate-100 text-slate-400 hover:border-slate-200"
+                    }`}>
+                    {opt.label}
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {enquiryStatus === "expected" && (
+            <div className="space-y-4 p-4 bg-amber-50/50 border border-amber-100 rounded-2xl animate-in slide-in-from-top-2 duration-300">
+              <div className="space-y-1.5">
+                <label htmlFor="nextAction" className="block text-xs font-black uppercase tracking-widest text-amber-600 ml-1">
+                  Next Action
+                </label>
+                <input
+                  id="nextAction"
+                  className="w-full px-4 py-3 bg-white border border-amber-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all font-medium text-slate-700 shadow-sm"
+                  placeholder="Enter next action"
+                  required
+                />
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Enquiry Received Status</label>
-              <div className="space-y-1">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    id="yes"
-                    name="enquiryStatus"
-                    value="yes"
-                    checked={enquiryStatus === "yes"}
-                    onChange={() => setEnquiryStatus("yes")}
-                    className="h-4 w-4 text-amber-600 focus:ring-amber-500"
-                  />
-                  <label htmlFor="yes" className="text-sm text-gray-700">
-                    Yes
-                  </label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    id="expected"
-                    name="enquiryStatus"
-                    value="expected"
-                    checked={enquiryStatus === "expected"}
-                    onChange={() => setEnquiryStatus("expected")}
-                    className="h-4 w-4 text-amber-600 focus:ring-amber-500"
-                  />
-                  <label htmlFor="expected" className="text-sm text-gray-700">
-                    Expected
-                  </label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    id="not-interested"
-                    name="enquiryStatus"
-                    value="not-interested"
-                    checked={enquiryStatus === "not-interested"}
-                    onChange={() => setEnquiryStatus("not-interested")}
-                    className="h-4 w-4 text-amber-600 focus:ring-amber-500"
-                  />
-                  <label htmlFor="not-interested" className="text-sm text-gray-700">
-                    Not Interested
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            {enquiryStatus === "expected" && (
-              <div className="space-y-4 border p-4 rounded-md">
-                <div className="space-y-2">
-                  <label htmlFor="nextAction" className="block text-sm font-medium text-gray-700">
-                    Next Action
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label htmlFor="nextCallDate" className="block text-xs font-black uppercase tracking-widest text-amber-600 ml-1">
+                    Next Call Date
                   </label>
                   <input
-                    id="nextAction"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                    placeholder="Enter next action"
+                    id="nextCallDate"
+                    type="date"
+                    className="w-full px-4 py-3 bg-white border border-amber-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all font-medium text-slate-700 shadow-sm"
                     required
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label htmlFor="nextCallDate" className="block text-sm font-medium text-gray-700">
-                      Next Call Date
-                    </label>
-                    <input
-                      id="nextCallDate"
-                      type="date"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label htmlFor="nextCallTime" className="block text-sm font-medium text-gray-700">
-                      Next Call Time
-                    </label>
-                    <input
-                      id="nextCallTime"
-                      type="time"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                      required
-                    />
-                  </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="nextCallTime" className="block text-xs font-black uppercase tracking-widest text-amber-600 ml-1">
+                    Next Call Time
+                  </label>
+                  <input
+                    id="nextCallTime"
+                    type="time"
+                    className="w-full px-4 py-3 bg-white border border-amber-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all font-medium text-slate-700 shadow-sm"
+                    required
+                  />
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {enquiryStatus === "yes" && (
-              <div className="space-y-6 border p-4 rounded-md">
-                <h3 className="text-lg font-medium">Enquiry Details</h3>
-                <hr className="border-gray-200" />
+          {enquiryStatus === "yes" && (
+            <div className="space-y-6 p-4 sm:p-6 bg-blue-50/50 border border-blue-100 rounded-2xl animate-in slide-in-from-top-2 duration-300">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-1 bg-blue-500 rounded-full"></div>
+                <h3 className="text-lg font-black text-blue-900 uppercase tracking-tight">Enquiry Details</h3>
+              </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label htmlFor="enquiryDate" className="block text-sm font-medium text-gray-700">
-                      Enquiry Received Date
-                    </label>
-                    <input
-                      id="enquiryDate"
-                      type="date"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                      required
-                    />
-                  </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label htmlFor="enquiryDate" className="block text-xs font-black uppercase tracking-widest text-blue-600 ml-1">
+                    Received Date
+                  </label>
+                  <input
+                    id="enquiryDate"
+                    type="date"
+                    className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-slate-700 shadow-sm"
+                    required
+                  />
+                </div>
 
-                  <div className="space-y-2">
-                    <label htmlFor="enquiryApproach" className="block text-sm font-medium text-gray-700">
-                      Enquiry Approach
-                    </label>
-                    <select
-                      id="enquiryApproach"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                      value={formData.enquiryApproach}
-                      onChange={handleChange}
-                      required
-                    >
-                      <option value="">Select approach</option>
-                      {enquiryApproachOptions.map((approach, index) => (
-                        <option key={index} value={approach}>
-                          {approach}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="enquiryApproach" className="block text-xs font-black uppercase tracking-widest text-blue-600 ml-1">
+                    Enquiry Approach
+                  </label>
+                  <select
+                    id="enquiryApproach"
+                    className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-bold text-slate-700 shadow-sm"
+                    value={formData.enquiryApproach}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select approach</option>
+                    {enquiryApproachOptions.map((approach, index) => (
+                      <option key={index} value={approach}>
+                        {approach}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-                  <div className="space-y-2 md:col-span-2">
-                    <label htmlFor="enquiryValue" className="block text-sm font-medium text-gray-700">
-                      Enquiry Approximate Value
-                    </label>
-                    <input
-                      id="enquiryValue"
-                      type="number"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                      placeholder="Enter approximate value"
-                      required
-                    />
-                  </div>
+                <div className="space-y-1.5 sm:col-span-2">
+                  <label htmlFor="enquiryValue" className="block text-xs font-black uppercase tracking-widest text-blue-600 ml-1">
+                    Approximate Value (₹)
+                  </label>
+                  <input
+                    id="enquiryValue"
+                    type="number"
+                    className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-black text-slate-700 shadow-sm"
+                    placeholder="Enter approximate value"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-4 border-t border-blue-100">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-black text-blue-900 uppercase tracking-widest">Selected Items</h4>
+                  <button
+                    type="button"
+                    onClick={addItem}
+                    className="px-4 py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all"
+                    disabled={items.length >= 300}
+                  >
+                    + Add Item
+                  </button>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-medium">Items</h4>
-                    <button
-                      type="button"
-                      onClick={addItem}
-                      className="px-3 py-1 text-xs border border-amber-200 text-amber-600 hover:bg-amber-50 rounded-md"
-                      disabled={items.length >= 300}
-                    >
-                      + Add Item ({items.length}/300)
-                    </button>
-                  </div>
-
                   {items.map((item, index) => (
-                    <div key={item.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-                      <div className="md:col-span-5 space-y-2">
-                        <label htmlFor={`itemName-${item.id}`} className="block text-sm font-medium text-gray-700">
-                          Item Name
-                        </label>
-                        <input
-                          list={`item-options-${item.id}`}
-                          id={`itemName-${item.id}`}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                          value={item.name}
-                          onChange={(e) => updateItem(item.id, "name", e.target.value)}
-                          required
-                          placeholder="Select or type item name"
-                        />
-                        <datalist id={`item-options-${item.id}`}>
-                          {productCategories.map((category, index) => (
-                            <option key={index} value={category} />
-                          ))}
-                        </datalist>
-                      </div>
-
-                      <div className="md:col-span-5 space-y-2">
-                        <label htmlFor={`quantity-${item.id}`} className="block text-sm font-medium text-gray-700">
-                          Quantity
-                        </label>
-                        <input
-                          id={`quantity-${item.id}`}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                          placeholder="Enter quantity"
-                          value={item.quantity}
-                          onChange={(e) => updateItem(item.id, "quantity", e.target.value)}
-                          required
-                        />
-                      </div>
-
-                      <div className="md:col-span-2">
-                        <button
-                          type="button"
-                          onClick={() => removeItem(item.id)}
-                          disabled={items.length === 1}
-                          className="p-2 text-slate-500 hover:text-slate-700 disabled:opacity-50"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
+                    <div key={item.id} className="relative p-4 bg-white border border-blue-100 rounded-xl shadow-sm space-y-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Item #{index + 1}</span>
+                        {items.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeItem(item.id)}
+                            className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
                           >
-                            <path d="M3 6h18"></path>
-                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                          </svg>
-                        </button>
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Product Category</label>
+                          <input
+                            list={`item-options-${item.id}`}
+                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-bold text-sm"
+                            value={item.name}
+                            onChange={(e) => updateItem(item.id, "name", e.target.value)}
+                            required
+                            placeholder="Select/Type item"
+                          />
+                          <datalist id={`item-options-${item.id}`}>
+                            {productCategories.map((category, index) => (
+                              <option key={index} value={category} />
+                            ))}
+                          </datalist>
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Quantity</label>
+                          <input
+                            type="number"
+                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-bold text-sm"
+                            placeholder="Qty"
+                            value={item.quantity}
+                            onChange={(e) => updateItem(item.id, "quantity", e.target.value)}
+                            required
+                          />
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-            )}
-          </div>
-          <div className="p-6 border-t flex justify-between">
-            <button
-              type="button"
-              onClick={() => {
-                if (onClose) {
-                  onClose()
-                } else {
-                  navigate(-1)
-                }
-              }}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
-            >
-              {isSubmitting ? "Saving..." : "Submit"}
-            </button>
-          </div>
-        </form>
-      </div>
+            </div>
+          )}
+        </div>
+
+        <div className="fixed bottom-0 left-0 right-0 sm:relative p-4 bg-white border-t flex gap-3 z-50">
+          <button
+            type="button"
+            onClick={() => {
+              if (onClose) {
+                onClose()
+              } else {
+                navigate(-1)
+              }
+            }}
+            className="flex-1 py-3.5 px-6 border-2 border-slate-100 text-slate-600 font-black uppercase tracking-widest rounded-2xl hover:bg-slate-50 transition-all text-xs"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex-[2] py-3.5 px-6 bg-slate-900 hover:bg-slate-800 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-slate-200 disabled:opacity-50 transition-all text-xs flex items-center justify-center gap-2"
+          >
+            {isSubmitting ? (
+              <span className="flex items-center gap-2">
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                Processing...
+              </span>
+            ) : "Submit Follow-up"}
+          </button>
+        </div>
+      </form>
     </div>
   )
 }

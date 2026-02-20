@@ -644,51 +644,46 @@ function QCLabDataPage() {
                 )}
 
                 {/* Header Section */}
-                <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-                    <div className="flex items-center gap-3 w-full">
-                        <div className="flex-1 min-w-0">
-                            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-red-500 truncate">
-                                {showHistory ? "Lab Test History" : "QC Lab Test"}
-                            </h1>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                        <div className="relative w-full sm:flex-1">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                            <input
-                                type="text"
-                                placeholder="Search across all columns..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                            />
-                            {searchTerm && (
-                                <button
-                                    onClick={() => setSearchTerm("")}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                >
-                                    <X size={16} />
-                                </button>
-                            )}
-                        </div>
-
+                <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-red-500 leading-tight">
+                            {showHistory ? "Lab Test History" : "QC Lab Test"}
+                        </h1>
                         <button
                             onClick={toggleView}
-                            className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors w-full sm:w-auto"
+                            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm font-medium flex-shrink-0"
                         >
                             {showHistory ? (
                                 <>
                                     <ArrowLeft className="h-4 w-4" />
-                                    Back to Pending
+                                    <span>Pending</span>
                                 </>
                             ) : (
                                 <>
                                     <History className="h-4 w-4" />
-                                    View History
+                                    <span>History</span>
                                 </>
                             )}
                         </button>
+                    </div>
+
+                    <div className="relative w-full">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                        <input
+                            type="text"
+                            placeholder="Search..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                        />
+                        {searchTerm && (
+                            <button
+                                onClick={() => setSearchTerm("")}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            >
+                                <X size={16} />
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -911,22 +906,14 @@ function QCLabDataPage() {
                 )}
 
                 <div className="rounded-lg border border-gray-200 shadow-md bg-white overflow-hidden">
-                    <div className="bg-gradient-to-r from-red-500 to-red-400 border-b border-red-200 p-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <div className="flex items-center gap-3">
-                                <h2 className="text-white text-lg font-semibold">
-                                    {showHistory ? "QC Lab Test Records" : "Pending for Lab Test"}
-                                </h2>
-                                <div className="relative flex items-center justify-center w-10 h-10">
-                                    <div className="absolute inset-0 rounded-full bg-white/20 p-0.5">
-                                        <div className="w-full h-full rounded-full bg-transparent flex items-center justify-center">
-                                            <span className="text-white text-sm font-bold">
-                                                {showHistory ? filteredHistoryData.length : filteredPendingData.length}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                    <div className="bg-gradient-to-r from-red-500 to-red-400 p-3 sm:p-4">
+                        <div className="flex items-center gap-2">
+                            <h2 className="text-white text-base sm:text-lg font-semibold">
+                                {showHistory ? "QC Lab Test Records" : "Pending for Lab Test"}
+                            </h2>
+                            <span className="bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                                {showHistory ? filteredHistoryData.length : filteredPendingData.length}
+                            </span>
                         </div>
                     </div>
 
@@ -935,244 +922,169 @@ function QCLabDataPage() {
                             <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-red-500 mb-4"></div>
                             <p className="text-red-600">Loading data...</p>
                         </div>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            {showHistory ? (
-                                /* HISTORY VIEW - QC Lab Tests with SMS Batch Code */
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Date / तारीख
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                SMS Unique Code / SMS कोड
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Lab Test Code / लैब कोड
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Furnace Number / भट्ठी नंबर
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Sequence Code / अनुक्रम कोड
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Laddle Number / लेडल नंबर
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Shift Type / शिफ्ट प्रकार
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Final C% / अंतिम सी%
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Final MN% / अंतिम एमएन%
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Final S% / अंतिम एस%
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Final P% / अंतिम पी%
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Tested By / परीक्षणकर्ता
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Remarks / टिप्पणियाँ
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Test Report / टेस्ट रिपोर्ट
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {filteredHistoryData.length > 0 ? (
-                                            filteredHistoryData.map((record, index) => (
+                    ) : showHistory ? (
+                        /* HISTORY VIEW */
+                        filteredHistoryData.length > 0 ? (
+                            <>
+                                {/* Mobile card view */}
+                                <div className="md:hidden divide-y divide-gray-100">
+                                    {filteredHistoryData.map((record, index) => (
+                                        <div key={record.id || record._id || index} className="p-4 space-y-2">
+                                            <div className="flex justify-between items-start flex-wrap gap-1">
+                                                <span className="text-xs text-gray-500">{formatIndianDateTime(record.created_at || 'N/A')}</span>
+                                                <div className="flex gap-1 flex-wrap">
+                                                    <span className="text-xs font-mono bg-blue-50 text-blue-700 px-2 py-0.5 rounded">{record.sms_batch_code || 'N/A'}</span>
+                                                    <span className="text-xs font-mono bg-red-50 text-red-700 px-2 py-0.5 rounded">{record.unique_code || 'N/A'}</span>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-700">
+                                                <span><span className="text-gray-400 text-xs">Furnace: </span>{record.furnace_number || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">Laddle: </span>{record.laddle_number || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">Shift: </span>{record.shift_type || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">Tested By: </span>{record.tested_by || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">C%: </span>{record.final_c || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">MN%: </span>{record.final_mn || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">S%: </span>{record.final_s || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">P%: </span>{record.final_p || 'N/A'}</span>
+                                            </div>
+                                            {record.remarks && <p className="text-xs text-gray-500 italic">{record.remarks}</p>}
+                                            {record.report_picture && (
+                                                <button onClick={() => handleViewImage(record.report_picture)} className="text-blue-600 text-xs flex items-center gap-1">
+                                                    <Camera className="h-3 w-3" /> View Report
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                                {/* Desktop table view */}
+                                <div className="hidden md:block overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
+                                            <tr>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">SMS Code</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lab Code</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Furnace</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Seq</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Laddle</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Shift</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">C%</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">MN%</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">S%</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">P%</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tested By</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Remarks</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Report</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {filteredHistoryData.map((record, index) => (
                                                 <tr key={record.id || record._id || index} className="hover:bg-gray-50">
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {formatIndianDateTime(record.created_at || 'N/A')}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.sms_batch_code || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.unique_code || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.furnace_number || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.sequence_code || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.laddle_number || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.shift_type || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.final_c || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.final_mn || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.final_s || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.final_p || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.tested_by || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 text-sm text-gray-900">
-                                                        {record.remarks || '—'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{formatIndianDateTime(record.created_at || 'N/A')}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.sms_batch_code || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.unique_code || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.furnace_number || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.sequence_code || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.laddle_number || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.shift_type || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.final_c || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.final_mn || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.final_s || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.final_p || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.tested_by || 'N/A'}</td>
+                                                    <td className="px-4 py-3 text-sm text-gray-900">{record.remarks || '—'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm">
                                                         {record.report_picture ? (
-                                                            <button
-                                                                onClick={() => handleViewImage(record.report_picture)}
-                                                                className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 transition-colors"
-                                                            >
-                                                                <Camera className="h-4 w-4" />
-                                                                View
+                                                            <button onClick={() => handleViewImage(record.report_picture)} className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+                                                                <Camera className="h-4 w-4" /> View
                                                             </button>
-                                                        ) : (
-                                                            <span className="text-gray-400">—</span>
-                                                        )}
+                                                        ) : <span className="text-gray-400">—</span>}
                                                     </td>
                                                 </tr>
-                                            ))
-                                        ) : (
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="py-12 text-center text-gray-500">
+                                <Search className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+                                <p className="font-medium">{searchTerm ? "No matching QC Lab tests found" : "No QC Lab tests found"}</p>
+                                <p className="text-sm mt-1">{searchTerm ? "Try adjusting your search" : "Submit a test first"}</p>
+                                {searchTerm && <button onClick={() => setSearchTerm("")} className="mt-3 px-4 py-2 bg-gray-500 text-white rounded-md text-sm">Clear Search</button>}
+                                <button onClick={fetchHistoryData} className="mt-3 ml-2 px-4 py-2 bg-green-500 text-white rounded-md text-sm">Refresh</button>
+                            </div>
+                        )
+                    ) : (
+                        /* PENDING VIEW */
+                        filteredPendingData.length > 0 ? (
+                            <>
+                                {/* Mobile card view */}
+                                <div className="md:hidden divide-y divide-gray-100">
+                                    {filteredPendingData.map((record, index) => (
+                                        <div key={record.id || record._id || index} className="p-4 space-y-2">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-xs font-mono bg-blue-50 text-blue-700 px-2 py-0.5 rounded">{record.unique_code || generateUniqueCode(record) || 'N/A'}</span>
+                                                <button
+                                                    onClick={() => handleProcessClick(record)}
+                                                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1"
+                                                >
+                                                    <Edit className="h-3 w-3" /> Lab Test
+                                                </button>
+                                            </div>
+                                            <p className="text-xs text-gray-500">{formatIndianDateTime(record.sample_timestamp) || 'N/A'}</p>
+                                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-700">
+                                                <span><span className="text-gray-400 text-xs">Seq: </span>{record.sequence_number || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">Laddle: </span>{record.laddle_number || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">Furnace: </span>{record.furnace_number || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">Temp: </span>{record.temperature ? `${record.temperature}°C` : 'N/A'}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                {/* Desktop table view */}
+                                <div className="hidden md:block overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
                                             <tr>
-                                                <td colSpan={12} className="px-4 py-8 text-center text-gray-500">
-                                                    <div className="flex flex-col items-center justify-center">
-                                                        <Search className="h-12 w-12 text-gray-300 mb-4" />
-                                                        <p className="text-lg font-medium mb-2">
-                                                            {searchTerm ? "No matching QC Lab tests found" : "No QC Lab tests found"}
-                                                        </p>
-                                                        <p className="text-sm mb-4">
-                                                            {searchTerm ? "Try adjusting your search terms" : "Submit a test first to see records here"}
-                                                        </p>
-                                                        <div className="flex gap-2">
-                                                            {searchTerm && (
-                                                                <button
-                                                                    onClick={() => setSearchTerm("")}
-                                                                    className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
-                                                                >
-                                                                    Clear Search
-                                                                </button>
-                                                            )}
-                                                            <button
-                                                                onClick={fetchHistoryData}
-                                                                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
-                                                            >
-                                                                Refresh Data
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </td>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">SMS Batch Code</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sequence</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Laddle No.</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Furnace</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Temperature</th>
                                             </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            ) : (
-                                /* PENDING VIEW - SMS Register Records */
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Action / कार्रवाई
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                SMS Batch Code / एसएमएस बैच कोड
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Date / तारीख
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Sequence / अनुक्रम
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Laddle No. / लेडल नंबर
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Furnace / भट्ठी
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Temperature / तापमान
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {filteredPendingData.length > 0 ? (
-                                            filteredPendingData.map((record, index) => (
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {filteredPendingData.map((record, index) => (
                                                 <tr key={record.id || record._id || index} className="hover:bg-gray-50">
-                                                    <td className="px-4 py-4 whitespace-nowrap">
-                                                        <button
-                                                            onClick={() => handleProcessClick(record)}
-                                                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm flex items-center gap-1 transition-colors"
-                                                        >
-                                                            <Edit className="h-3 w-3" />
-                                                            Lab Test
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        <button onClick={() => handleProcessClick(record)} className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm flex items-center gap-1">
+                                                            <Edit className="h-3 w-3" /> Lab Test
                                                         </button>
                                                     </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.unique_code || generateUniqueCode(record) || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {formatIndianDateTime(record.sample_timestamp) || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.sequence_number || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.laddle_number || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.furnace_number || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.temperature ? `${record.temperature}°C` : 'N/A'}
-                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.unique_code || generateUniqueCode(record) || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{formatIndianDateTime(record.sample_timestamp) || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.sequence_number || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.laddle_number || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.furnace_number || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.temperature ? `${record.temperature}°C` : 'N/A'}</td>
                                                 </tr>
-                                            ))
-                                        ) : (
-                                            <tr>
-                                                <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                                                    <div className="flex flex-col items-center justify-center">
-                                                        <CheckCircle2 className="h-12 w-12 text-green-300 mb-4" />
-                                                        <p className="text-lg font-medium mb-2">
-                                                            {searchTerm ? "No matching pending SMS records found" : "No pending SMS records for testing"}
-                                                        </p>
-                                                        <p className="text-sm mb-4">
-                                                            {searchTerm ? "Try adjusting your search terms" : "All SMS records have been processed for QC Lab testing"}
-                                                        </p>
-                                                        <div className="flex gap-2">
-                                                            {searchTerm && (
-                                                                <button
-                                                                    onClick={() => setSearchTerm("")}
-                                                                    className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
-                                                                >
-                                                                    Clear Search
-                                                                </button>
-                                                            )}
-                                                            <button
-                                                                onClick={fetchPendingSMSData}
-                                                                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
-                                                            >
-                                                                Refresh Data
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            )}
-                        </div>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="py-12 text-center text-gray-500">
+                                <CheckCircle2 className="h-10 w-10 text-green-300 mx-auto mb-3" />
+                                <p className="font-medium">{searchTerm ? "No matching pending SMS records found" : "No pending SMS records for testing"}</p>
+                                <p className="text-sm mt-1">{searchTerm ? "Try adjusting your search" : "All SMS records have been processed"}</p>
+                                {searchTerm && <button onClick={() => setSearchTerm("")} className="mt-3 px-4 py-2 bg-gray-500 text-white rounded-md text-sm">Clear Search</button>}
+                                <button onClick={fetchPendingSMSData} className="mt-3 ml-2 px-4 py-2 bg-green-500 text-white rounded-md text-sm">Refresh</button>
+                            </div>
+                        )
                     )}
                 </div>
             </div>

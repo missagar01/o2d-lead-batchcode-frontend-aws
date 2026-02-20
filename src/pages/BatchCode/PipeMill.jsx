@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { CheckCircle2, X, Search, History, ArrowLeft, Edit, Save, Camera, AlertCircle } from "lucide-react"
 // @ts-ignore - JSX component
@@ -100,7 +100,7 @@ function PipeMillPage() {
         try {
             setLoading(true)
             setError(null)
-            //console.log('🔄 Fetching pending ReCoil data for Pipe Mill...')
+            //console.log('ðŸ”„ Fetching pending ReCoil data for Pipe Mill...')
 
             // Fetch ReCoil data
             const reCoilResponse = await batchcodeAPI.getReCoilHistory()
@@ -117,7 +117,7 @@ function PipeMillPage() {
                 reCoilData = [];
             }
 
-            //console.log('✅ ReCoil Data fetched:', reCoilData.length, 'records')
+            //console.log('âœ… ReCoil Data fetched:', reCoilData.length, 'records')
 
             // Fetch existing Pipe Mill entries to filter out already processed ReCoil records
             const pipeMillResponse = await batchcodeAPI.getPipeMillHistory()
@@ -142,32 +142,32 @@ function PipeMillPage() {
                     .filter(code => code && code.trim() !== "")
             )
 
-            //console.log('✅ Processed ReCoil Unique Codes:', Array.from(processedUniqueCodes))
+            //console.log('âœ… Processed ReCoil Unique Codes:', Array.from(processedUniqueCodes))
 
             // Filter ReCoil data to only show records that don't have Pipe Mill entries
             const pendingData = reCoilData.filter(reCoilRecord => {
                 const reCoilUniqueCode = reCoilRecord.unique_code
 
                 if (!reCoilUniqueCode) {
-                    //console.log('⚠️ ReCoil record missing unique_code:', reCoilRecord)
+                    //console.log('âš ï¸ ReCoil record missing unique_code:', reCoilRecord)
                     return false
                 }
 
                 // Check if this ReCoil unique_code exists in Pipe Mill's recoiler_short_code
                 const isProcessed = processedUniqueCodes.has(reCoilUniqueCode)
 
-                //console.log(`📋 ReCoil Record: ${reCoilUniqueCode} - Processed: ${isProcessed}`)
+                //console.log(`ðŸ“‹ ReCoil Record: ${reCoilUniqueCode} - Processed: ${isProcessed}`)
 
                 return !isProcessed
             })
 
-            //console.log('✅ Final pending data:', pendingData.length, 'records')
+            //console.log('âœ… Final pending data:', pendingData.length, 'records')
             setPendingReCoilData(pendingData)
             setLoading(false)
 
         } catch (error) {
-            console.error("❌ Error fetching pending ReCoil data:", error)
-            showPopupMessage("Error fetching pending ReCoil data! / लंबित रीकॉइल डेटा प्राप्त करने में त्रुटि!", "warning")
+            console.error("âŒ Error fetching pending ReCoil data:", error)
+            showPopupMessage("Error fetching pending ReCoil data! / à¤²à¤‚à¤¬à¤¿à¤¤ à¤°à¥€à¤•à¥‰à¤‡à¤² à¤¡à¥‡à¤Ÿà¤¾ à¤ªà¥à¤°à¤¾à¤ªà¥à¤¤ à¤•à¤°à¤¨à¥‡ à¤®à¥‡à¤‚ à¤¤à¥à¤°à¥à¤Ÿà¤¿!", "warning")
             setPendingReCoilData([])
             setLoading(false)
         }
@@ -177,11 +177,11 @@ function PipeMillPage() {
     const fetchHistoryData = useCallback(async () => {
         try {
             setLoading(true)
-            //console.log('🔄 Fetching Pipe Mill history data...')
+            //console.log('ðŸ”„ Fetching Pipe Mill history data...')
 
             const response = await batchcodeAPI.getPipeMillHistory()
-            //console.log('📦 Raw Pipe Mill API response:', response)
-            //console.log('📊 Response data:', response.data)
+            //console.log('ðŸ“¦ Raw Pipe Mill API response:', response)
+            //console.log('ðŸ“Š Response data:', response.data)
 
             let data = [];
 
@@ -199,13 +199,13 @@ function PipeMillPage() {
                 data = [];
             }
 
-            //console.log('✅ Processed Pipe Mill history data:', data)
+            //console.log('âœ… Processed Pipe Mill history data:', data)
             setHistoryData(data)
             setLoading(false)
         } catch (error) {
-            console.error("❌ Error fetching Pipe Mill history:", error)
-            console.error("🔧 Error details:", error.response?.data)
-            showPopupMessage("Error fetching Pipe Mill history! / पाइप मिल इतिहास प्राप्त करने में त्रुटि!", "warning")
+            console.error("âŒ Error fetching Pipe Mill history:", error)
+            console.error("ðŸ”§ Error details:", error.response?.data)
+            showPopupMessage("Error fetching Pipe Mill history! / à¤ªà¤¾à¤‡à¤ª à¤®à¤¿à¤² à¤‡à¤¤à¤¿à¤¹à¤¾à¤¸ à¤ªà¥à¤°à¤¾à¤ªà¥à¤¤ à¤•à¤°à¤¨à¥‡ à¤®à¥‡à¤‚ à¤¤à¥à¤°à¥à¤Ÿà¤¿!", "warning")
             setHistoryData([])
             setLoading(false)
         }
@@ -261,7 +261,7 @@ function PipeMillPage() {
 
     const handleViewImage = useCallback(async (imageUrl) => {
         if (!imageUrl) {
-            // console.log('❌ No image URL provided');
+            // console.log('âŒ No image URL provided');
             return;
         }
 
@@ -274,7 +274,7 @@ function PipeMillPage() {
                 : `http://localhost:3005/uploads/pipe-mill-pictures/${imageUrl}`;
         }
 
-        // console.log('🖼️ Loading image from:', fullImageUrl);
+        // console.log('ðŸ–¼ï¸ Loading image from:', fullImageUrl);
 
         try {
             // Show loading state
@@ -294,12 +294,12 @@ function PipeMillPage() {
             const blob = await response.blob();
             const blobUrl = URL.createObjectURL(blob);
 
-            // console.log('✅ Image loaded as blob URL:', blobUrl);
+            // console.log('âœ… Image loaded as blob URL:', blobUrl);
             setSelectedImage(blobUrl);
 
         } catch (error) {
-            console.error('❌ Error loading image:', error);
-            showPopupMessage("Failed to load image / चित्र लोड करने में विफल", "warning");
+            console.error('âŒ Error loading image:', error);
+            showPopupMessage("Failed to load image / à¤šà¤¿à¤¤à¥à¤° à¤²à¥‹à¤¡ à¤•à¤°à¤¨à¥‡ à¤®à¥‡à¤‚ à¤µà¤¿à¤«à¤²", "warning");
             setShowImagePopup(false);
         }
     }, []);
@@ -319,14 +319,14 @@ function PipeMillPage() {
 
         for (let field of requiredFields) {
             if (!processFormData[field]) {
-                showPopupMessage(`Please fill all required fields! / कृपया सभी आवश्यक फ़ील्ड्स भरें!`, "warning")
+                showPopupMessage(`Please fill all required fields! / à¤•à¥ƒà¤ªà¤¯à¤¾ à¤¸à¤­à¥€ à¤†à¤µà¤¶à¥à¤¯à¤• à¤«à¤¼à¥€à¤²à¥à¤¡à¥à¤¸ à¤­à¤°à¥‡à¤‚!`, "warning")
                 return false
             }
         }
 
         // Handle "Other" fitter name
         if (processFormData.fitter_name === "Other" && !processFormData.fitter_name_other) {
-            showPopupMessage("Please specify the fitter name! / कृपया फिटर का नाम निर्दिष्ट करें!", "warning")
+            showPopupMessage("Please specify the fitter name! / à¤•à¥ƒà¤ªà¤¯à¤¾ à¤«à¤¿à¤Ÿà¤° à¤•à¤¾ à¤¨à¤¾à¤® à¤¨à¤¿à¤°à¥à¤¦à¤¿à¤·à¥à¤Ÿ à¤•à¤°à¥‡à¤‚!", "warning")
             return false
         }
 
@@ -366,7 +366,7 @@ function PipeMillPage() {
                 }
             })
 
-            //console.log('🔍 Submitting Pipe Mill data for ReCoil:', processFormData.recoiler_short_code)
+            //console.log('ðŸ” Submitting Pipe Mill data for ReCoil:', processFormData.recoiler_short_code)
 
             const response = await batchcodeAPI.submitPipeMill(formData)
 
@@ -378,7 +378,7 @@ function PipeMillPage() {
                     || processFormData.recoiler_short_code
                     || ""
                 setSuccessUniqueCode(uniqueCode)
-                showPopupMessage("Pipe Mill data submitted successfully! / पाइप मिल डेटा सफलतापूर्वक जमा किया गया!", "success")
+                showPopupMessage("Pipe Mill data submitted successfully! / à¤ªà¤¾à¤‡à¤ª à¤®à¤¿à¤² à¤¡à¥‡à¤Ÿà¤¾ à¤¸à¤«à¤²à¤¤à¤¾à¤ªà¥‚à¤°à¥à¤µà¤• à¤œà¤®à¤¾ à¤•à¤¿à¤¯à¤¾ à¤—à¤¯à¤¾!", "success")
                 setShowProcessForm(false)
 
                 // Refresh BOTH tabs data to ensure consistency
@@ -387,12 +387,12 @@ function PipeMillPage() {
                     fetchPendingReCoilData()
                 ])
 
-                //console.log('✅ Both tabs refreshed after submission - record moved from Pending to History')
+                //console.log('âœ… Both tabs refreshed after submission - record moved from Pending to History')
             }
         } catch (error) {
             console.error("Submission error details:", error.response?.data)
             showPopupMessage(
-                error.response?.data?.message || "Submission failed. Check console for details. / सबमिशन विफल। विवरण के लिए कंसोल जांचें।",
+                error.response?.data?.message || "Submission failed. Check console for details. / à¤¸à¤¬à¤®à¤¿à¤¶à¤¨ à¤µà¤¿à¤«à¤²à¥¤ à¤µà¤¿à¤µà¤°à¤£ à¤•à¥‡ à¤²à¤¿à¤ à¤•à¤‚à¤¸à¥‹à¤² à¤œà¤¾à¤‚à¤šà¥‡à¤‚à¥¤",
                 "warning"
             )
         } finally {
@@ -569,7 +569,7 @@ function PipeMillPage() {
                     <div className="fixed inset-0 flex items-center justify-center p-4 z-50 pointer-events-none">
                         <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden pointer-events-auto">
                             <div className="bg-red-500 text-white p-4 flex justify-between items-center">
-                                <h3 className="text-lg font-semibold">Test Report Image / टेस्ट रिपोर्ट चित्र</h3>
+                                <h3 className="text-lg font-semibold">Test Report Image / à¤Ÿà¥‡à¤¸à¥à¤Ÿ à¤°à¤¿à¤ªà¥‹à¤°à¥à¤Ÿ à¤šà¤¿à¤¤à¥à¤°</h3>
                                 <button
                                     onClick={handleCloseImagePopup}
                                     className="text-white hover:text-gray-200 transition-colors"
@@ -585,23 +585,23 @@ function PipeMillPage() {
                                         alt="Test Report"
                                         className="max-w-full max-h-full object-contain rounded-lg shadow-md"
                                         onError={(e) => {
-                                            console.error('❌ Error displaying image:', selectedImage);
+                                            console.error('âŒ Error displaying image:', selectedImage);
                                             // Show error state
                                             e.target.style.display = 'none';
                                         }}
-                                        onLoad={() => console.log('✅ Image displayed successfully')}
+                                        onLoad={() => console.log('âœ… Image displayed successfully')}
                                     />
                                 ) : (
                                     <div className="text-center text-gray-500">
                                         <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-red-500 mb-4"></div>
-                                        <p>Loading image... / चित्र लोड हो रहा है...</p>
+                                        <p>Loading image... / à¤šà¤¿à¤¤à¥à¤° à¤²à¥‹à¤¡ à¤¹à¥‹ à¤°à¤¹à¤¾ à¤¹à¥ˆ...</p>
                                     </div>
                                 )}
                             </div>
 
                             {/* <div className="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end items-center">
                                 {/* <span className="text-sm text-gray-600">
-                                    Click outside or press ESC to close / बंद करने के लिए बाहर क्लिक करें
+                                    Click outside or press ESC to close / à¤¬à¤‚à¤¦ à¤•à¤°à¤¨à¥‡ à¤•à¥‡ à¤²à¤¿à¤ à¤¬à¤¾à¤¹à¤° à¤•à¥à¤²à¤¿à¤• à¤•à¤°à¥‡à¤‚
                                 </span>
                                 <button
                                     onClick={handleCloseImagePopup}
@@ -616,51 +616,46 @@ function PipeMillPage() {
 
 
                 {/* Header Section */}
-                <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-                    <div className="flex items-center gap-3 w-full">
-                        <div className="flex-1 min-w-0">
-                            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-red-500 truncate">
-                                {showHistory ? "Pipe Mill History" : "Pipe Mill Processing"}
-                            </h1>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                        <div className="relative w-full sm:flex-1">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                            <input
-                                type="text"
-                                placeholder="Search across all columns..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                            />
-                            {searchTerm && (
-                                <button
-                                    onClick={() => setSearchTerm("")}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                >
-                                    <X size={16} />
-                                </button>
-                            )}
-                        </div>
-
+                <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-red-500 leading-tight">
+                            {showHistory ? "Pipe Mill History" : "Pipe Mill Processing"}
+                        </h1>
                         <button
                             onClick={toggleView}
-                            className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors w-full sm:w-auto"
+                            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm font-medium flex-shrink-0"
                         >
                             {showHistory ? (
                                 <>
                                     <ArrowLeft className="h-4 w-4" />
-                                    Back to Pending
+                                    <span>Pending</span>
                                 </>
                             ) : (
                                 <>
                                     <History className="h-4 w-4" />
-                                    View History
+                                    <span>History</span>
                                 </>
                             )}
                         </button>
+                    </div>
+
+                    <div className="relative w-full">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                        <input
+                            type="text"
+                            placeholder="Search..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                        />
+                        {searchTerm && (
+                            <button
+                                onClick={() => setSearchTerm("")}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            >
+                                <X size={16} />
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -679,7 +674,7 @@ function PipeMillPage() {
                                     {/* Recoiler Short Code - NON EDITABLE */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Recoiler Short Code / रिकोइलर शॉर्ट कोड <span className="text-red-500">*</span>
+                                            Recoiler Short Code / à¤°à¤¿à¤•à¥‹à¤‡à¤²à¤° à¤¶à¥‰à¤°à¥à¤Ÿ à¤•à¥‹à¤¡ <span className="text-red-500">*</span>
                                         </label>
                                         <input
                                             type="text"
@@ -693,7 +688,7 @@ function PipeMillPage() {
                                     {/* Machine Number - NON EDITABLE (if you have this field) */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Machine Number / मशीन नंबर <span className="text-red-500">*</span>
+                                            Machine Number / à¤®à¤¶à¥€à¤¨ à¤¨à¤‚à¤¬à¤° <span className="text-red-500">*</span>
                                         </label>
                                         <input
                                             type="text"
@@ -707,7 +702,7 @@ function PipeMillPage() {
                                     {/* Mill Number - EDITABLE */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Mill Number / मिल नंबर <span className="text-red-500">*</span>
+                                            Mill Number / à¤®à¤¿à¤² à¤¨à¤‚à¤¬à¤° <span className="text-red-500">*</span>
                                         </label>
                                         <select
                                             value={processFormData.mill_number}
@@ -727,7 +722,7 @@ function PipeMillPage() {
                                     {/* Section - EDITABLE */}
                                     {/* <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Section / सेक्शन
+                                            Section / à¤¸à¥‡à¤•à¥à¤¶à¤¨
                                         </label>
                                         <input
                                             type="text"
@@ -741,7 +736,7 @@ function PipeMillPage() {
                                     {/* Item Type - EDITABLE */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Item Type / आइटम प्रकार <span className="text-red-500">*</span>
+                                            Item Type / à¤†à¤‡à¤Ÿà¤® à¤ªà¥à¤°à¤•à¤¾à¤° <span className="text-red-500">*</span>
                                         </label>
                                         <select
                                             value={processFormData.item_type}
@@ -759,7 +754,7 @@ function PipeMillPage() {
                                     {/* Size - EDITABLE */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Size / आकार <span className="text-red-500">*</span>
+                                            Size / à¤†à¤•à¤¾à¤° <span className="text-red-500">*</span>
                                         </label>
                                         <select
                                             value={processFormData.size}
@@ -790,7 +785,7 @@ function PipeMillPage() {
                                     {/* Thickness - EDITABLE */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Thickness / मोटाई <span className="text-red-500">*</span>
+                                            Thickness / à¤®à¥‹à¤Ÿà¤¾à¤ˆ <span className="text-red-500">*</span>
                                         </label>
                                         <input
                                             type="text"
@@ -805,7 +800,7 @@ function PipeMillPage() {
                                     {/* Shift - EDITABLE */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Shift / शिफ्ट <span className="text-red-500">*</span>
+                                            Shift / à¤¶à¤¿à¤«à¥à¤Ÿ <span className="text-red-500">*</span>
                                         </label>
                                         <select
                                             value={processFormData.shift}
@@ -822,7 +817,7 @@ function PipeMillPage() {
                                     {/* Fitter Name - EDITABLE */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Fitter Name / फिटर नाम <span className="text-red-500">*</span>
+                                            Fitter Name / à¤«à¤¿à¤Ÿà¤° à¤¨à¤¾à¤® <span className="text-red-500">*</span>
                                         </label>
                                         <select
                                             value={processFormData.fitter_name}
@@ -849,7 +844,7 @@ function PipeMillPage() {
                                     {processFormData.fitter_name === "Other" && (
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Specify Other Fitter Name / अन्य फिटर नाम निर्दिष्ट करें <span className="text-red-500">*</span>
+                                                Specify Other Fitter Name / à¤…à¤¨à¥à¤¯ à¤«à¤¿à¤Ÿà¤° à¤¨à¤¾à¤® à¤¨à¤¿à¤°à¥à¤¦à¤¿à¤·à¥à¤Ÿ à¤•à¤°à¥‡à¤‚ <span className="text-red-500">*</span>
                                             </label>
                                             <input
                                                 type="text"
@@ -865,7 +860,7 @@ function PipeMillPage() {
                                     {/* Quality Supervisor - EDITABLE */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Quality Supervisor / गुणवत्ता पर्यवेक्षक <span className="text-red-500">*</span>
+                                            Quality Supervisor / à¤—à¥à¤£à¤µà¤¤à¥à¤¤à¤¾ à¤ªà¤°à¥à¤¯à¤µà¥‡à¤•à¥à¤·à¤• <span className="text-red-500">*</span>
                                         </label>
                                         <select
                                             value={processFormData.quality_supervisor}
@@ -889,7 +884,7 @@ function PipeMillPage() {
                                     {/* Mill Incharge - EDITABLE */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Mill Incharge / मिल इंचार्ज <span className="text-red-500">*</span>
+                                            Mill Incharge / à¤®à¤¿à¤² à¤‡à¤‚à¤šà¤¾à¤°à¥à¤œ <span className="text-red-500">*</span>
                                         </label>
                                         <select
                                             value={processFormData.mill_incharge}
@@ -906,7 +901,7 @@ function PipeMillPage() {
                                     {/* Forman Name - EDITABLE */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Forman Name / फोरमैन नाम <span className="text-red-500">*</span>
+                                            Forman Name / à¤«à¥‹à¤°à¤®à¥ˆà¤¨ à¤¨à¤¾à¤® <span className="text-red-500">*</span>
                                         </label>
                                         <select
                                             value={processFormData.forman_name}
@@ -923,7 +918,7 @@ function PipeMillPage() {
                                     {/* Picture - EDITABLE */}
                                     <div className="md:col-span-2">
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Picture / तस्वीर
+                                            Picture / à¤¤à¤¸à¥à¤µà¥€à¤°
                                         </label>
                                         <div className="flex items-center gap-4">
                                             <input
@@ -941,14 +936,14 @@ function PipeMillPage() {
                                     {/* Remarks - EDITABLE */}
                                     <div className="md:col-span-2">
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Remarks / टिप्पणियाँ
+                                            Remarks / à¤Ÿà¤¿à¤ªà¥à¤ªà¤£à¤¿à¤¯à¤¾à¤
                                         </label>
                                         <textarea
                                             value={processFormData.remarks}
                                             onChange={(e) => handleProcessFormChange("remarks", e.target.value)}
                                             rows={3}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                                            placeholder="Enter any remarks / कोई टिप्पणी दर्ज करें"
+                                            placeholder="Enter any remarks / à¤•à¥‹à¤ˆ à¤Ÿà¤¿à¤ªà¥à¤ªà¤£à¥€ à¤¦à¤°à¥à¤œ à¤•à¤°à¥‡à¤‚"
                                         />
                                     </div>
                                 </div>
@@ -959,7 +954,7 @@ function PipeMillPage() {
                                     onClick={handleCloseProcessForm}
                                     className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
                                 >
-                                    Cancel / रद्द करें
+                                    Cancel / à¤°à¤¦à¥à¤¦ à¤•à¤°à¥‡à¤‚
                                 </button>
                                 <button
                                     onClick={handleProcessSubmit}
@@ -967,29 +962,21 @@ function PipeMillPage() {
                                     className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                 >
                                     <Save className="h-4 w-4" />
-                                    {isSubmitting ? "Submitting... / जमा किया जा रहा है..." : "Submit Data / डेटा जमा करें"}
+                                    {isSubmitting ? "Submitting... / à¤œà¤®à¤¾ à¤•à¤¿à¤¯à¤¾ à¤œà¤¾ à¤°à¤¹à¤¾ à¤¹à¥ˆ..." : "Submit Data / à¤¡à¥‡à¤Ÿà¤¾ à¤œà¤®à¤¾ à¤•à¤°à¥‡à¤‚"}
                                 </button>
                             </div>
                         </div>
                     </div>
                 )}
                 <div className="rounded-lg border border-gray-200 shadow-md bg-white overflow-hidden">
-                    <div className="bg-gradient-to-r from-red-500 to-red-400 border-b border-red-200 p-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <div className="flex items-center gap-3">
-                                <h2 className="text-white text-lg font-semibold">
-                                    {showHistory ? "Pipe Mill Records" : "Pending for Pipe Mill Processing"}
-                                </h2>
-                                <div className="relative flex items-center justify-center w-10 h-10">
-                                    <div className="absolute inset-0 rounded-full bg-white/20 p-0.5">
-                                        <div className="w-full h-full rounded-full bg-transparent flex items-center justify-center">
-                                            <span className="text-white text-sm font-bold">
-                                                {showHistory ? filteredHistoryData.length : filteredPendingData.length}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                    <div className="bg-gradient-to-r from-red-500 to-red-400 p-3 sm:p-4">
+                        <div className="flex items-center gap-2">
+                            <h2 className="text-white text-base sm:text-lg font-semibold">
+                                {showHistory ? "Pipe Mill Records" : "Pending for Pipe Mill Processing"}
+                            </h2>
+                            <span className="bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                                {showHistory ? filteredHistoryData.length : filteredPendingData.length}
+                            </span>
                         </div>
                     </div>
 
@@ -998,262 +985,172 @@ function PipeMillPage() {
                             <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-red-500 mb-4"></div>
                             <p className="text-red-600">Loading data...</p>
                         </div>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            {showHistory ? (
-                                /* HISTORY VIEW - Pipe Mill Records */
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Time / तारीख व समय
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Recoiler Code / रिकोइलर कोड
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Pipe MIll Code / पाइप मिल कोड
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Mill Number / मिल नंबर
-                                            </th>
-                                            {/* <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Section / सेक्शन
-                                            </th> */}
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Item Type / आइटम प्रकार
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Size / आकार
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Thickness / मोटाई
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Shift / शिफ्ट
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Fitter Name / फिटर नाम
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Quality Supervisor / गुणवत्ता पर्यवेक्षक
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Mill Incharge / मिल इंचार्ज
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Forman Name / फोरमैन नाम
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Remarks
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Picture
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {filteredHistoryData.length > 0 ? (
-                                            filteredHistoryData.map((record, index) => (
+                    ) : showHistory ? (
+                        filteredHistoryData.length > 0 ? (
+                            <>
+                                {/* Mobile card view */}
+                                <div className="md:hidden divide-y divide-gray-100">
+                                    {filteredHistoryData.map((record, index) => (
+                                        <div key={record.id || record._id || index} className="p-4 space-y-2">
+                                            <div className="flex justify-between items-start flex-wrap gap-1">
+                                                <span className="text-xs text-gray-500">{formatIndianDateTime(record.created_at || 'N/A')}</span>
+                                                <div className="flex gap-1 flex-wrap">
+                                                    <span className="text-xs font-mono bg-blue-50 text-blue-700 px-2 py-0.5 rounded">{record.recoiler_short_code || 'N/A'}</span>
+                                                    <span className="text-xs font-mono bg-red-50 text-red-700 px-2 py-0.5 rounded">{record.unique_code || 'N/A'}</span>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-700">
+                                                <span><span className="text-gray-400 text-xs">Mill: </span>{record.mill_number || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">Type: </span>{record.item_type || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">Size: </span>{record.size || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">Thick: </span>{record.thickness || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">Shift: </span>{record.shift || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">Fitter: </span>{record.fitter_name || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">QA: </span>{record.quality_supervisor || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">Forman: </span>{record.forman_name || 'N/A'}</span>
+                                            </div>
+                                            {record.remarks && <p className="text-xs text-gray-500 italic">{record.remarks}</p>}
+                                            {record.picture && (
+                                                <button onClick={() => handleViewImage(record.picture)} className="text-blue-600 text-xs flex items-center gap-1">
+                                                    <Camera className="h-3 w-3" /> View Picture
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                                {/* Desktop table view */}
+                                <div className="hidden md:block overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
+                                            <tr>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recoiler Code</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pipe Mill Code</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mill No.</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item Type</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Size</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Thickness</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Shift</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fitter</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">QA Supervisor</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mill Incharge</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Forman</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Remarks</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Picture</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {filteredHistoryData.map((record, index) => (
                                                 <tr key={record.id || record._id || index} className="hover:bg-gray-50">
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {formatIndianDateTime(record.created_at || 'N/A')}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.recoiler_short_code || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.unique_code || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.mill_number || 'N/A'}
-                                                    </td>
-                                                    {/* <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.section || 'N/A'}
-                                                    </td> */}
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.item_type || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.size || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.thickness || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.shift || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.fitter_name || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.quality_supervisor || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.mill_incharge || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.forman_name || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.remarks || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{formatIndianDateTime(record.created_at || 'N/A')}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.recoiler_short_code || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.unique_code || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.mill_number || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.item_type || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.size || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.thickness || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.shift || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.fitter_name || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.quality_supervisor || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.mill_incharge || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.forman_name || 'N/A'}</td>
+                                                    <td className="px-4 py-3 text-sm text-gray-900">{record.remarks || 'â€”'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm">
                                                         {record.picture ? (
-                                                            <button
-                                                                onClick={() => handleViewImage(record.picture)}
-                                                                className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 transition-colors"
-                                                            >
-                                                                <Camera className="h-4 w-4" />
-                                                                View
+                                                            <button onClick={() => handleViewImage(record.picture)} className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+                                                                <Camera className="h-4 w-4" /> View
                                                             </button>
-                                                        ) : (
-                                                            <span className="text-gray-400">—</span>
-                                                        )}
+                                                        ) : <span className="text-gray-400">â€”</span>}
                                                     </td>
                                                 </tr>
-                                            ))
-                                        ) : (
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="py-12 text-center text-gray-500">
+                                <Search className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+                                <p className="font-medium">{searchTerm ? "No matching Pipe Mill records found" : "No Pipe Mill records found"}</p>
+                                <p className="text-sm mt-1">{searchTerm ? "Try adjusting your search" : "Submit a Pipe Mill entry first"}</p>
+                                <div className="flex gap-2 justify-center mt-3">
+                                    {searchTerm && <button onClick={() => setSearchTerm("")} className="px-4 py-2 bg-gray-500 text-white rounded-md text-sm">Clear Search</button>}
+                                    <button onClick={fetchHistoryData} className="px-4 py-2 bg-green-500 text-white rounded-md text-sm">Refresh</button>
+                                </div>
+                            </div>
+                        )
+                    ) : (
+                        /* PENDING VIEW */
+                        filteredPendingData.length > 0 ? (
+                            <>
+                                {/* Mobile cards */}
+                                <div className="md:hidden divide-y divide-gray-100">
+                                    {filteredPendingData.map((record, index) => (
+                                        <div key={record.id || record._id || index} className="p-4 space-y-2">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-xs font-mono bg-blue-50 text-blue-700 px-2 py-0.5 rounded">{record.unique_code || 'N/A'}</span>
+                                                <button
+                                                    onClick={() => handleProcessClick(record)}
+                                                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1"
+                                                >
+                                                    <Edit className="h-3 w-3" /> Process
+                                                </button>
+                                            </div>
+                                            <p className="text-xs text-gray-500">{formatIndianDateTime(record.created_at || 'N/A')}</p>
+                                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-700">
+                                                <span><span className="text-gray-400 text-xs">Size: </span>{record.size || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">Machine: </span>{record.machine_number || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">Supervisor: </span>{record.supervisor || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">Incharge: </span>{record.incharge || 'N/A'}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                {/* Desktop table */}
+                                <div className="hidden md:block overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
                                             <tr>
-                                                <td colSpan={11} className="px-4 py-8 text-center text-gray-500">
-                                                    <div className="flex flex-col items-center justify-center">
-                                                        <Search className="h-12 w-12 text-gray-300 mb-4" />
-                                                        <p className="text-lg font-medium mb-2">
-                                                            {searchTerm ? "No matching Pipe Mill records found" : "No Pipe Mill records found"}
-                                                        </p>
-                                                        <p className="text-sm mb-4">
-                                                            {searchTerm ? "Try adjusting your search terms" : "Submit a Pipe Mill entry first to see records here"}
-                                                        </p>
-                                                        <div className="flex gap-2">
-                                                            {searchTerm && (
-                                                                <button
-                                                                    onClick={() => setSearchTerm("")}
-                                                                    className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
-                                                                >
-                                                                    Clear Search
-                                                                </button>
-                                                            )}
-                                                            <button
-                                                                onClick={fetchHistoryData}
-                                                                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
-                                                            >
-                                                                Refresh Data
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </td>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ReCoil Code</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Size</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Supervisor</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Incharge</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Machine No.</th>
                                             </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            ) : (
-                                /* PENDING VIEW - ReCoil Records */
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Action / कार्रवाई
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Time / तारीख व समय
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                ReCoil Code / रीकॉइल कोड
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Size / आकार
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Supervisor / पर्यवेक्षक
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Incharge / इंचार्ज
-                                            </th>
-                                            {/* <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Contractor / ठेकेदार
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Welder Name / वेल्डर नाम
-                                            </th> */}
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Machine No. / मशीन नंबर
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {filteredPendingData.length > 0 ? (
-                                            filteredPendingData.map((record, index) => (
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {filteredPendingData.map((record, index) => (
                                                 <tr key={record.id || record._id || index} className="hover:bg-gray-50">
-                                                    <td className="px-4 py-4 whitespace-nowrap">
-                                                        <button
-                                                            onClick={() => handleProcessClick(record)}
-                                                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm flex items-center gap-1 transition-colors"
-                                                        >
-                                                            <Edit className="h-3 w-3" />
-                                                            Process
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        <button onClick={() => handleProcessClick(record)} className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm flex items-center gap-1">
+                                                            <Edit className="h-3 w-3" /> Process
                                                         </button>
                                                     </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {formatIndianDateTime(record.created_at || 'N/A')}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.unique_code || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.size || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.supervisor || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.incharge || 'N/A'}
-                                                    </td>
-                                                    {/* <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.contractor || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.welder_name || 'N/A'}
-                                                    </td> */}
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.machine_number || 'N/A'}
-                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{formatIndianDateTime(record.created_at || 'N/A')}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.unique_code || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.size || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.supervisor || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.incharge || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.machine_number || 'N/A'}</td>
                                                 </tr>
-                                            ))
-                                        ) : (
-                                            <tr>
-                                                <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
-                                                    <div className="flex flex-col items-center justify-center">
-                                                        <CheckCircle2 className="h-12 w-12 text-green-300 mb-4" />
-                                                        <p className="text-lg font-medium mb-2">
-                                                            {searchTerm ? "No matching pending ReCoil records found" : "No pending ReCoil records for Pipe Mill processing"}
-                                                        </p>
-                                                        <p className="text-sm mb-4">
-                                                            {searchTerm ? "Try adjusting your search terms" : "All ReCoil records have been processed for Pipe Mill"}
-                                                        </p>
-                                                        <div className="flex gap-2">
-                                                            {searchTerm && (
-                                                                <button
-                                                                    onClick={() => setSearchTerm("")}
-                                                                    className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
-                                                                >
-                                                                    Clear Search
-                                                                </button>
-                                                            )}
-                                                            <button
-                                                                onClick={fetchPendingReCoilData}
-                                                                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
-                                                            >
-                                                                Refresh Data
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            )}
-                        </div>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="py-12 text-center text-gray-500 px-4">
+                                <CheckCircle2 className="h-10 w-10 text-green-300 mx-auto mb-3" />
+                                <p className="font-medium">{searchTerm ? "No matching pending records" : "No pending ReCoil records"}</p>
+                                <p className="text-sm mt-1">{searchTerm ? "Try adjusting your search" : "All ReCoil records have been processed"}</p>
+                                <div className="flex gap-2 justify-center mt-3">
+                                    {searchTerm && <button onClick={() => setSearchTerm("")} className="px-4 py-2 bg-gray-500 text-white rounded-md text-sm">Clear Search</button>}
+                                    <button onClick={fetchPendingReCoilData} className="px-4 py-2 bg-green-500 text-white rounded-md text-sm">Refresh</button>
+                                </div>
+                            </div>
+                        )
                     )}
                 </div>
             </div>
@@ -1270,3 +1167,4 @@ function PipeMillPage() {
 }
 
 export default PipeMillPage
+

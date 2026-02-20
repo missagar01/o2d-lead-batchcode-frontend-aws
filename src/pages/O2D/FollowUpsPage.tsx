@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Search, Calendar, Clock, User as UserIcon, LayoutGrid, List, PlayCircle, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { Search, Calendar, Clock, User as UserIcon, PlayCircle, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { o2dAPI } from "../../services/o2dAPI";
 import { useAuth } from "../../context/AuthContext";
 
@@ -25,14 +25,7 @@ const formatDate = (date: string | null | undefined) => {
     if (!date) return '';
     const d = new Date(date);
     if (isNaN(d.getTime())) return date;
-    return d.toLocaleDateString();
-};
-
-const formatDateTime = (date: string | null | undefined) => {
-    if (!date) return '';
-    const d = new Date(date);
-    if (isNaN(d.getTime())) return date;
-    return d.toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' });
 };
 
 interface FollowUpModalProps {
@@ -47,8 +40,6 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
     const { user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
-    // Form State
     const [formData, setFormData] = useState({
         client_name: '',
         sales_person: '',
@@ -57,14 +48,12 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
         order_date: '',
         next_calling_date: '',
     });
-
     const [waitingForResponse, setWaitingForResponse] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
             setError(null);
             if (followup) {
-                // Populate from existing followup
                 setFormData({
                     client_name: followup.customerName || '',
                     sales_person: followup.salesPerson || '',
@@ -75,7 +64,6 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
                 });
                 setWaitingForResponse(followup.status === 'Waiting for Response');
             } else {
-                // Default / New
                 setFormData({
                     client_name: customer?.["Client Name"] || customer?.name || '',
                     sales_person: user?.user_name || user?.username || '',
@@ -89,15 +77,21 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
         }
     }, [isOpen, followup, customer, user]);
 
+    // Format YYYY-MM-DD → "20 Feb 2026" for display
+    const fmtDisplay = (s: string) => {
+        if (!s) return '';
+        try {
+            return new Date(s).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        } catch { return s; }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         if (e) e.preventDefault();
         setLoading(true);
         setError(null);
-
         try {
             const actualOrder = parseFloat(formData.order_quantity) || 0;
             const isBooked = actualOrder > 0;
-
             const payload = {
                 client_name: formData.client_name,
                 sales_person: formData.sales_person,
@@ -106,7 +100,6 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
                 date_of_calling: formData.date_of_calling,
                 next_calling_date: (!isBooked && !waitingForResponse && formData.next_calling_date) ? formData.next_calling_date : null
             };
-
             if (followup && followup.id) {
                 await o2dAPI.updateFollowup(String(followup.id), payload);
             } else {
@@ -115,9 +108,7 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
             onSuccess();
             onClose();
         } catch (error: any) {
-            console.error("Follow-up error:", error);
-            const errorMsg = error.response?.data?.message || error.message || 'Failed to save follow-up. Please try again.';
-            setError(errorMsg);
+            setError(error.response?.data?.message || error.message || 'Failed to save. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -125,185 +116,176 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
 
     if (!isOpen) return null;
 
+    const inputBase = "w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-3.5 text-slate-800 font-semibold text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all focus:bg-white";
+
+    // Styled date picker: invisible native input layered over pretty display div
+    const DatePickerField = ({
+        value, onChange, required = false, disabled = false, accent = 'blue'
+    }: { value: string; onChange: (v: string) => void; required?: boolean; disabled?: boolean; accent?: string }) => {
+        const borderColor = disabled ? 'border-slate-100' : accent === 'green' ? 'border-emerald-200' : 'border-slate-200';
+        const iconColor = disabled ? 'text-slate-300' : accent === 'green' ? 'text-emerald-500' : 'text-blue-500';
+        return (
+            <div className="relative">
+                <input
+                    type="date"
+                    required={required}
+                    disabled={disabled}
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    onClick={(e) => !disabled && (e.target as any).showPicker?.()}
+                    className="peer absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
+                />
+                <div className={`flex items-center gap-2.5 bg-slate-50 border ${borderColor} rounded-xl px-3.5 py-3.5 transition-all peer-focus:ring-2 peer-focus:ring-blue-500/20 peer-focus:border-blue-500 peer-focus:bg-white ${disabled ? 'opacity-40' : ''}`}>
+                    <Calendar className={`w-4 h-4 flex-shrink-0 ${iconColor}`} />
+                    <span className={`text-sm font-semibold ${value ? 'text-slate-800' : 'text-slate-400'}`}>
+                        {value ? fmtDisplay(value) : 'Tap to select date'}
+                    </span>
+                </div>
+            </div>
+        );
+    };
+
     return (
-        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex justify-center items-end sm:items-center p-0 sm:p-4 overflow-hidden animate-in fade-in duration-200">
-            <div
-                className="bg-white w-full sm:w-[90%] md:w-[80%] lg:max-w-4xl max-h-[80vh] sm:max-h-[90vh] rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-10 duration-300"
-            >
-                {/* Header */}
-                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 sticky top-0 z-20 shrink-0">
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex justify-center items-end sm:items-center p-0 sm:p-4">
+            <div className="bg-white w-full sm:w-[90%] lg:max-w-xl max-h-[92vh] rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-250">
+
+                {/* ── Header ── */}
+                <div className="px-4 py-3.5 sm:px-6 sm:py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
                     <div>
-                        <h2 className="text-xl font-bold text-gray-800">
+                        <h2 className="text-base sm:text-lg font-black text-slate-800">
                             {followup ? "Edit Follow Up" : "New Follow Up"}
                         </h2>
-                        <div className="flex items-center gap-2 mt-1">
-                            <div className="px-2 py-0.5 bg-gray-200 text-gray-600 rounded text-[10px] font-bold uppercase tracking-wider">
-                                {followup ? `ID: #${followup.id}` : "NEW"}
-                            </div>
-                            <span className="text-gray-500 text-xs font-medium">
-                                {followup ? "Update details below" : "Enter details interaction"}
-                            </span>
-                        </div>
+                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
+                            {followup ? `ID: #${followup.id}` : "New interaction record"}
+                        </p>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-400 hover:text-gray-700"
-                    >
+                    <button onClick={onClose} className="p-2.5 hover:bg-slate-200 rounded-full transition-colors text-slate-400 hover:text-slate-700 active:scale-90">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                {/* Body */}
-                <div className="flex-1 overflow-y-auto p-5 md:p-8 custom-scrollbar">
+                {/* ── Body ── */}
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
+
                     {error && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 text-red-700 animate-in fade-in slide-in-from-top-2">
-                            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-                            <div className="flex-1">
-                                <h4 className="font-bold text-sm">Error Saving Follow-up</h4>
-                                <p className="text-sm mt-1 opacity-90">{error}</p>
-                            </div>
+                        <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2 text-rose-700">
+                            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                            <p className="text-xs font-semibold">{error}</p>
                         </div>
                     )}
 
-                    <form id="followup-form" onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+                    <form id="followup-form" onSubmit={handleSubmit} className="space-y-5">
 
-                        {/* Left Column: Client Info */}
-                        <div className="space-y-6">
-                            <div className="flex items-center gap-2 mb-4 pb-2 border-b border-gray-100">
-                                <UserIcon className="w-5 h-5 text-gray-400" />
-                                <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide">Client Information</h3>
+                        {/* ── Client Info ── */}
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2 pb-1.5 border-b border-slate-100">
+                                <div className="w-1 h-4 bg-blue-500 rounded-full" />
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Client Information</span>
                             </div>
-
-                            <div className="space-y-4">
+                            <div>
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">Client Name</label>
+                                <input
+                                    type="text" required
+                                    value={formData.client_name}
+                                    onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
+                                    className={inputBase}
+                                    placeholder="Enter client name"
+                                />
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Client Name</label>
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">Sales Person</label>
                                     <input
-                                        type="text"
-                                        required
-                                        value={formData.client_name}
-                                        onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
-                                        className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-800 font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400"
-                                        placeholder="Enter Client Name"
+                                        type="text" required
+                                        value={formData.sales_person}
+                                        onChange={(e) => setFormData({ ...formData, sales_person: e.target.value })}
+                                        className={inputBase}
+                                        placeholder="Sales rep name"
                                     />
                                 </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Sales Person</label>
-                                        <input
-                                            type="text"
-                                            required
-                                            value={formData.sales_person}
-                                            onChange={(e) => setFormData({ ...formData, sales_person: e.target.value })}
-                                            className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-800 font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400"
-                                            placeholder="Sales Rep"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Date of Calling</label>
-                                        <input
-                                            type="date"
-                                            required
-                                            value={formData.date_of_calling}
-                                            onChange={(e) => setFormData({ ...formData, date_of_calling: e.target.value })}
-                                            onClick={(e) => (e.target as any).showPicker?.()}
-                                            className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-800 font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all cursor-pointer"
-                                        />
-                                    </div>
+                                <div>
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">Date of Calling</label>
+                                    <DatePickerField
+                                        value={formData.date_of_calling}
+                                        onChange={(v) => setFormData({ ...formData, date_of_calling: v })}
+                                        required
+                                    />
                                 </div>
                             </div>
                         </div>
 
-                        {/* Right Column: Interaction Details */}
-                        <div className="space-y-6">
-
-                            {/* Order Details */}
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-2 mb-4 pb-2 border-b border-gray-100">
-                                    <CheckCircle className="w-5 h-5 text-gray-400" />
-                                    <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide">Order Status</h3>
+                        {/* ── Order Status ── */}
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2 pb-1.5 border-b border-slate-100">
+                                <div className="w-1 h-4 bg-emerald-500 rounded-full" />
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Order Status</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">Quantity (MT)</label>
+                                    <input
+                                        type="number"
+                                        value={formData.order_quantity}
+                                        onChange={(e) => setFormData({ ...formData, order_quantity: e.target.value })}
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-3.5 text-slate-800 font-semibold text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all focus:bg-white"
+                                        placeholder="0.00"
+                                    />
                                 </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Quantity</label>
-                                        <input
-                                            type="number"
-                                            value={formData.order_quantity}
-                                            onChange={(e) => setFormData({ ...formData, order_quantity: e.target.value })}
-                                            className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-800 font-medium focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all placeholder:text-gray-400"
-                                            placeholder="0.00"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Order Date</label>
-                                        <input
-                                            type="date"
-                                            value={formData.order_date}
-                                            onChange={(e) => setFormData({ ...formData, order_date: e.target.value })}
-                                            onClick={(e) => (e.target as any).showPicker?.()}
-                                            className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-800 font-medium focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all cursor-pointer"
-                                        />
-                                    </div>
+                                <div>
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">Order Date</label>
+                                    <DatePickerField
+                                        value={formData.order_date}
+                                        onChange={(v) => setFormData({ ...formData, order_date: v })}
+                                        accent="green"
+                                    />
                                 </div>
                             </div>
+                        </div>
 
-                            {/* Next Steps */}
-                            <div className="space-y-4 pt-4">
-                                <div className="flex items-center gap-2 mb-4 pb-2 border-b border-gray-100">
-                                    <Clock className="w-5 h-5 text-gray-400" />
-                                    <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide">Follow Up</h3>
-                                </div>
-
-                                <div className="space-y-3">
-                                    <div className={waitingForResponse ? 'opacity-50 pointer-events-none' : ''}>
-                                        <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Next Calling Date</label>
-                                        <input
-                                            type="date"
-                                            value={formData.next_calling_date}
-                                            onChange={(e) => setFormData({ ...formData, next_calling_date: e.target.value })}
-                                            onClick={(e) => (e.target as any).showPicker?.()}
-                                            className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-800 font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all cursor-pointer"
-                                        />
-                                    </div>
-
-                                    <label className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                                        <input
-                                            type="checkbox"
-                                            checked={waitingForResponse}
-                                            onChange={(e) => setWaitingForResponse(e.target.checked)}
-                                            className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                                        />
-                                        <span className="ml-3 text-sm font-medium text-gray-700">Waiting for Response (No Date)</span>
-                                    </label>
-                                </div>
+                        {/* ── Follow Up Schedule ── */}
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2 pb-1.5 border-b border-slate-100">
+                                <div className="w-1 h-4 bg-purple-500 rounded-full" />
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Follow Up Schedule</span>
                             </div>
+                            <div className={waitingForResponse ? 'opacity-40 pointer-events-none' : ''}>
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">Next Calling Date</label>
+                                <DatePickerField
+                                    value={formData.next_calling_date}
+                                    onChange={(v) => setFormData({ ...formData, next_calling_date: v })}
+                                    disabled={waitingForResponse}
+                                />
+                            </div>
+                            <label className="flex items-center gap-3 p-3.5 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-blue-50 hover:border-blue-200 transition-colors active:scale-[0.99]">
+                                <input
+                                    type="checkbox"
+                                    checked={waitingForResponse}
+                                    onChange={(e) => setWaitingForResponse(e.target.checked)}
+                                    className="w-4 h-4 text-blue-600 rounded border-slate-300 accent-blue-600"
+                                />
+                                <span className="text-xs font-bold text-slate-600">Waiting for Response (No Date)</span>
+                            </label>
                         </div>
 
                     </form>
                 </div>
 
-                {/* Footer */}
-                <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex flex-col sm:flex-row justify-end gap-3 sticky bottom-0 z-20 shrink-0 pb-6 sm:pb-4">
+                {/* ── Footer ── */}
+                <div className="px-4 py-3 sm:px-6 sm:py-4 border-t border-slate-100 bg-slate-50 flex gap-3 shrink-0" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
                     <button
-                        type="button"
-                        onClick={onClose}
-                        className="w-full sm:w-auto px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-100 transition-all text-sm mb-2 sm:mb-0"
+                        type="button" onClick={onClose}
+                        className="flex-1 py-3.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-sm hover:bg-slate-100 transition-all active:scale-95"
                     >
                         Cancel
                     </button>
                     <button
-                        type="submit"
-                        form="followup-form"
-                        disabled={loading}
-                        className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm hover:shadow transition-all text-sm flex justify-center items-center gap-2"
+                        type="submit" form="followup-form" disabled={loading}
+                        className="flex-[2] py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm flex justify-center items-center gap-2 transition-all disabled:opacity-50 shadow-sm active:scale-95"
                     >
                         {loading ? (
-                            <>
-                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                <span>Saving...</span>
-                            </>
+                            <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /><span>Saving...</span></>
                         ) : (
-                            <span>Save Changes</span>
+                            <span>{followup ? 'Update Follow Up' : 'Save Follow Up'}</span>
                         )}
                     </button>
                 </div>
@@ -319,20 +301,19 @@ const FollowUpsPage: React.FC = () => {
     const [search, setSearch] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedFollowup, setSelectedFollowup] = useState<FollowUp | null>(null);
+    const [visibleCount, setVisibleCount] = useState(100);
 
     const handleCalendarClick = async (followup: FollowUp) => {
         try {
             setLoading(true);
             const response = await o2dAPI.getFollowup(String(followup.id));
-            if (response.data && response.data.data) {
+            if (response.data?.data) {
                 const f = response.data.data;
                 const actualOrder = parseFloat(f.actual_order) || 0;
                 const isBooked = actualOrder > 0;
-
-                const enrichedFollowup: FollowUp = {
+                setSelectedFollowup({
                     ...f,
-                    date: f.date_of_calling,
-                    isBooked,
+                    date: f.date_of_calling, isBooked,
                     quantity: isBooked ? actualOrder : "",
                     orderDate: isBooked ? f.actual_order_date : null,
                     status: isBooked ? 'Order Booked' : (!f.next_calling_date ? "Waiting for Response" : "Next Call Scheduled"),
@@ -340,25 +321,14 @@ const FollowUpsPage: React.FC = () => {
                     salesPerson: String(f.sales_person || 'Unknown').trim(),
                     customerName: f.client_name,
                     id: f.followup_id
-                };
-
-                setSelectedFollowup(enrichedFollowup);
+                });
                 setIsModalOpen(true);
             }
         } catch (error) {
-            console.error("Failed to fetch specific followup details", error);
+            console.error("Failed to fetch followup", error);
         } finally {
             setLoading(false);
         }
-    };
-
-    const handleModalClose = () => {
-        setIsModalOpen(false);
-        setSelectedFollowup(null);
-    };
-
-    const handleModalSuccess = () => {
-        fetchFollowups();
     };
 
     const fetchFollowups = async () => {
@@ -366,15 +336,12 @@ const FollowUpsPage: React.FC = () => {
         try {
             const response = await o2dAPI.getFollowups();
             const allFollowups = response.data?.data || [];
-            // console.log(allFollowups)
-            const enrichedFollowups: FollowUp[] = allFollowups.map((f: any) => {
+            setFollowups(allFollowups.map((f: any) => {
                 const actualOrder = parseFloat(f.actual_order) || 0;
                 const isBooked = actualOrder > 0;
-
                 return {
                     ...f,
-                    date: f.date_of_calling,
-                    isBooked,
+                    date: f.date_of_calling, isBooked,
                     quantity: isBooked ? actualOrder : "",
                     orderDate: isBooked ? f.actual_order_date : null,
                     status: isBooked ? 'Order Booked' : (!f.next_calling_date ? "Waiting for Response" : "Next Call Scheduled"),
@@ -383,9 +350,7 @@ const FollowUpsPage: React.FC = () => {
                     customerName: f.client_name,
                     id: f.followup_id
                 };
-            });
-
-            setFollowups(enrichedFollowups);
+            }));
         } catch (error) {
             console.error("Failed to fetch followups", error);
         } finally {
@@ -393,192 +358,218 @@ const FollowUpsPage: React.FC = () => {
         }
     };
 
-    useEffect(() => {
-        fetchFollowups();
-    }, []);
+    useEffect(() => { fetchFollowups(); }, []);
+    useEffect(() => { setVisibleCount(100); }, [search, user]);
 
     const filteredFollowups = useMemo(() => {
         const lower = search.toLowerCase();
         let result = [...followups];
-
         if (user?.role === 'Sales') {
             const myName = (user.user_name || user.username || '').toLowerCase();
             result = result.filter(f => f.salesPerson.toLowerCase() === myName);
         }
-
         if (lower) {
             result = result.filter(f =>
-                (f.customerName?.toLowerCase().includes(lower)) ||
-                (f.status?.toLowerCase().includes(lower)) ||
-                (f.salesPerson?.toLowerCase().includes(lower))
+                f.customerName?.toLowerCase().includes(lower) ||
+                f.status?.toLowerCase().includes(lower) ||
+                f.salesPerson?.toLowerCase().includes(lower)
             );
         }
-
         return result;
     }, [search, followups, user]);
 
-    const [visibleCount, setVisibleCount] = useState(100);
-
-    // Reset visible count when search changes
-    useEffect(() => {
-        setVisibleCount(100);
-    }, [search, user]);
+    const visibleFollowups = useMemo(() => filteredFollowups.slice(0, visibleCount), [filteredFollowups, visibleCount]);
 
     const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
         const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-        if (scrollHeight - scrollTop <= clientHeight + 100) {
+        if (scrollHeight - scrollTop <= clientHeight + 100)
             setVisibleCount(prev => Math.min(prev + 50, filteredFollowups.length));
-        }
     };
 
-    const visibleFollowups = useMemo(() => {
-        return filteredFollowups.slice(0, visibleCount);
-    }, [filteredFollowups, visibleCount]);
+    const statusStyle = (f: FollowUp) => {
+        if (f.isBooked) return 'bg-emerald-100 text-emerald-700 border border-emerald-200';
+        if (f.status === 'Waiting for Response') return 'bg-amber-100 text-amber-700 border border-amber-200';
+        return 'bg-blue-100 text-blue-700 border border-blue-200';
+    };
 
     return (
-        <div className="flex flex-col h-[calc(100vh-120px)] space-y-4 md:space-y-6">
-            {/* Header Section - Sticky on top */}
-            <div className="bg-gray-50/50 backdrop-blur-sm p-4 md:p-0 rounded-2xl space-y-4 sticky top-0 z-20">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col min-h-screen bg-slate-50">
+
+            {/* ── Sticky Header ── */}
+            <div className="sticky top-0 z-20 bg-white border-b border-slate-200 shadow-sm">
+                {/* Title row */}
+                <div className="px-3 py-2.5 sm:px-5 sm:py-3 flex items-center justify-between gap-3">
                     <div>
-                        <h1 className="text-2xl md:text-4xl font-black text-gray-800 tracking-tight">Follow-ups</h1>
-                        <p className="text-gray-500 font-bold mt-1 text-sm md:text-base">
-                            {user?.role === 'Admin' ? 'Team performance & interactions' : 'Your client follow-up history'}
+                        <h1 className="text-sm sm:text-base font-black text-slate-800 leading-tight">Follow-ups</h1>
+                        <p className="text-[9px] sm:text-[10px] text-slate-400 font-medium">
+                            {filteredFollowups.length} record{filteredFollowups.length !== 1 ? 's' : ''}
                         </p>
                     </div>
                 </div>
-
-                <div className="relative group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-blue-500 transition-colors" />
-                    <input
-                        type="text"
-                        placeholder="Search by Customer, Status, or Sales Person..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="w-full bg-white border border-gray-200 rounded-2xl py-4 pl-12 pr-4 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all shadow-sm font-bold text-sm md:text-lg"
-                    />
+                {/* Search */}
+                <div className="px-3 pb-2.5 sm:px-5 sm:pb-3">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        <input
+                            type="text"
+                            placeholder="Search customer, status, sales person..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 sm:py-2.5 pl-9 pr-4 text-slate-800 text-xs sm:text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        />
+                        {search && (
+                            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                <X className="w-3.5 h-3.5" />
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
 
+            {/* ── Loading ── */}
             {loading ? (
-                <div className="flex-1 flex flex-col items-center justify-center py-20 animate-pulse">
-                    <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-                    <p className="text-gray-400 font-black uppercase tracking-widest text-xs">Loading Follow-ups...</p>
+                <div className="flex-1 flex flex-col items-center justify-center py-20 gap-3">
+                    <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">Loading...</p>
                 </div>
             ) : (
-                <div className="flex-1 min-h-0">
-                    <div className="bg-white border border-gray-100 rounded-3xl shadow-2xl shadow-gray-200/50 overflow-hidden h-full flex flex-col">
-                        <div
-                            className="overflow-auto flex-1 scrollbar-hide"
-                            onScroll={handleScroll}
-                        >
-                            <table className="w-full text-left border-separate border-spacing-0 min-w-[800px] md:min-w-full">
-                                <thead className="z-20">
-                                    <tr className="uppercase text-[10px] md:text-xs font-black tracking-widest">
-                                        <th className="sticky top-0 p-5 md:p-6 bg-gray-800 text-white first:rounded-tl-3xl z-30 text-center">Action</th>
-                                        <th className="sticky top-0 p-5 md:p-6 bg-gray-800 text-white z-30">Date</th>
-                                        <th className="sticky top-0 p-5 md:p-6 bg-gray-800 text-white z-30">Customer</th>
-                                        <th className="sticky top-0 p-5 md:p-6 bg-gray-800 text-white z-30">Sales Person</th>
-                                        <th className="sticky top-0 p-5 md:p-6 bg-gray-800 text-white text-center z-30">Status</th>
-                                        <th className="sticky top-0 p-5 md:p-6 bg-gray-800 text-white z-30">Order Details</th>
-                                        <th className="sticky top-0 p-5 md:p-6 bg-gray-800 text-white last:rounded-tr-3xl z-30">Next Call</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-50">
-                                    {visibleFollowups.length > 0 ? (
-                                        visibleFollowups.map((f, index) => (
-                                            <tr key={f.id || index} className="group hover:bg-blue-50/40 transition-all duration-200">
-                                                <td className="p-5 md:p-6 text-center">
-                                                    <button
-                                                        onClick={() => handleCalendarClick(f)}
-                                                        className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all hover:scale-105 active:scale-95"
-                                                        title="Edit Follow-up"
-                                                    >
-                                                        <PlayCircle className="w-4 h-4" />
-                                                        Edit
-                                                    </button>
-                                                </td>
-                                                <td className="p-5 md:p-6">
-                                                    <div className="flex items-center gap-3 text-gray-700 font-bold text-sm">
-                                                        <div className="p-2 bg-gray-100 rounded-lg group-hover:bg-white transition-colors">
-                                                            <Calendar className="w-4 h-4 text-blue-500" />
-                                                        </div>
-                                                        {formatDate(f.date)}
-                                                    </div>
-                                                </td>
-                                                <td className="p-5 md:p-6 font-black text-gray-900 text-sm md:text-base tracking-tight">{f.customerName}</td>
+                <div
+                    className="flex-1 overflow-auto"
+                    onScroll={handleScroll}
+                    style={{ WebkitOverflowScrolling: 'touch' }}
+                >
+                    {/* Mobile Card List (< lg) */}
+                    <div className="lg:hidden px-2 py-2 space-y-2 pb-20">
+                        {visibleFollowups.length > 0 ? visibleFollowups.map((f, index) => (
+                            <div key={f.id || index} className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+                                {/* Card top */}
+                                <div className="flex items-center justify-between px-3 py-2 bg-slate-50 border-b border-slate-100">
+                                    <div className="flex items-center gap-2">
+                                        <Calendar className="w-3 h-3 text-blue-500 flex-shrink-0" />
+                                        <span className="text-[10px] font-bold text-slate-600">{formatDate(f.date)}</span>
+                                    </div>
+                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${statusStyle(f)}`}>
+                                        {f.isBooked ? 'Booked' : f.status === 'Waiting for Response' ? 'Waiting' : 'Scheduled'}
+                                    </span>
+                                </div>
+                                {/* Card body */}
+                                <div className="px-3 py-2 space-y-2">
+                                    <p className="text-xs font-black text-slate-900">{f.customerName}</p>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="w-5 h-5 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-[8px] font-black flex-shrink-0">
+                                                {f.salesPerson?.charAt(0)?.toUpperCase() || 'N'}
+                                            </div>
+                                            <span className="text-[10px] font-semibold text-slate-500">{f.salesPerson}</span>
+                                        </div>
+                                        {f.isBooked && (
+                                            <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+                                                {f.quantity} MT · {formatDate(f.orderDate)}
+                                            </span>
+                                        )}
+                                        {f.nextCall && !f.isBooked && (
+                                            <div className="flex items-center gap-1 text-blue-600">
+                                                <Clock className="w-3 h-3" />
+                                                <span className="text-[10px] font-bold">{formatDate(f.nextCall)}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                {/* Action */}
+                                <div className="px-3 pb-2.5">
+                                    <button
+                                        onClick={() => handleCalendarClick(f)}
+                                        className="w-full flex items-center justify-center gap-1.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] uppercase tracking-wider rounded-lg transition-all active:scale-98"
+                                    >
+                                        <PlayCircle className="w-3.5 h-3.5" />
+                                        Edit Follow-up
+                                    </button>
+                                </div>
+                            </div>
+                        )) : (
+                            <div className="flex flex-col items-center justify-center py-20 gap-3">
+                                <Search className="w-10 h-10 text-slate-200" />
+                                <p className="text-slate-400 font-bold text-xs uppercase tracking-wider">No results found</p>
+                            </div>
+                        )}
+                    </div>
 
-                                                <td className="p-5 md:p-6">
-                                                    <div className="flex items-center gap-2 font-bold text-gray-600 text-sm">
-                                                        <UserIcon className="w-4 h-4 text-purple-500" />
-                                                        {f.salesPerson}
-                                                    </div>
-                                                </td>
-
-                                                <td className="p-5 md:p-6 text-center">
-                                                    <span className={`
-                                                        inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border-2
-                                                        ${f.isBooked
-                                                            ? 'bg-green-50 text-green-700 border-green-200 shadow-sm shadow-green-100'
-                                                            : f.status === 'Waiting for Response'
-                                                                ? 'bg-orange-50 text-orange-700 border-orange-200 shadow-sm shadow-orange-100'
-                                                                : 'bg-blue-50 text-blue-700 border-blue-200 shadow-sm shadow-blue-100'}
-                                                    `}>
-                                                        {f.status}
-                                                    </span>
-                                                </td>
-                                                <td className="p-5 md:p-6">
-                                                    {f.isBooked ? (
-                                                        <div className="bg-green-50/50 p-2 rounded-xl border border-green-100/50 inline-block min-w-[120px]">
-                                                            <div className="text-green-700 font-black text-sm">Qty: {f.quantity}</div>
-                                                            {f.orderDate && (
-                                                                <div className="text-[10px] text-green-600/80 font-bold uppercase tracking-tighter">
-                                                                    {formatDate(f.orderDate)}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    ) : (
-                                                        <span className="text-gray-300 font-black">-</span>
-                                                    )}
-                                                </td>
-                                                <td className="p-5 md:p-6">
-                                                    {f.nextCall ? (
-                                                        <div className="flex items-center gap-2 text-blue-600 font-black bg-blue-50/50 px-3 py-1.5 rounded-xl w-fit border border-blue-100/50 text-sm">
-                                                            <Clock className="w-4 h-4" />
-                                                            {formatDate(f.nextCall)}
-                                                        </div>
-                                                    ) : (
-                                                        <span className="text-gray-300 text-xs font-black uppercase tracking-widest italic">No Schedule</span>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan={7} className="p-20 text-center">
-                                                <div className="flex flex-col items-center">
-                                                    <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                                                        <Search className="w-10 h-10 text-gray-200" />
-                                                    </div>
-                                                    <p className="text-gray-400 font-black uppercase tracking-widest text-sm">No Match Found</p>
+                    {/* Desktop Table (>= lg) */}
+                    <div className="hidden lg:block">
+                        <table className="w-full text-left border-separate border-spacing-0">
+                            <thead>
+                                <tr className="text-[10px] font-black tracking-widest uppercase">
+                                    {['Action', 'Date', 'Customer', 'Sales Person', 'Status', 'Order Details', 'Next Call'].map(h => (
+                                        <th key={h} className="sticky top-0 px-4 py-3 bg-slate-800 text-white first:rounded-tl-none last:rounded-tr-none z-10">
+                                            {h}
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50 bg-white">
+                                {visibleFollowups.length > 0 ? visibleFollowups.map((f, index) => (
+                                    <tr key={f.id || index} className="hover:bg-blue-50/40 transition-colors group">
+                                        <td className="px-4 py-3 text-center">
+                                            <button
+                                                onClick={() => handleCalendarClick(f)}
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] uppercase tracking-wider rounded-lg shadow-sm transition-all active:scale-95"
+                                            >
+                                                <PlayCircle className="w-3.5 h-3.5" />
+                                                Edit
+                                            </button>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <div className="flex items-center gap-2 text-slate-700 font-semibold text-xs">
+                                                <Calendar className="w-3.5 h-3.5 text-blue-500" />
+                                                {formatDate(f.date)}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3 font-black text-slate-900 text-sm">{f.customerName}</td>
+                                        <td className="px-4 py-3">
+                                            <div className="flex items-center gap-2 font-semibold text-slate-600 text-xs">
+                                                <UserIcon className="w-3.5 h-3.5 text-purple-500" />
+                                                {f.salesPerson}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3 text-center">
+                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${statusStyle(f)}`}>
+                                                {f.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {f.isBooked ? (
+                                                <div className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg inline-block">
+                                                    <div>Qty: {f.quantity}</div>
+                                                    {f.orderDate && <div className="text-[10px] text-emerald-600/70">{formatDate(f.orderDate)}</div>}
                                                 </div>
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                                            ) : <span className="text-slate-300 text-xs">—</span>}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {f.nextCall ? (
+                                                <div className="flex items-center gap-1.5 text-blue-600 font-bold text-xs bg-blue-50 px-2.5 py-1.5 rounded-lg w-fit">
+                                                    <Clock className="w-3.5 h-3.5" />
+                                                    {formatDate(f.nextCall)}
+                                                </div>
+                                            ) : <span className="text-slate-300 text-xs italic">No schedule</span>}
+                                        </td>
+                                    </tr>
+                                )) : (
+                                    <tr>
+                                        <td colSpan={7} className="py-16 text-center text-slate-300 font-bold text-sm">No results found</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             )}
 
-            {/* Follow-up Modal - Now Inlined Here */}
             <FollowUpModal
                 isOpen={isModalOpen}
-                onClose={handleModalClose}
+                onClose={() => { setIsModalOpen(false); setSelectedFollowup(null); }}
                 customer={selectedFollowup ? { name: selectedFollowup.customerName } : {}}
                 followup={selectedFollowup}
-                onSuccess={handleModalSuccess}
+                onSuccess={fetchFollowups}
             />
         </div>
     );

@@ -16,88 +16,50 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
     const { user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
-        order_booked: 'true', // string 'true'/'false' for radio handling - default to Yes Booked
+        order_booked: 'true',
         order_quantity: '',
         order_date: new Date().toISOString().split('T')[0],
         date_of_calling: new Date().toISOString().split('T')[0],
         next_calling_date: '',
-        status: 'Order Booked' // Default status
     });
-
     const [waitingForResponse, setWaitingForResponse] = useState(false);
 
-    // Helper to format date YYYY-MM-DD -> dd-MM-yyyy for display
-    const formatDisplayDate = (dateString: string) => {
-        if (!dateString) return '';
-        try {
-            return format(new Date(dateString), 'dd-MM-yyyy');
-        } catch {
-            return dateString;
-        }
-    };
+    const fmtDisplay = (s: string) => { try { return format(new Date(s), 'dd-MM-yyyy'); } catch { return s; } };
+    const fmtPayload = (s: string) => { try { return format(new Date(s), 'dd-MM-yyyy'); } catch { return s; } };
 
     useEffect(() => {
-        if (isOpen) {
-            if (followup) {
-                setFormData({
-                    order_booked: followup.isBooked ? 'true' : 'false',
-                    order_quantity: followup.quantity || '',
-                    order_date: followup.orderDate ? new Date(followup.orderDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-                    date_of_calling: followup.date ? new Date(followup.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-                    next_calling_date: followup.nextCall ? new Date(followup.nextCall).toISOString().split('T')[0] : '',
-                    status: followup.status || 'Order Booked'
-                });
-                setWaitingForResponse(followup.status === 'Waiting for Response');
-            } else {
-                // Reset form on open - default to Yes Booked
-                setFormData({
-                    order_booked: 'true',
-                    order_quantity: '',
-                    order_date: new Date().toISOString().split('T')[0],
-                    date_of_calling: new Date().toISOString().split('T')[0],
-                    next_calling_date: '',
-                    status: 'Order Booked'
-                });
-                setWaitingForResponse(false);
-            }
+        if (!isOpen) return;
+        if (followup) {
+            setFormData({
+                order_booked: followup.isBooked ? 'true' : 'false',
+                order_quantity: followup.quantity || '',
+                order_date: followup.orderDate ? new Date(followup.orderDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                date_of_calling: followup.date ? new Date(followup.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                next_calling_date: followup.nextCall ? new Date(followup.nextCall).toISOString().split('T')[0] : '',
+            });
+            setWaitingForResponse(followup.status === 'Waiting for Response');
+        } else {
+            setFormData({ order_booked: 'true', order_quantity: '', order_date: new Date().toISOString().split('T')[0], date_of_calling: new Date().toISOString().split('T')[0], next_calling_date: '' });
+            setWaitingForResponse(false);
         }
     }, [isOpen, followup]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        if (e) e.preventDefault();
+    const handleSubmit = async () => {
         setLoading(true);
-
         try {
             const clientName = followup?.customerName || customer?.["Client Name"] || customer?.name || "Unknown";
-
-            // Helper to format date YYYY-MM-DD -> dd-MM-yyyy for payload
-            const formatDatePayload = (dateStr: string) => {
-                if (!dateStr) return null;
-                try {
-                    return format(new Date(dateStr), "dd-MM-yyyy");
-                } catch {
-                    return dateStr;
-                }
-            };
-
             const payload = {
                 client_name: clientName,
                 sales_person: user?.user_name || user?.username || '',
                 actual_order: formData.order_booked === 'true' ? parseFloat(formData.order_quantity) : 0,
-                // Format dates to dd-MM-yyyy
-                actual_order_date: formData.order_booked === 'true' ? formatDatePayload(formData.order_date) : null,
-                date_of_calling: formatDatePayload(formData.date_of_calling),
-                next_calling_date: (formData.order_booked === 'false' && !waitingForResponse) ? formatDatePayload(formData.next_calling_date) : null
+                actual_order_date: formData.order_booked === 'true' ? fmtPayload(formData.order_date) : null,
+                date_of_calling: fmtPayload(formData.date_of_calling),
+                next_calling_date: (formData.order_booked === 'false' && !waitingForResponse) ? fmtPayload(formData.next_calling_date) : null
             };
-
-            // Always create new follow-up - remove UPDATE logic entirely as requested
-            // This ensures we only add to follow-up history and NEVER touch the client table
             await o2dAPI.createFollowup(payload);
-
             onSuccess();
             onClose();
         } catch (error) {
-            console.error("Follow-up error:", error);
             alert('Failed to save follow-up');
         } finally {
             setLoading(false);
@@ -106,215 +68,123 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
 
     if (!isOpen) return null;
 
-    return (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-hidden">
-            <div
-                onClick={onClose}
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-            />
+    const customerName = followup?.customerName || customer?.["Client Name"] || customer?.name;
+    const isBooked = formData.order_booked === 'true';
 
-            <div
-                className="relative bg-white border border-gray-100 rounded-t-[2.5rem] sm:rounded-[2rem] w-full max-w-lg overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col max-h-[92vh] animate-in slide-in-from-bottom duration-150"
-            >
+    return (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <div onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <div className="relative bg-white rounded-t-3xl sm:rounded-2xl w-full max-w-md shadow-2xl flex flex-col max-h-[92vh] animate-in slide-in-from-bottom duration-200">
+
                 {/* Header */}
-                <div className="px-5 py-4 md:px-8 md:py-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/90 backdrop-blur-md sticky top-0 z-20 shrink-0">
-                    <div className="min-w-0 flex-1">
-                        <h2 className="text-lg md:text-2xl font-black text-gray-800 truncate tracking-tight">
-                            Follow Up: <span className="text-blue-600">{followup?.customerName || customer?.["Client Name"] || customer?.name}</span>
+                <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+                    <div className="min-w-0">
+                        <h2 className="text-sm sm:text-base font-black text-slate-800 truncate">
+                            Follow Up: <span className="text-blue-600">{customerName}</span>
                         </h2>
-                        <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mt-0.5">Interaction History</p>
+                        <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Interaction Record</p>
                     </div>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-700 bg-white p-2.5 rounded-full shadow-sm hover:shadow-md transition-all active:scale-95 ml-4 shrink-0">
-                        <X className="w-5 h-5 md:w-6 md:h-6" />
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600 bg-white p-2 rounded-full shadow-sm ml-3 flex-shrink-0">
+                        <X className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                 </div>
 
                 {/* Body */}
-                <div className="p-5 md:p-8 space-y-6 md:space-y-8 overflow-y-auto flex-1 custom-scrollbar">
-                    {/* Order Booked Question */}
-                    <div className="space-y-3">
-                        <label className="text-[10px] md:text-xs font-black text-gray-400 block uppercase tracking-widest">Is Order Booked?</label>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <label className={`
-                                flex items-center justify-center p-4 md:p-5 rounded-2xl border-2 cursor-pointer transition-all duration-150
-                                ${formData.order_booked === 'true'
-                                    ? 'bg-green-50 border-green-500 text-green-700 shadow-xl shadow-green-100 scale-[1.02]'
-                                    : 'bg-white border-gray-100 text-gray-400 hover:bg-gray-50 hover:border-gray-200'}
-                            `}>
-                                <input
-                                    type="radio"
-                                    name="order_booked"
-                                    value="true"
-                                    checked={formData.order_booked === 'true'}
-                                    onChange={(e) => setFormData({ ...formData, order_booked: e.target.value })}
-                                    className="hidden"
-                                />
-                                <CheckCircle className={`w-5 h-5 md:w-6 md:h-6 mr-3 ${formData.order_booked === 'true' ? 'fill-green-500 text-white' : 'text-gray-300'}`} />
-                                <span className="font-black text-sm md:text-base">Yes, Booked</span>
-                            </label>
+                <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
 
-                            <label className={`
-                                flex items-center justify-center p-4 md:p-5 rounded-2xl border-2 cursor-pointer transition-all duration-150
-                                ${formData.order_booked === 'false'
-                                    ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-xl shadow-blue-100 scale-[1.02]'
-                                    : 'bg-white border-gray-100 text-gray-400 hover:bg-gray-50 hover:border-gray-200'}
-                            `}>
-                                <input
-                                    type="radio"
-                                    name="order_booked"
-                                    value="false"
-                                    checked={formData.order_booked === 'false'}
-                                    onChange={(e) => {
-                                        setFormData({ ...formData, order_booked: e.target.value });
-                                        setWaitingForResponse(false);
-                                    }}
-                                    className="hidden"
-                                />
-                                <Clock className={`w-5 h-5 md:w-6 md:h-6 mr-3 ${formData.order_booked === 'false' ? 'fill-blue-500 text-white' : 'text-gray-300'}`} />
-                                <span className="font-black text-sm md:text-base">No / Pending</span>
-                            </label>
+                    {/* Booked toggle */}
+                    <div className="space-y-2">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Is Order Booked?</label>
+                        <div className="grid grid-cols-2 gap-2">
+                            {[
+                                { val: 'true', label: 'Yes, Booked', Icon: CheckCircle, cls: 'bg-emerald-50 border-emerald-500 text-emerald-700' },
+                                { val: 'false', label: 'No / Pending', Icon: Clock, cls: 'bg-blue-50 border-blue-500 text-blue-700' },
+                            ].map(({ val, label, Icon, cls }) => (
+                                <label key={val} className={`flex items-center justify-center p-3 rounded-xl border-2 cursor-pointer transition-all text-xs font-black ${formData.order_booked === val ? cls : 'bg-white border-slate-100 text-slate-400'}`}>
+                                    <input type="radio" name="order_booked" value={val} checked={formData.order_booked === val}
+                                        onChange={(e) => setFormData({ ...formData, order_booked: e.target.value })} className="hidden" />
+                                    <Icon className="w-4 h-4 mr-2 flex-shrink-0" />
+                                    {label}
+                                </label>
+                            ))}
                         </div>
                     </div>
 
-                    {/* CONDITIONAL: Order Booked = YES */}
-                    {formData.order_booked === 'true' && (
-                        <div
-                            className="space-y-4 md:space-y-6 bg-green-50/20 p-5 md:p-6 rounded-[2rem] border border-green-100 animate-in fade-in zoom-in duration-150"
-                        >
+                    {/* Booked - YES */}
+                    {isBooked && (
+                        <div className="space-y-3 bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100 animate-in fade-in">
                             <div>
-                                <label className="text-[10px] md:text-xs font-black text-green-700 mb-2 block uppercase tracking-widest">Order Quantity</label>
-                                <input
-                                    type="number"
-                                    required
-                                    value={formData.order_quantity}
+                                <label className="text-[9px] font-black text-emerald-700 uppercase tracking-widest block mb-1">Order Quantity</label>
+                                <input type="number" required value={formData.order_quantity}
                                     onChange={(e) => setFormData({ ...formData, order_quantity: e.target.value })}
-                                    className="w-full bg-white border border-green-200 rounded-xl p-3 md:p-4 text-gray-800 focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none font-black text-sm transition-all"
-                                    placeholder="Enter total quantity"
-                                />
+                                    className="w-full bg-white border border-emerald-200 rounded-xl px-3 py-2.5 text-slate-800 font-semibold text-sm outline-none focus:border-emerald-500 transition-all"
+                                    placeholder="Enter quantity" />
                             </div>
                             <div>
-                                <label className="text-[10px] md:text-xs font-black text-green-700 mb-2 block uppercase tracking-widest">Order Date</label>
-                                <div className="relative w-full group">
-                                    <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none z-20">
-                                        <Calendar className="w-5 h-5 text-green-500/50 group-focus-within:text-green-600 transition-colors" />
-                                    </div>
-                                    <input
-                                        type="date"
-                                        required
-                                        value={formData.order_date}
+                                <label className="text-[9px] font-black text-emerald-700 uppercase tracking-widest block mb-1">Order Date</label>
+                                <div className="relative">
+                                    <input type="date" required value={formData.order_date}
                                         onChange={(e) => setFormData({ ...formData, order_date: e.target.value })}
                                         onClick={(e) => (e.target as any).showPicker?.()}
-                                        className="peer absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                    />
-                                    <input
-                                        type="text"
-                                        readOnly
-                                        value={formatDisplayDate(formData.order_date)}
-                                        placeholder="dd-mm-yyyy"
-                                        className="w-full bg-white border border-green-200 rounded-xl p-3 md:p-4 text-gray-800 peer-focus:ring-4 peer-focus:ring-green-500/10 peer-focus:border-green-500 outline-none font-bold text-sm transition-all"
-                                    />
+                                        className="peer absolute inset-0 opacity-0 cursor-pointer z-10 w-full h-full" />
+                                    <div className="flex items-center bg-white border border-emerald-200 rounded-xl px-3 py-2.5 gap-2">
+                                        <Calendar className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+                                        <span className="text-slate-700 font-semibold text-sm">{fmtDisplay(formData.order_date) || 'Select date'}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    {/* CONDITIONAL: Order Booked = NO */}
-                    {formData.order_booked === 'false' && (
-                        <div
-                            className="space-y-6 animate-in fade-in zoom-in duration-150"
-                        >
-                            <div className="flex items-center space-x-3 md:space-x-4 p-4 md:p-5 bg-orange-50/50 border border-orange-100 rounded-2xl">
-                                <AlertCircle className="w-5 h-5 md:w-6 md:h-6 text-orange-500 shrink-0" />
-                                <span className="text-xs md:text-sm font-bold text-orange-800 leading-tight">Must schedule a future follow-up call with this client</span>
+                    {/* Booked - NO */}
+                    {!isBooked && (
+                        <div className="space-y-3 animate-in fade-in">
+                            <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-100 rounded-xl">
+                                <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                                <span className="text-xs font-bold text-amber-800">Schedule a follow-up call</span>
                             </div>
-
-                            <div className="space-y-2">
-                                <label className="text-[10px] md:text-xs font-black text-gray-400 block uppercase tracking-widest">Date of Calling</label>
-                                <div className="relative w-full group">
-                                    <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none z-20">
-                                        <Calendar className="w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
-                                    </div>
-                                    <input
-                                        type="date"
-                                        required
-                                        value={formData.date_of_calling}
+                            <div>
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Date of Calling</label>
+                                <div className="relative">
+                                    <input type="date" required value={formData.date_of_calling}
                                         onChange={(e) => setFormData({ ...formData, date_of_calling: e.target.value })}
                                         onClick={(e) => (e.target as any).showPicker?.()}
-                                        className="peer absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                    />
-                                    <input
-                                        type="text"
-                                        readOnly
-                                        value={formatDisplayDate(formData.date_of_calling)}
-                                        placeholder="dd-mm-yyyy"
-                                        className="w-full bg-gray-50/50 border border-gray-200 rounded-xl md:rounded-2xl p-3.5 md:p-4 text-gray-800 peer-focus:ring-4 peer-focus:ring-blue-500/10 peer-focus:border-blue-500 outline-none font-bold transition-all peer-focus:bg-white text-sm"
-                                    />
+                                        className="peer absolute inset-0 opacity-0 cursor-pointer z-10 w-full h-full" />
+                                    <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 gap-2">
+                                        <Calendar className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+                                        <span className="text-slate-700 font-semibold text-sm">{fmtDisplay(formData.date_of_calling) || 'Select date'}</span>
+                                    </div>
                                 </div>
                             </div>
-
-                            <div className={`space-y-2 ${waitingForResponse ? 'opacity-50 pointer-events-none' : ''}`}>
-                                <label className="text-[10px] md:text-xs font-black text-gray-400 block uppercase tracking-widest">Next Calling Date</label>
-                                <div className="relative w-full group">
-                                    {!waitingForResponse && (
-                                        <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none z-20">
-                                            <Calendar className="w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
-                                        </div>
-                                    )}
-                                    <input
-                                        type="date"
-                                        required={!waitingForResponse}
-                                        disabled={waitingForResponse}
+                            <div className={waitingForResponse ? 'opacity-40 pointer-events-none' : ''}>
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Next Calling Date</label>
+                                <div className="relative">
+                                    <input type="date" required={!waitingForResponse} disabled={waitingForResponse}
                                         value={formData.next_calling_date}
                                         onChange={(e) => setFormData({ ...formData, next_calling_date: e.target.value })}
                                         onClick={(e) => !waitingForResponse && (e.target as any).showPicker?.()}
-                                        className="peer absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
-                                    />
-                                    <input
-                                        type="text"
-                                        readOnly
-                                        disabled={waitingForResponse}
-                                        value={formatDisplayDate(formData.next_calling_date)}
-                                        placeholder="dd-mm-yyyy"
-                                        className="w-full bg-gray-50/50 border border-gray-200 rounded-xl md:rounded-2xl p-3.5 md:p-4 text-gray-800 peer-focus:ring-4 peer-focus:ring-blue-500/10 peer-focus:border-blue-500 outline-none font-bold transition-all peer-focus:bg-white text-sm disabled:bg-gray-100 disabled:text-gray-400"
-                                    />
+                                        className="peer absolute inset-0 opacity-0 cursor-pointer z-10 w-full h-full disabled:cursor-not-allowed" />
+                                    <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 gap-2">
+                                        <Calendar className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+                                        <span className="text-slate-700 font-semibold text-sm">{fmtDisplay(formData.next_calling_date) || 'Select date'}</span>
+                                    </div>
                                 </div>
                             </div>
-
-                            <label className="relative flex items-center cursor-pointer group w-fit py-2">
-                                <input
-                                    type="checkbox"
-                                    id="waiting"
-                                    checked={waitingForResponse}
+                            <label className="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" checked={waitingForResponse}
                                     onChange={(e) => setWaitingForResponse(e.target.checked)}
-                                    className="peer sr-only"
-                                />
-                                <div className="w-5 h-5 md:w-6 md:h-6 bg-gray-50 border-2 border-gray-200 rounded-lg peer-checked:bg-blue-600 peer-checked:border-blue-600 transition-all flex items-center justify-center group-hover:border-blue-400">
-                                    <CheckCircle className="w-3.5 h-3.5 md:w-4 md:h-4 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
-                                </div>
-                                <span className="ml-3 text-xs md:text-sm font-black text-gray-400 peer-checked:text-blue-600 select-none transition-all uppercase tracking-widest">
-                                    Waiting for Response
-                                </span>
+                                    className="w-4 h-4 text-blue-600 rounded border-slate-300" />
+                                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Waiting for Response</span>
                             </label>
                         </div>
                     )}
                 </div>
 
                 {/* Footer */}
-                <div className="p-5 md:p-8 bg-white border-t border-gray-100 shrink-0">
-                    <button
-                        type="button"
-                        onClick={handleSubmit as any}
-                        disabled={loading}
-                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 md:py-5 rounded-2xl md:rounded-[1.5rem] shadow-2xl shadow-blue-500/40 hover:-translate-y-1 transition-all flex justify-center items-center space-x-3 text-base md:text-xl active:scale-[0.98] disabled:grayscale disabled:opacity-50"
-                    >
-                        {loading ? (
-                            <div className="flex items-center space-x-2">
-                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                <span className="uppercase tracking-widest text-xs">Submitting...</span>
-                            </div>
-                        ) : (
-                            <span>Submit Follow Up</span>
-                        )}
+                <div className="p-4 sm:p-5 bg-white border-t border-slate-100 shrink-0">
+                    <button onClick={handleSubmit} disabled={loading}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-3 sm:py-4 rounded-2xl shadow-lg shadow-blue-500/30 transition-all flex justify-center items-center gap-2 text-sm active:scale-[0.98] disabled:opacity-50">
+                        {loading ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /><span>Submitting...</span></> : 'Submit Follow Up'}
                     </button>
                 </div>
             </div>

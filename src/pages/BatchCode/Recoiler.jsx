@@ -554,279 +554,248 @@ function ReCoilPage() {
                 )}
 
                 {/* Header Section */}
-                <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-                    <div className="flex items-center gap-3 w-full">
-                        <div className="flex-1 min-w-0">
-                            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-red-500 truncate">
-                                {showHistory ? "ReCoil History" : "ReCoil Processing"}
-                            </h1>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                        <div className="relative w-full sm:flex-1">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                            <input
-                                type="text"
-                                placeholder="Search across all columns..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                            />
-                            {searchTerm && (
-                                <button
-                                    onClick={() => setSearchTerm("")}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                >
-                                    <X size={16} />
-                                </button>
-                            )}
-                        </div>
-
+                <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-red-500 leading-tight">
+                            {showHistory ? "ReCoil History" : "ReCoil Processing"}
+                        </h1>
                         <button
                             onClick={toggleView}
-                            className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors w-full sm:w-auto"
+                            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm font-medium flex-shrink-0"
                         >
                             {showHistory ? (
                                 <>
                                     <ArrowLeft className="h-4 w-4" />
-                                    Back to Pending
+                                    <span>Pending</span>
                                 </>
                             ) : (
                                 <>
                                     <History className="h-4 w-4" />
-                                    View History
+                                    <span>History</span>
                                 </>
                             )}
                         </button>
                     </div>
+
+                    <div className="relative w-full">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                        <input
+                            type="text"
+                            placeholder="Search..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                        />
+                        {searchTerm && (
+                            <button
+                                onClick={() => setSearchTerm("")}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            >
+                                <X size={16} />
+                            </button>
+                        )}
+                    </div>
                 </div>
 
-                {/* Process Form Modal */}
+                {/* Process Form – inline expanded card */}
                 {showProcessForm && (
-                    <div className="fixed inset-0 flex items-center justify-center p-4 z-50 pointer-events-none">
-                        <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto pointer-events-auto">
-                            <div className="bg-red-500 text-white p-4 rounded-t-lg flex justify-between items-center">
-                                <h3 className="text-lg font-semibold">Submit ReCoil Data</h3>
-                                <button onClick={handleCloseProcessForm} className="text-white hover:text-gray-200">
-                                    <X className="h-5 w-5" />
-                                </button>
-                            </div>
+                    <div className="rounded-lg border-2 border-red-300 bg-white shadow-lg overflow-hidden">
+                        <div className="bg-red-500 text-white px-4 py-3 flex justify-between items-center">
+                            <h3 className="text-base font-semibold">Submit ReCoil Data / रीकॉइल डेटा जमा करें</h3>
+                            <button onClick={handleCloseProcessForm} className="text-white hover:text-red-100 p-1">
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
 
-                            <div className="p-6 space-y-4">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {/* Hot Coiler Short Code (Auto-filled from Hot Coil) */}
+                        <div className="p-4 space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {/* Hot Coil Code */}
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                                        Hot Coil Code / हॉट कॉइल कोड <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={processFormData.unique_code}
+                                        readOnly
+                                        className="w-full px-3 py-3 border border-gray-300 rounded-md bg-gray-100 text-gray-600 text-sm"
+                                    />
+                                    <p className="text-xs text-gray-400 mt-0.5">Auto-filled from Hot Coil</p>
+                                </div>
+
+                                {/* Size */}
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                                        Size / आकार <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={processFormData.size}
+                                        readOnly
+                                        className="w-full px-3 py-3 border border-gray-300 rounded-md bg-gray-100 text-gray-600 text-sm"
+                                    />
+                                </div>
+
+                                {/* Supervisor */}
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                                        Supervisor / पर्यवेक्षक <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        value={processFormData.supervisor}
+                                        onChange={(e) => handleProcessFormChange("supervisor", e.target.value)}
+                                        className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 text-sm bg-white"
+                                        required
+                                    >
+                                        {supervisorOptions.map((option) => (
+                                            <option key={option.value} value={option.value}>{option.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {processFormData.supervisor === "Other" && (
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Hot Coil Code / हॉट कॉइलर कोड <span className="text-red-500">*</span>
+                                        <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                                            Other Supervisor <span className="text-red-500">*</span>
                                         </label>
                                         <input
                                             type="text"
-                                            value={processFormData.unique_code}
-                                            readOnly
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600"
+                                            value={processFormData.supervisor_other}
+                                            onChange={(e) => handleProcessFormChange("supervisor_other", e.target.value)}
+                                            className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                                            placeholder="Enter supervisor name"
                                         />
-                                        <p className="text-xs text-gray-500 mt-1">Auto-filled from Hot Coil</p>
                                     </div>
+                                )}
 
-                                    {/* Size (Auto-filled from Hot Coil) */}
+                                {/* Incharge */}
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                                        Incharge / इंचार्ज <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        value={processFormData.incharge}
+                                        onChange={(e) => handleProcessFormChange("incharge", e.target.value)}
+                                        className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 text-sm bg-white"
+                                        required
+                                    >
+                                        {inchargeOptions.map((option) => (
+                                            <option key={option.value} value={option.value}>{option.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {processFormData.incharge === "Other" && (
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Size / आकार <span className="text-red-500">*</span>
+                                        <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                                            Other Incharge <span className="text-red-500">*</span>
                                         </label>
                                         <input
                                             type="text"
-                                            value={processFormData.size}
-                                            readOnly
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600"
+                                            value={processFormData.incharge_other}
+                                            onChange={(e) => handleProcessFormChange("incharge_other", e.target.value)}
+                                            className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                                            placeholder="Enter incharge name"
                                         />
                                     </div>
+                                )}
 
-                                    {/* Supervisor */}
+                                {/* Contractor */}
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                                        Contractor / ठेकेदार <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        value={processFormData.contractor}
+                                        onChange={(e) => handleProcessFormChange("contractor", e.target.value)}
+                                        className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 text-sm bg-white"
+                                        required
+                                    >
+                                        {contractorOptions.map((option) => (
+                                            <option key={option.value} value={option.value}>{option.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Welder Name */}
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                                        Welder Name / वेल्डर नाम <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        value={processFormData.welder_name}
+                                        onChange={(e) => handleProcessFormChange("welder_name", e.target.value)}
+                                        className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 text-sm bg-white"
+                                        required
+                                    >
+                                        {welderNameOptions.map((option) => (
+                                            <option key={option.value} value={option.value}>{option.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {processFormData.welder_name === "Other" && (
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Supervisor / पर्यवेक्षक <span className="text-red-500">*</span>
+                                        <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                                            Other Welder Name <span className="text-red-500">*</span>
                                         </label>
-                                        <select
-                                            value={processFormData.supervisor}
-                                            onChange={(e) => handleProcessFormChange("supervisor", e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                                            required
-                                        >
-                                            {supervisorOptions.map((option) => (
-                                                <option key={option.value} value={option.value}>
-                                                    {option.label}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        <input
+                                            type="text"
+                                            value={processFormData.welder_name_other}
+                                            onChange={(e) => handleProcessFormChange("welder_name_other", e.target.value)}
+                                            className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                                            placeholder="Enter welder name"
+                                        />
                                     </div>
+                                )}
 
-                                    {/* Supervisor Other */}
-                                    {processFormData.supervisor === "Other" && (
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Specify Other Supervisor / अन्य पर्यवेक्षक निर्दिष्ट करें <span className="text-red-500">*</span>
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={processFormData.supervisor_other}
-                                                onChange={(e) => handleProcessFormChange("supervisor_other", e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                                                placeholder="Enter supervisor name"
-                                                required
-                                            />
-                                        </div>
-                                    )}
-
-                                    {/* Incharge */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Incharge / इंचार्ज <span className="text-red-500">*</span>
-                                        </label>
-                                        <select
-                                            value={processFormData.incharge}
-                                            onChange={(e) => handleProcessFormChange("incharge", e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                                            required
-                                        >
-                                            {inchargeOptions.map((option) => (
-                                                <option key={option.value} value={option.value}>
-                                                    {option.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    {/* Incharge Other */}
-                                    {processFormData.incharge === "Other" && (
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Specify Other Incharge / अन्य इंचार्ज निर्दिष्ट करें <span className="text-red-500">*</span>
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={processFormData.incharge_other}
-                                                onChange={(e) => handleProcessFormChange("incharge_other", e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                                                placeholder="Enter incharge name"
-                                                required
-                                            />
-                                        </div>
-                                    )}
-
-                                    {/* Contractor */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Contractor / ठेकेदार <span className="text-red-500">*</span>
-                                        </label>
-                                        <select
-                                            value={processFormData.contractor}
-                                            onChange={(e) => handleProcessFormChange("contractor", e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                                            required
-                                        >
-                                            {contractorOptions.map((option) => (
-                                                <option key={option.value} value={option.value}>
-                                                    {option.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    {/* Welder Name */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Welder Name / वेल्डर नाम <span className="text-red-500">*</span>
-                                        </label>
-                                        <select
-                                            value={processFormData.welder_name}
-                                            onChange={(e) => handleProcessFormChange("welder_name", e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                                            required
-                                        >
-                                            {welderNameOptions.map((option) => (
-                                                <option key={option.value} value={option.value}>
-                                                    {option.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    {/* Welder Name Other */}
-                                    {processFormData.welder_name === "Other" && (
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Specify Other Welder Name / अन्य वेल्डर नाम निर्दिष्ट करें <span className="text-red-500">*</span>
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={processFormData.welder_name_other}
-                                                onChange={(e) => handleProcessFormChange("welder_name_other", e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                                                placeholder="Enter welder name"
-                                                required
-                                            />
-                                        </div>
-                                    )}
-
-                                    {/* Machine Number */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Machine Number / मशीन नंबर <span className="text-red-500">*</span>
-                                        </label>
-                                        <select
-                                            value={processFormData.machine_number}
-                                            onChange={(e) => handleProcessFormChange("machine_number", e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                                            required
-                                        >
-                                            {machineNumberOptions.map((option) => (
-                                                <option key={option.value} value={option.value}>
-                                                    {option.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
+                                {/* Machine Number */}
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                                        Machine Number / मशीन नंबर <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        value={processFormData.machine_number}
+                                        onChange={(e) => handleProcessFormChange("machine_number", e.target.value)}
+                                        className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 text-sm bg-white"
+                                        required
+                                    >
+                                        {machineNumberOptions.map((option) => (
+                                            <option key={option.value} value={option.value}>{option.label}</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
+                        </div>
 
-                            <div className="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-3">
-                                <button
-                                    onClick={handleCloseProcessForm}
-                                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
-                                >
-                                    Cancel / रद्द करें
-                                </button>
-                                <button
-                                    onClick={handleProcessSubmit}
-                                    disabled={isSubmitting}
-                                    className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                                >
-                                    <Save className="h-4 w-4" />
-                                    {isSubmitting ? "Submitting... / जमा किया जा रहा है..." : "Submit Data / डेटा जमा करें"}
-                                </button>
-                            </div>
+                        <div className="bg-gray-50 px-4 py-3 flex flex-col sm:flex-row gap-2 sm:justify-end">
+                            <button
+                                onClick={handleCloseProcessForm}
+                                className="w-full sm:w-auto px-4 py-3 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100 text-sm font-medium transition-colors"
+                            >
+                                Cancel / रद्द करें
+                            </button>
+                            <button
+                                onClick={handleProcessSubmit}
+                                disabled={isSubmitting}
+                                className="w-full sm:w-auto px-4 py-3 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm font-medium transition-colors"
+                            >
+                                <Save className="h-4 w-4" />
+                                {isSubmitting ? "Submitting..." : "Submit ReCoil Data"}
+                            </button>
                         </div>
                     </div>
                 )}
 
                 <div className="rounded-lg border border-gray-200 shadow-md bg-white overflow-hidden">
-                    <div className="bg-gradient-to-r from-red-500 to-red-400 border-b border-red-200 p-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <div className="flex items-center gap-3">
-                                <h2 className="text-white text-lg font-semibold">
-                                    {showHistory ? "ReCoil Records" : "Pending for ReCoil Processing"}
-                                </h2>
-                                <div className="relative flex items-center justify-center w-10 h-10">
-                                    <div className="absolute inset-0 rounded-full bg-white/20 p-0.5">
-                                        <div className="w-full h-full rounded-full bg-transparent flex items-center justify-center">
-                                            <span className="text-white text-sm font-bold">
-                                                {showHistory ? filteredHistoryData.length : filteredPendingData.length}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                    <div className="bg-gradient-to-r from-red-500 to-red-400 p-3 sm:p-4">
+                        <div className="flex items-center gap-2">
+                            <h2 className="text-white text-base sm:text-lg font-semibold">
+                                {showHistory ? "ReCoil Records" : "Pending for ReCoil Processing"}
+                            </h2>
+                            <span className="bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                                {showHistory ? filteredHistoryData.length : filteredPendingData.length}
+                            </span>
                         </div>
                     </div>
 
@@ -835,198 +804,140 @@ function ReCoilPage() {
                             <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-red-500 mb-4"></div>
                             <p className="text-red-600">Loading data...</p>
                         </div>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            {showHistory ? (
-                                /* HISTORY VIEW - ReCoil Records */
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Time / तारीख व समय
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Hot Coiler Code / हॉट कॉइल कोड
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Recoiler Code / रिकोइलर कोड
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Size / आकार
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Supervisor / पर्यवेक्षक
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Incharge / इंचार्ज
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Contractor / ठेकेदार
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Welder Name / वेल्डर नाम
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Machine No. / मशीन नंबर
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {filteredHistoryData.length > 0 ? (
-                                            filteredHistoryData.map((record, index) => (
-                                                <tr key={record.id || record._id || index} className="hover:bg-gray-50">
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {formatIndianDateTime(record.created_at || 'N/A')}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.hot_coiler_short_code || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.unique_code || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.size || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.supervisor || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.incharge || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.contractor || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.welder_name || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.machine_number || 'N/A'}
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        ) : (
+                    ) : showHistory ? (
+                        /* HISTORY VIEW */
+                        filteredHistoryData.length > 0 ? (
+                            <>
+                                {/* Mobile card view */}
+                                <div className="md:hidden divide-y divide-gray-100">
+                                    {filteredHistoryData.map((record, index) => (
+                                        <div key={record.id || record._id || index} className="p-4 space-y-2">
+                                            <div className="flex justify-between items-start">
+                                                <span className="text-xs text-gray-500">{formatIndianDateTime(record.created_at || 'N/A')}</span>
+                                                <span className="text-xs font-mono bg-red-50 text-red-700 px-2 py-0.5 rounded">{record.unique_code || 'N/A'}</span>
+                                            </div>
+                                            <p className="text-sm font-medium text-gray-800">Hot Coil: <span className="font-mono">{record.hot_coiler_short_code || 'N/A'}</span></p>
+                                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-700">
+                                                <span><span className="text-gray-400 text-xs">Size: </span>{record.size || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">Machine: </span>{record.machine_number || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">Supervisor: </span>{record.supervisor || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">Incharge: </span>{record.incharge || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">Contractor: </span>{record.contractor || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">Welder: </span>{record.welder_name || 'N/A'}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                {/* Desktop table view */}
+                                <div className="hidden md:block overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
                                             <tr>
-                                                <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                                                    <div className="flex flex-col items-center justify-center">
-                                                        <Search className="h-12 w-12 text-gray-300 mb-4" />
-                                                        <p className="text-lg font-medium mb-2">
-                                                            {searchTerm ? "No matching ReCoil records found" : "No ReCoil records found"}
-                                                        </p>
-                                                        <p className="text-sm mb-4">
-                                                            {searchTerm ? "Try adjusting your search terms" : "Submit a ReCoil entry first to see records here"}
-                                                        </p>
-                                                        <div className="flex gap-2">
-                                                            {searchTerm && (
-                                                                <button
-                                                                    onClick={() => setSearchTerm("")}
-                                                                    className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
-                                                                >
-                                                                    Clear Search
-                                                                </button>
-                                                            )}
-                                                            <button
-                                                                onClick={fetchHistoryData}
-                                                                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
-                                                            >
-                                                                Refresh Data
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </td>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hot Coil Code</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recoiler Code</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Size</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Supervisor</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Incharge</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contractor</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Welder</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Machine</th>
                                             </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            ) : (
-                                /* PENDING VIEW - Hot Coil Records */
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Action / कार्रवाई
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Time / तारीख व समय
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Hot Coil Code / हॉट कॉइल कोड
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Size / आकार
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Mill Incharge / मिल इंचार्ज
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Quality Supervisor / गुणवत्ता पर्यवेक्षक
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {filteredPendingData.length > 0 ? (
-                                            filteredPendingData.map((record, index) => (
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {filteredHistoryData.map((record, index) => (
                                                 <tr key={record.id || record._id || index} className="hover:bg-gray-50">
-                                                    <td className="px-4 py-4 whitespace-nowrap">
-                                                        <button
-                                                            onClick={() => handleProcessClick(record)}
-                                                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm flex items-center gap-1 transition-colors"
-                                                        >
-                                                            <Edit className="h-3 w-3" />
-                                                            Process
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{formatIndianDateTime(record.created_at || 'N/A')}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.hot_coiler_short_code || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.unique_code || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.size || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.supervisor || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.incharge || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.contractor || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.welder_name || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.machine_number || 'N/A'}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="py-12 text-center text-gray-500">
+                                <Search className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+                                <p className="font-medium">{searchTerm ? "No matching ReCoil records found" : "No ReCoil records found"}</p>
+                                <p className="text-sm mt-1">{searchTerm ? "Try adjusting your search" : "Submit a ReCoil entry first"}</p>
+                                {searchTerm && <button onClick={() => setSearchTerm("")} className="mt-3 px-4 py-2 bg-gray-500 text-white rounded-md text-sm">Clear Search</button>}
+                                <button onClick={fetchHistoryData} className="mt-3 ml-2 px-4 py-2 bg-green-500 text-white rounded-md text-sm">Refresh</button>
+                            </div>
+                        )
+                    ) : (
+                        /* PENDING VIEW */
+                        filteredPendingData.length > 0 ? (
+                            <>
+                                {/* Mobile card view */}
+                                <div className="md:hidden divide-y divide-gray-100">
+                                    {filteredPendingData.map((record, index) => (
+                                        <div key={record.id || record._id || index} className="p-4 space-y-2">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-xs text-gray-500">{formatIndianDateTime(record.created_at || 'N/A')}</span>
+                                                <button
+                                                    onClick={() => handleProcessClick(record)}
+                                                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1"
+                                                >
+                                                    <Edit className="h-3 w-3" /> Process
+                                                </button>
+                                            </div>
+                                            <p className="text-sm font-semibold font-mono text-gray-800">{record.unique_code || 'N/A'}</p>
+                                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-700">
+                                                <span><span className="text-gray-400 text-xs">Size: </span>{record.size || 'N/A'}</span>
+                                                <span><span className="text-gray-400 text-xs">Incharge: </span>{record.mill_incharge || 'N/A'}</span>
+                                                <span className="col-span-2"><span className="text-gray-400 text-xs">QC Supervisor: </span>{record.quality_supervisor || 'N/A'}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                {/* Desktop table view */}
+                                <div className="hidden md:block overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
+                                            <tr>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hot Coil Code</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Size</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mill Incharge</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">QC Supervisor</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {filteredPendingData.map((record, index) => (
+                                                <tr key={record.id || record._id || index} className="hover:bg-gray-50">
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        <button onClick={() => handleProcessClick(record)} className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm flex items-center gap-1">
+                                                            <Edit className="h-3 w-3" /> Process
                                                         </button>
                                                     </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {formatIndianDateTime(record.created_at || 'N/A')}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.unique_code || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.size || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.mill_incharge || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {record.quality_supervisor || 'N/A'}
-                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{formatIndianDateTime(record.created_at || 'N/A')}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.unique_code || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.size || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.mill_incharge || 'N/A'}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{record.quality_supervisor || 'N/A'}</td>
                                                 </tr>
-                                            ))
-                                        ) : (
-                                            <tr>
-                                                <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
-                                                    <div className="flex flex-col items-center justify-center">
-                                                        <CheckCircle2 className="h-12 w-12 text-green-300 mb-4" />
-                                                        <p className="text-lg font-medium mb-2">
-                                                            {searchTerm ? "No matching pending Hot Coil records found" : "No pending Hot Coil records for ReCoil processing"}
-                                                        </p>
-                                                        <p className="text-sm mb-4">
-                                                            {searchTerm ? "Try adjusting your search terms" : "All Hot Coil records have been processed for ReCoil"}
-                                                        </p>
-                                                        <div className="flex gap-2">
-                                                            {searchTerm && (
-                                                                <button
-                                                                    onClick={() => setSearchTerm("")}
-                                                                    className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
-                                                                >
-                                                                    Clear Search
-                                                                </button>
-                                                            )}
-                                                            <button
-                                                                onClick={fetchPendingHotCoilData}
-                                                                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
-                                                            >
-                                                                Refresh Data
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            )}
-                        </div>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="py-12 text-center text-gray-500">
+                                <CheckCircle2 className="h-10 w-10 text-green-300 mx-auto mb-3" />
+                                <p className="font-medium">{searchTerm ? "No matching pending records found" : "No pending Hot Coil records"}</p>
+                                <p className="text-sm mt-1">{searchTerm ? "Try adjusting your search" : "All records have been processed"}</p>
+                                {searchTerm && <button onClick={() => setSearchTerm("")} className="mt-3 px-4 py-2 bg-gray-500 text-white rounded-md text-sm">Clear Search</button>}
+                                <button onClick={fetchPendingHotCoilData} className="mt-3 ml-2 px-4 py-2 bg-green-500 text-white rounded-md text-sm">Refresh</button>
+                            </div>
+                        )
                     )}
                 </div>
             </div>

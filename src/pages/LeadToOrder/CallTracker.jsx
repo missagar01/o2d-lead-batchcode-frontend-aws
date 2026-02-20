@@ -7,7 +7,7 @@ import { useAuth } from "../../context/AuthContext"
 import CallTrackerForm from "./Call-Tracker-Form"
 import NewCallTracker from "./NewCallTracker"
 import { leadToOrderAPI } from "../../services/leadToOrderAPI"
-import { Loader2, X } from "lucide-react"
+import { Loader2, X, RefreshCwIcon, ShieldIcon } from "lucide-react"
 
 // Animation classes
 const slideIn = "animate-in slide-in-from-right duration-300"
@@ -684,109 +684,106 @@ function CallTracker() {
   const filterCounts = calculateFilterCounts();
 
   return (
-    <div className="min-h-screen bg-slate-50/50 py-4 sm:py-6 lg:py-8 px-4 sm:px-6">
+    <div className="min-h-screen bg-slate-50/50 pb-20 sm:pb-8">
       {/* Header Section */}
-      <div className="max-w-[1600px] mx-auto mb-8">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent tracking-tight">
-              Enquiry Tracker
-            </h1>
-            <p className="text-slate-500 mt-1 font-medium text-sm sm:text-base flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
-              {isLoading ? "Synchronizing enquiries..." : `${pendingCallTrackers.length + historyCallTrackers.length + directEnquiryPendingTrackers.length} total sequences tracked`}
-            </p>
-            {(apiUserType === "admin" || isAdmin()) && <p className="text-[10px] font-black text-purple-600 uppercase tracking-widest mt-2 flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-purple-600"></span> Management Access Enabled</p>}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-            <div className="relative flex-1 lg:flex-none lg:w-80 group">
-              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-purple-500 transition-colors">
-                <SearchIcon className="h-4 w-4" />
+      <div className="bg-white border-b border-slate-200 px-4 py-4 sm:py-6 lg:py-8 mb-4 sm:mb-8 sticky top-0 z-40">
+        <div className="max-w-[1600px] mx-auto">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent tracking-tight">
+                Call Tracker Interface
+              </h1>
+              <div className="flex flex-wrap items-center gap-3 mt-2">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 rounded-full border border-purple-100">
+                  <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
+                  <p className="text-purple-700 font-bold text-xs uppercase tracking-wider">
+                    {isLoading ? "Synchronizing..." : `${pendingCallTrackers.length + historyCallTrackers.length + directEnquiryPendingTrackers.length} active sequences`}
+                  </p>
+                </div>
+                {(apiUserType === "admin" || isAdmin()) && (
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full border border-slate-200 shadow-sm">HQ Access</span>
+                )}
               </div>
-              <input
-                type="text"
-                placeholder="Search enquiries, companies..."
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 transition-all font-medium text-sm text-slate-700 shadow-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
             </div>
-            <button
-              onClick={() => setShowNewCallTrackerForm(true)}
-              className="px-6 py-2.5 bg-indigo-600 text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
-            >
-              <PlusIcon className="w-4 h-4" />
-              Direct Enquiry
-            </button>
-          </div>
-        </div>
 
-        {/* Tab System refined */}
-        <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-b border-slate-200">
-          <div className="flex items-center overflow-x-auto no-scrollbar">
-            <button
-              onClick={() => setActiveTab("pending")}
-              className={`px-6 py-3 text-sm font-bold transition-all border-b-2 relative whitespace-nowrap ${activeTab === "pending"
-                ? "text-purple-600 border-purple-600 bg-purple-50/50"
-                : "text-slate-400 border-transparent hover:text-slate-600"
-                }`}
-            >
-              Pending Tracker
-              {activeTab === "pending" && <span className="ml-2 px-2 py-0.5 bg-purple-600 text-white text-[10px] rounded-full">{filteredPendingCallTrackers.length}</span>}
-            </button>
-            <button
-              onClick={() => setActiveTab("directEnquiry")}
-              className={`px-6 py-3 text-sm font-bold transition-all border-b-2 relative whitespace-nowrap ${activeTab === "directEnquiry"
-                ? "text-purple-600 border-purple-600 bg-purple-50/50"
-                : "text-slate-400 border-transparent hover:text-slate-600"
-                }`}
-            >
-              Direct Pending
-              {activeTab === "directEnquiry" && <span className="ml-2 px-2 py-0.5 bg-purple-600 text-white text-[10px] rounded-full">{filteredDirectEnquiryPendingTrackers.length}</span>}
-            </button>
-            <button
-              onClick={() => setActiveTab("history")}
-              className={`px-6 py-3 text-sm font-bold transition-all border-b-2 relative whitespace-nowrap ${activeTab === "history"
-                ? "text-purple-600 border-purple-600 bg-purple-50/50"
-                : "text-slate-400 border-transparent hover:text-slate-600"
-                }`}
-            >
-              Tracker History
-              {activeTab === "history" && <span className="ml-2 px-2 py-0.5 bg-purple-600 text-white text-[10px] rounded-full">{filteredHistoryCallTrackers.length}</span>}
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2 pb-2 mr-2">
-            {(callingDaysFilter.length > 0 || enquiryNoFilter.length > 0 || currentStageFilter.length > 0 || (activeTab === "pending" && (companyFilter !== "all" || personFilter !== "all" || phoneFilter !== "all"))) && (
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full lg:w-auto">
+              <div className="relative group min-w-[300px]">
+                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-purple-600 transition-colors">
+                  <SearchIcon className="h-5 w-5" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Scan queue..."
+                  className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-600 transition-all font-bold text-sm text-slate-700 shadow-inner"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
               <button
-                onClick={() => {
-                  setCallingDaysFilter([])
-                  setEnquiryNoFilter([])
-                  setCurrentStageFilter([])
-                  setCompanyFilter("all")
-                  setPersonFilter("all")
-                  setPhoneFilter("all")
-                }}
-                className="text-[10px] font-black text-rose-600 uppercase tracking-widest hover:bg-rose-50 px-3 py-1.5 rounded-lg transition-colors border border-rose-100"
+                onClick={() => window.location.reload()}
+                className="p-3 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-purple-600 hover:border-purple-200 hover:shadow-lg transition-all active:scale-90"
+                title="Synchronize Data"
               >
-                Reset Filters
+                <RefreshCwIcon className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
               </button>
-            )}
-            <button
-              onClick={() => setShowColumnDropdown(!showColumnDropdown)}
-              className="flex items-center gap-2 px-4 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7" /></svg>
-              Columns
-            </button>
+              <button
+                onClick={() => setShowNewCallTrackerForm(true)}
+                className="group relative px-8 py-3 bg-slate-900 overflow-hidden rounded-2xl shadow-xl hover:shadow-purple-200 transition-all active:scale-95 flex items-center justify-center gap-2"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <PlusIcon className="w-5 h-5 text-white relative z-10" />
+                <span className="text-white text-xs font-black uppercase tracking-widest relative z-10">Direct Sequence</span>
+              </button>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Filter Bar refined */}
-        <div className="mt-6 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm relative z-30">
+      <div className="max-w-[1600px] mx-auto px-3 sm:px-6">
+        {/* Tab System - Mobile Optimized */}
+        <div className="flex items-center bg-white p-1 rounded-xl border border-slate-200 shadow-sm mb-6 overflow-x-auto no-scrollbar">
+          <button
+            onClick={() => setActiveTab("pending")}
+            className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-bold transition-all rounded-lg whitespace-nowrap ${activeTab === "pending"
+              ? "bg-purple-600 text-white shadow-lg shadow-purple-200"
+              : "text-slate-500 hover:text-slate-700"
+              }`}
+          >
+            Pending Tracker
+            <span className={`px-2 py-0.5 text-[10px] rounded-full ${activeTab === "pending" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"}`}>
+              {filteredPendingCallTrackers.length}
+            </span>
+          </button>
+          <button
+            onClick={() => setActiveTab("directEnquiry")}
+            className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-bold transition-all rounded-lg whitespace-nowrap ${activeTab === "directEnquiry"
+              ? "bg-purple-600 text-white shadow-lg shadow-purple-200"
+              : "text-slate-500 hover:text-slate-700"
+              }`}
+          >
+            Direct Pending
+            <span className={`px-2 py-0.5 text-[10px] rounded-full ${activeTab === "directEnquiry" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"}`}>
+              {filteredDirectEnquiryPendingTrackers.length}
+            </span>
+          </button>
+          <button
+            onClick={() => setActiveTab("history")}
+            className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-bold transition-all rounded-lg whitespace-nowrap ${activeTab === "history"
+              ? "bg-purple-600 text-white shadow-lg shadow-purple-200"
+              : "text-slate-500 hover:text-slate-700"
+              }`}
+          >
+            History
+            <span className={`px-2 py-0.5 text-[10px] rounded-full ${activeTab === "history" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"}`}>
+              {filteredHistoryCallTrackers.length}
+            </span>
+          </button>
+        </div>
+
+        {/* Filter Toolbar */}
+        <div className="mb-6 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm relative z-30">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-            {/* Calling Days Dropdown refined */}
+            {/* Calling Days Dropdown */}
             <div className="space-y-1.5 dropdown-container relative">
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Calling Schedule</label>
               <button
@@ -816,9 +813,9 @@ function CallTracker() {
               )}
             </div>
 
-            {/* Stage Filter refined */}
+            {/* Stage Filter */}
             <div className="space-y-1.5 dropdown-container relative">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Inquiry Stage</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Workflow Stage</label>
               <button
                 onClick={toggleCurrentStageDropdown}
                 className="w-full flex items-center justify-between px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-black text-slate-700 hover:border-purple-300 transition-colors"
@@ -827,74 +824,67 @@ function CallTracker() {
                 <svg className={`w-4 h-4 transition-transform ${showCurrentStageDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
               </button>
               {showCurrentStageDropdown && (
-                <div className="absolute top-full left-0 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                  {['make-quotation', 'quotation-validation', 'order-status', 'order-expected'].map(stage => (
-                    <label key={stage} className="flex items-center gap-2 p-2 hover:bg-purple-50 rounded-lg cursor-pointer transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={currentStageFilter.includes(stage)}
-                        onChange={() => handleCurrentStageChange(stage)}
-                        className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
-                      />
-                      <span className="text-xs font-bold text-slate-700">{stage.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</span>
+                <div className="absolute top-full left-0 mt-1 w-full min-w-[240px] bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-2 animate-in fade-in duration-200 max-h-[300px] overflow-y-auto custom-scrollbar">
+                  {[...new Set([...pendingCallTrackers, ...directEnquiryPendingTrackers, ...historyCallTrackers].map(t => t.currentStage))].filter(Boolean).sort().map(stage => (
+                    <label key={stage} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors">
+                      <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-purple-600" checked={currentStageFilter.includes(stage)} onChange={() => handleCurrentStageChange(stage)} />
+                      <span className="text-xs font-bold text-slate-700">{stage.replace('-', ' ')}</span>
                     </label>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Sub-filters for Pending */}
-            {activeTab === "pending" && (
-              <>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Company</label>
-                  <select
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-black text-slate-700 focus:ring-2 focus:ring-purple-500/20 outline-none"
-                    value={companyFilter}
-                    onChange={(e) => setCompanyFilter(e.target.value)}
-                  >
-                    <option value="all">All Entities</option>
-                    {[...new Set(pendingCallTrackers.map(t => t.companyName))].filter(Boolean).sort().map(c => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
+            {/* Entity Filters for Pending Tracker */}
+            {(activeTab === "pending" || activeTab === "directEnquiry") && (
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Enquiry ID</label>
+                <div className="dropdown-container relative">
+                  <button onClick={toggleEnquiryNoDropdown} className="w-full flex items-center justify-between px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-black text-slate-700 overflow-hidden">
+                    <span className="truncate">{enquiryNoFilter.length === 0 ? "Select ID" : `${enquiryNoFilter.length} IDs`}</span>
+                    <svg className={`w-4 h-4 shrink-0 transition-transform ${showEnquiryNoDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                  </button>
+                  {showEnquiryNoDropdown && (
+                    <div className="absolute top-full left-0 mt-1 w-full min-w-[180px] bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-2 max-h-[250px] overflow-y-auto no-scrollbar">
+                      {availableEnquiryNos.map(no => (
+                        <label key={no} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded-lg cursor-pointer">
+                          <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-purple-600" checked={enquiryNoFilter.includes(no)} onChange={() => handleEnquiryNoChange(no)} />
+                          <span className="text-xs font-mono font-black text-slate-700">{no}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Contact</label>
-                  <select
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-black text-slate-700 focus:ring-2 focus:ring-purple-500/20 outline-none"
-                    value={personFilter}
-                    onChange={(e) => setPersonFilter(e.target.value)}
-                  >
-                    <option value="all">All Persons</option>
-                    {[...new Set(pendingCallTrackers.map(t => t.salespersonName))].filter(Boolean).sort().map(p => (
-                      <option key={p} value={p}>{p}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Ref No</label>
-                  <select
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-black text-slate-700 focus:ring-2 focus:ring-purple-500/20 outline-none"
-                    value={enquiryNoFilter.length === 1 ? enquiryNoFilter[0] : 'all'}
-                    onChange={(e) => e.target.value === 'all' ? setEnquiryNoFilter([]) : setEnquiryNoFilter([e.target.value])}
-                  >
-                    <option value="all">All Enquiries</option>
-                    {availableEnquiryNos.sort().map(n => (
-                      <option key={n} value={n}>{n}</option>
-                    ))}
-                  </select>
-                </div>
-              </>
+              </div>
             )}
+            {/* Quick Actions / Reset */}
+            <div className="sm:col-span-2 xl:col-span-2 flex items-end gap-2">
+              <button
+                onClick={() => {
+                  setCallingDaysFilter([])
+                  setEnquiryNoFilter([])
+                  setCurrentStageFilter([])
+                  setCompanyFilter("all")
+                  setPersonFilter("all")
+                  setPhoneFilter("all")
+                }}
+                className="flex-1 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-rose-600 bg-rose-50 border border-rose-100 rounded-lg hover:bg-rose-100 transition-colors h-[38px]"
+              >
+                Reset All
+              </button>
+              <button
+                onClick={() => setShowColumnDropdown(!showColumnDropdown)}
+                className="flex-1 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-600 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors flex items-center justify-center gap-2 h-[38px]"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7" /></svg>
+                Columns
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-
-      {/* Main Table Container refined */}
-      <div className="max-w-[1600px] mx-auto bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 overflow-hidden relative z-10 transition-all">
-        <div className="p-0">
+        {/* Content Area */}
+        <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 overflow-hidden min-h-[400px]">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 px-4">
               <div className="relative flex h-20 w-20">
@@ -911,13 +901,13 @@ function CallTracker() {
                   <table className="w-full text-left border-collapse min-w-[1400px]">
                     <thead>
                       <tr className="bg-slate-900 border-b border-slate-800">
-                        <th className="sticky left-0 z-20 bg-slate-900 px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest border-r border-slate-800">Process</th>
-                        <th className="px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Reference</th>
-                        <th className="px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Schedule</th>
-                        <th className="px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Entity & Identity</th>
-                        <th className="px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Sales Context</th>
-                        <th className="px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Current Stage</th>
-                        <th className="px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Itemization</th>
+                        <th className="sticky top-0 left-0 z-30 bg-slate-900 px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest border-r border-slate-800">Process</th>
+                        <th className="sticky top-0 z-20 bg-slate-900 px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Reference</th>
+                        <th className="sticky top-0 z-20 bg-slate-900 px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Schedule</th>
+                        <th className="sticky top-0 z-20 bg-slate-900 px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Entity & Identity</th>
+                        <th className="sticky top-0 z-20 bg-slate-900 px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Sales Context</th>
+                        <th className="sticky top-0 z-20 bg-slate-900 px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Current Stage</th>
+                        <th className="sticky top-0 z-20 bg-slate-900 px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Itemization</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -970,7 +960,7 @@ function CallTracker() {
                             </td>
                             <td className="px-6 py-4">
                               <span className="px-3 py-1 bg-white border border-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-widest rounded-lg shadow-sm whitespace-nowrap">
-                                {tracker.currentStage.replace('-', ' ')}
+                                {tracker.currentStage?.replace('-', ' ') || "Initial"}
                               </span>
                             </td>
                             <td className="px-6 py-4 min-w-[300px]">
@@ -1006,13 +996,13 @@ function CallTracker() {
                   <table className="w-full text-left border-collapse min-w-[1400px]">
                     <thead>
                       <tr className="bg-slate-900 border-b border-slate-800">
-                        <th className="sticky left-0 z-20 bg-slate-900 px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest border-r border-slate-800">Process</th>
-                        <th className="px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Reference</th>
-                        <th className="px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Schedule</th>
-                        <th className="px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Entity & Identity</th>
-                        <th className="px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Enquiry Context</th>
-                        <th className="px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Current Stage</th>
-                        <th className="px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Itemization</th>
+                        <th className="sticky top-0 left-0 z-30 bg-slate-900 px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest border-r border-slate-800">Process</th>
+                        <th className="sticky top-0 z-20 bg-slate-900 px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Reference</th>
+                        <th className="sticky top-0 z-20 bg-slate-900 px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Schedule</th>
+                        <th className="sticky top-0 z-20 bg-slate-900 px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Entity & Identity</th>
+                        <th className="sticky top-0 z-20 bg-slate-900 px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Enquiry Context</th>
+                        <th className="sticky top-0 z-20 bg-slate-900 px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Current Stage</th>
+                        <th className="sticky top-0 z-20 bg-slate-900 px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Itemization</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -1107,9 +1097,9 @@ function CallTracker() {
                   <table className="w-full text-left border-collapse min-w-[1800px]">
                     <thead>
                       <tr className="bg-slate-900 border-b border-slate-800">
-                        <th className="px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Reference</th>
+                        <th className="sticky top-0 z-20 bg-slate-900 px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Reference</th>
                         {columnOptions.map(col => visibleColumns[col.key] && (
-                          <th key={col.key} className="px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">
+                          <th key={col.key} className="sticky top-0 z-20 bg-slate-900 px-6 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">
                             {col.label}
                           </th>
                         ))}
@@ -1190,7 +1180,7 @@ function CallTracker() {
                           <div className="flex flex-col">
                             <span className="text-[10px] font-black uppercase text-slate-400">Stage</span>
                             <span className="text-[10px] font-black text-purple-600 uppercase bg-purple-50 px-2 py-1 rounded w-fit mt-1">
-                              {tracker.currentStage.replace('-', ' ')}
+                              {tracker.currentStage?.replace('-', ' ') || "Initial"}
                             </span>
                           </div>
                         </div>
@@ -1208,11 +1198,21 @@ function CallTracker() {
                         <div className="mt-4 pt-3 border-t border-slate-100">
                           <span className="text-[10px] font-black uppercase text-slate-400 block mb-2">Items</span>
                           <div className="flex flex-wrap gap-1.5">
-                            {JSON.parse(tracker.itemQty || '[]').filter(i => i.name && i.quantity !== "0").map((item, k) => (
-                              <span key={k} className="px-2 py-1 bg-slate-50 border border-slate-100 text-slate-600 text-[10px] font-black rounded-md">
-                                {item.name} ({item.quantity})
-                              </span>
-                            ))}
+                            {(() => {
+                              try {
+                                const items = JSON.parse(tracker.itemQty || '[]');
+                                if (Array.isArray(items) && items.length > 0) {
+                                  return items.filter(i => i.name && i.quantity !== "0").map((item, k) => (
+                                    <span key={k} className="px-2 py-1 bg-slate-50 border border-slate-100 text-slate-600 text-[10px] font-black rounded-md">
+                                      {item.name} ({item.quantity})
+                                    </span>
+                                  ));
+                                }
+                                return <span className="text-xs text-slate-400 italic">No items specified</span>;
+                              } catch (e) {
+                                return <span className="text-xs text-slate-400 italic">No items specified</span>;
+                              }
+                            })()}
                           </div>
                         </div>
                       </div>
@@ -1264,7 +1264,7 @@ function CallTracker() {
                           <div className="flex flex-col">
                             <span className="text-[10px] font-black uppercase text-slate-400">Stage</span>
                             <span className="text-[10px] font-black text-slate-700 bg-slate-100 px-2 py-1 rounded w-fit mt-1">
-                              {tracker.currentStage?.replace('-', ' ')}
+                              {tracker.currentStage?.replace('-', ' ') || "Initial"}
                             </span>
                           </div>
                         </div>
@@ -1304,13 +1304,15 @@ function CallTracker() {
                         </div>
 
                         <div className="space-y-3">
-                          {columnOptions.map(col => visibleColumns[col.key] && col.key !== 'enquiryNo' && (
-                            <div key={col.key} className="flex justify-between items-start gap-4">
-                              <span className="text-[10px] font-black uppercase text-slate-400 shrink-0">{col.label}</span>
-                              <span className="text-xs font-bold text-slate-700 text-right">
-                                {col.key === 'itemQty' ? formatItemQty(tracker[col.key]) : (tracker[col.key] || "—")}
-                              </span>
-                            </div>
+                          {columnOptions.map((col) => (
+                            visibleColumns[col.key] && col.key !== 'enquiryNo' && (
+                              <div key={col.key} className="flex justify-between items-start gap-4">
+                                <span className="text-[10px] font-black uppercase text-slate-400 shrink-0">{col.label}</span>
+                                <span className="text-xs font-bold text-slate-700 text-right">
+                                  {col.key === 'itemQty' ? formatItemQty(tracker[col.key]) : (tracker[col.key] || "—")}
+                                </span>
+                              </div>
+                            )
                           ))}
                         </div>
                       </div>
@@ -1326,223 +1328,213 @@ function CallTracker() {
       </div>
 
       {/* New Call Tracker Form Modal */}
-      {showNewCallTrackerForm && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-12 sm:pt-20">
-          <div
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300"
-            onClick={() => setShowNewCallTrackerForm(false)}
-          ></div>
-          <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col animate-in slide-in-from-bottom duration-300">
-            <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-5 flex justify-between items-center text-white shrink-0">
-              <h2 className="text-xl font-bold tracking-tight">New Call Tracker</h2>
-              <button
-                onClick={() => setShowNewCallTrackerForm(false)}
-                className="bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="overflow-y-auto flex-1 custom-scrollbar">
-              <CallTrackerForm />
+      {
+        showNewCallTrackerForm && (
+          <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-12 sm:pt-20">
+            <div
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300"
+              onClick={() => setShowNewCallTrackerForm(false)}
+            ></div>
+            <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col animate-in slide-in-from-bottom duration-300">
+              <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-5 flex justify-between items-center text-white shrink-0">
+                <h2 className="text-xl font-bold tracking-tight">New Call Tracker</h2>
+                <button
+                  onClick={() => setShowNewCallTrackerForm(false)}
+                  className="bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="overflow-y-auto flex-1 custom-scrollbar">
+                <CallTrackerForm />
+              </div>
             </div>
           </div>
-        </div>
-      )
+        )
       }
 
       {/* View Popup Modal */}
-      {showPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-          <div
-            className={`absolute inset-0 bg-slate-900/60 backdrop-blur-md ${fadeIn}`}
-            onClick={() => setShowPopup(false)}
-          ></div>
-          <div
-            className={`relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col ${slideIn}`}
-          >
-            {/* Modal Header */}
-            <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-5 sm:px-8 sm:py-6 flex justify-between items-center text-white shrink-0">
-              <div>
-                <h3 className="text-xl sm:text-2xl font-bold tracking-tight">
-                  {activeTab === "pending" || activeTab === "directEnquiry"
-                    ? `Lead Details`
-                    : `Follow-up History`}
-                </h3>
-                <p className="text-purple-100/80 text-sm mt-1 font-medium">
-                  {activeTab === "pending" || activeTab === "directEnquiry"
-                    ? `Reference: ${selectedTracker?.leadId}`
-                    : `Enquiry: ${selectedTracker?.enquiryNo}`}
-                </p>
-              </div>
-              <button
-                onClick={() => setShowPopup(false)}
-                className="bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors focus:outline-none"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-5 sm:p-8 overflow-y-auto custom-scrollbar flex-1 bg-slate-50/50">
-              <div className="space-y-8">
-                {activeTab === "pending" || activeTab === "directEnquiry" ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {/* Data Cards for Pending/Direct Enquiry */}
-                    {[
-                      { label: "Lead Number", value: selectedTracker?.leadId, icon: "🆔", bold: true },
-                      { label: "Receiver Name", value: selectedTracker?.receiverName || "N/A", icon: "👤" },
-                      { label: "Lead Source", value: selectedTracker?.leadSource, icon: "📍", badge: true },
-                      { label: "Salesperson", value: selectedTracker?.salespersonName || "Assignee Name", icon: "🤵" },
-                      { label: "Company Name", value: selectedTracker?.companyName, icon: "🏢", bold: true },
-                      { label: "Created Date", value: selectedTracker?.createdAt, icon: "📅" },
-                      { label: "Status", value: selectedTracker?.status, icon: "📊" },
-                      { label: "Priority", value: selectedTracker?.priority, icon: "🔥", badge: true },
-                      { label: "Stage", value: selectedTracker?.stage, icon: "🪜" },
-                    ].map((item, idx) => (
-                      <div key={idx} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="flex items-start gap-3">
-                          <span className="text-xl">{item.icon}</span>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{item.label}</p>
-                            {item.badge ? (
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${(item.value === "High" || item.value === "Hot") ? "bg-red-100 text-red-700" :
-                                (item.value === "Medium" || item.value === "Warm") ? "bg-orange-100 text-orange-700" :
-                                  "bg-blue-100 text-blue-700"
-                                }`}>
-                                {item.value}
-                              </span>
-                            ) : (
-                              <p className={`text-sm ${item.bold ? "font-bold text-slate-900" : "text-slate-700"} truncate`} title={item.value}>
-                                {item.value || "Not Specified"}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {/* Data Cards for History */}
-                    {[
-                      { label: "Enquiry No.", value: selectedTracker?.enquiryNo, icon: "🆔", bold: true },
-                      { label: "Timestamp", value: selectedTracker?.timestamp, icon: "⏰" },
-                      { label: "Status", value: selectedTracker?.enquiryStatus, icon: "📈", badge: true },
-                      { label: "Current Stage", value: selectedTracker?.currentStage, icon: "🪜" },
-                      { label: "Next Call Date", value: selectedTracker?.nextCallDate, icon: "📅" },
-                      { label: "Next Call Time", value: selectedTracker?.nextCallTime, icon: "🕓" },
-                      { label: "Holding Date", value: selectedTracker?.holdingDate || "N/A", icon: "⏸️" },
-                      { label: "Order Status", value: selectedTracker?.orderStatus, icon: "📦" },
-                      { label: "Payment Mode", value: selectedTracker?.paymentMode, icon: "💳" },
-                      { label: "Payment Terms", value: selectedTracker?.paymentTerms, icon: "📝" },
-                    ].map((item, idx) => (
-                      <div key={idx} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="flex items-start gap-3">
-                          <span className="text-xl">{item.icon}</span>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{item.label}</p>
-                            {item.badge ? (
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${item.value?.toLowerCase().includes("hot") ? "bg-red-100 text-red-700" :
-                                item.value?.toLowerCase().includes("warm") ? "bg-orange-100 text-orange-700" :
-                                  "bg-blue-100 text-blue-700"
-                                }`}>
-                                {item.value}
-                              </span>
-                            ) : (
-                              <p className={`text-sm ${item.bold ? "font-bold text-slate-900" : "text-slate-700"} truncate`} title={item.value}>
-                                {item.value || "N/A"}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Customer Feedback - Rich Detail View */}
-                <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl text-white shadow-lg overflow-hidden relative">
-                  <div className="absolute top-0 right-0 p-4 opacity-10">
-                    <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M14.017 21L14.017 18C14.017 16.8954 14.9124 16 16.017 16H19.017V14C19.017 11.2386 16.7784 9 14.017 9V7C17.883 7 21.017 10.134 21.017 14V21H14.017ZM3.017 21L3.017 18C3.017 16.8954 3.9124 16 5.017 16H8.017V14C8.017 11.2386 5.7784 9 3.017 9V7C6.883 7 10.017 10.134 10.017 14V21H3.017Z" /></svg>
-                  </div>
-                  <h4 className="text-sm font-black uppercase tracking-[0.2em] text-purple-400 mb-4 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
-                    Customer Feedback / Remarks
-                  </h4>
-                  <p className="text-lg leading-relaxed text-slate-100 italic relative z-10">
+      {
+        showPopup && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6">
+            <div
+              className={`absolute inset-0 bg-slate-900/60 backdrop-blur-md ${fadeIn}`}
+              onClick={() => setShowPopup(false)}
+            ></div>
+            <div
+              className={`relative bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col ${slideIn} border border-slate-200`}
+            >
+              {/* Modal Header */}
+              <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-6 sm:px-10 sm:py-8 flex justify-between items-center text-white shrink-0 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-purple-600/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+                <div className="relative z-10">
+                  <h3 className="text-2xl sm:text-3xl font-black tracking-tight flex items-center gap-3">
+                    <span className="p-2 bg-white/10 rounded-xl border border-white/20">
+                      {activeTab === "history" ? "📜" : "⚡"}
+                    </span>
                     {activeTab === "pending" || activeTab === "directEnquiry"
-                      ? "No initial feedback recorded for this lead."
-                      : (selectedTracker?.customerFeedback || "No feedback provided by the customer.")}
-                  </p>
+                      ? `Lead Architecture`
+                      : `Event History`}
+                  </h3>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="px-2 py-0.5 bg-white/10 rounded text-[10px] font-black uppercase tracking-widest border border-white/10">ID: {activeTab === "history" ? selectedTracker?.enquiryNo : selectedTracker?.leadId}</span>
+                    <span className="w-1 h-1 rounded-full bg-slate-500"></span>
+                    <p className="text-slate-400 text-xs font-bold font-mono">Sequence Analysis Mode</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowPopup(false)}
+                  className="bg-white/5 hover:bg-white/10 p-3 rounded-2xl transition-all border border-white/10 group active:scale-90 relative z-10"
+                >
+                  <X className="h-6 w-6 text-white group-hover:rotate-90 transition-transform" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6 sm:p-10 overflow-y-auto custom-scrollbar flex-1 bg-slate-50/50">
+                <div className="space-y-10">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {(activeTab === "pending" || activeTab === "directEnquiry" ? [
+                      { label: "Lead ID", value: selectedTracker?.leadId, icon: "🆔", bold: true },
+                      { label: "Gatekeeper", value: selectedTracker?.receiverName || "N/A", icon: "👤" },
+                      { label: "Origin", value: selectedTracker?.leadSource, icon: "📍", badge: true },
+                      { label: "Strategist", value: selectedTracker?.salespersonName, icon: "🤵" },
+                      { label: "Entity", value: selectedTracker?.companyName, icon: "🏢", bold: true },
+                      { label: "Timestamp", value: selectedTracker?.createdAt, icon: "📅" },
+                      { label: "Comms", value: selectedTracker?.phoneNumber, icon: "�" },
+                      { label: "Urgency", value: selectedTracker?.priority, icon: "🔥", badge: true },
+                      { label: "Milestone", value: selectedTracker?.stage, icon: "🪜" },
+                    ] : [
+                      { label: "Enquiry ID", value: selectedTracker?.enquiryNo, icon: "🆔", bold: true },
+                      { label: "Log Time", value: selectedTracker?.timestamp, icon: "⏰" },
+                      { label: "Disposition", value: selectedTracker?.enquiryStatus, icon: "📈", badge: true },
+                      { label: "Current Logic", value: selectedTracker?.currentStage, icon: "🪜" },
+                      { label: "Next Interval", value: selectedTracker?.nextCallDate, icon: "📅" },
+                      { label: "Window", value: selectedTracker?.nextCallTime, icon: "🕓" },
+                      { label: "Fulfilment", value: selectedTracker?.orderStatus, icon: "📦" },
+                      { label: "Commerce", value: selectedTracker?.paymentMode, icon: "💳" },
+                      { label: "Provisions", value: selectedTracker?.paymentTerms || "Standard", icon: "📝" },
+                    ]).map((item, idx) => (
+                      <div key={idx} className="group bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-purple-200 transition-all duration-300">
+                        <div className="flex items-start gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
+                            {item.icon}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{item.label}</p>
+                            {item.badge ? (
+                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${item.value?.toLowerCase().includes("high") || item.value?.toLowerCase().includes("hot") ? "bg-rose-50 text-rose-600 border border-rose-100" : "bg-indigo-50 text-indigo-600 border border-indigo-100"}`}>
+                                {item.value}
+                              </span>
+                            ) : (
+                              <p className={`text-sm ${item.bold ? "font-black text-slate-900" : "font-bold text-slate-600"} truncate`} title={item.value}>
+                                {item.value || "—"}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Feedback Section */}
+                  <div className="relative group">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+                    <div className="relative bg-slate-900 p-8 rounded-3xl text-white shadow-2xl overflow-hidden leading-relaxed">
+                      <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform duration-500">
+                        <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M14.017 21L14.017 18C14.017 16.8954 14.9124 16 16.017 16H19.017V14C19.017 11.2386 16.7784 9 14.017 9V7C17.883 7 21.017 10.134 21.017 14V21H14.017ZM3.017 21L3.017 18C3.017 16.8954 3.9124 16 5.017 16H8.017V14C8.017 11.2386 5.7784 9 3.017 9V7C6.883 7 10.017 10.134 10.017 14V21H3.017Z" /></svg>
+                      </div>
+                      <h4 className="text-xs font-black uppercase tracking-[0.3em] text-purple-400 mb-6 flex items-center gap-3">
+                        <span className="w-2 h-2 rounded-full bg-purple-500 animate-ping"></span>
+                        Insights & Intelligence
+                      </h4>
+                      <p className="text-lg sm:text-xl font-medium text-slate-200 indent-8 italic tracking-tight">
+                        {activeTab === "pending" || activeTab === "directEnquiry"
+                          ? "Initial sequence deployed. Intelligence gathering in progress. No previous feedback recorded for this lead node."
+                          : (selectedTracker?.customerFeedback || "The subject provided no qualitative feedback for this specific event cycle.")}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Modal Footer */}
-            <div className="p-5 sm:px-8 bg-white border-t flex flex-col sm:flex-row justify-between items-center gap-4 shrink-0">
-              <button
-                onClick={() => setShowPopup(false)}
-                className="w-full sm:w-auto px-6 py-2.5 border border-slate-300 rounded-xl text-slate-700 font-bold hover:bg-slate-50 transition-colors focus:outline-none"
-              >
-                Close View
-              </button>
-              {(activeTab === "pending" || activeTab === "directEnquiry") && (
-                <Link
-                  to={`/call-tracker/new?leadId=${selectedTracker?.leadId}`}
-                  className="w-full sm:w-auto"
+              {/* Modal Footer */}
+              <div className="p-6 sm:px-10 bg-white border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 shrink-0 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.05)]">
+                <button
+                  onClick={() => setShowPopup(false)}
+                  className="w-full sm:w-auto px-10 py-3.5 bg-slate-100 text-slate-600 font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-slate-200 transition-all border border-slate-200"
                 >
-                  <button className="w-full px-8 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-black rounded-xl shadow-lg shadow-purple-200 transition-all transform hover:-translate-y-0.5">
-                    Start Processing <ArrowRightIcon className="ml-2 h-4 w-4 inline" />
-                  </button>
-                </Link>
-              )}
+                  Dismiss
+                </button>
+                {(activeTab === "pending" || activeTab === "directEnquiry") && (
+                  <Link
+                    to={`/call-tracker/new?leadId=${selectedTracker?.leadId}`}
+                    className="w-full sm:w-auto"
+                  >
+                    <button className="w-full px-12 py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-purple-500/20 transition-all transform hover:-translate-y-1 hover:shadow-purple-500/30 active:translate-y-0">
+                      Initiate Protocol <ArrowRightIcon className="ml-2 h-4 w-4 inline-block group-hover:translate-x-1 transition-transform" />
+                    </button>
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )
+        )
       }
 
       {/* Call Tracker Modal (Process Button) */}
-      {showCallTrackerModal && (
-        <div className="fixed inset-0 z-[9999] flex items-start justify-center p-4 pt-12 sm:pt-20">
-          <div
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300"
-            onClick={() => {
-              setShowCallTrackerModal(false)
-              setSelectedLeadForCallTracker(null)
-              document.body.style.overflow = 'auto'
-            }}
-          ></div>
-          <div className="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden flex flex-col animate-in scale-in duration-300">
-            <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-5 flex justify-between items-center text-white shrink-0">
-              <h2 className="text-xl font-bold tracking-tight">Process Call Tracker</h2>
-              <button
-                onClick={() => {
-                  setShowCallTrackerModal(false)
-                  setSelectedLeadForCallTracker(null)
-                  document.body.style.overflow = 'auto'
-                }}
-                className="bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors focus:outline-none"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="overflow-y-auto flex-1 custom-scrollbar">
-              <NewCallTracker
-                leadId={selectedLeadForCallTracker}
-                onClose={() => {
-                  setShowCallTrackerModal(false)
-                  setSelectedLeadForCallTracker(null)
-                  document.body.style.overflow = 'auto'
-                  window.location.reload()
-                }}
-              />
+      {
+        showCallTrackerModal && (
+          <div className="fixed inset-0 z-[9999] flex items-start justify-center p-4 pt-12 sm:pt-20">
+            <div
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300"
+              onClick={() => {
+                setShowCallTrackerModal(false)
+                setSelectedLeadForCallTracker(null)
+                document.body.style.overflow = 'auto'
+              }}
+            ></div>
+            <div className="relative bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col animate-in slide-in-from-bottom duration-500">
+              <div className="bg-gradient-to-r from-slate-900 via-purple-900 to-indigo-900 p-6 flex justify-between items-center text-white shrink-0 border-b border-white/10">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-xl flex items-center justify-center border border-white/20">
+                    <ShieldIcon className="w-6 h-6 text-purple-400" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-black tracking-tight uppercase tracking-widest">Process Security</h2>
+                    <p className="text-purple-300/60 text-[10px] font-bold tracking-tighter italic">Sequence: {selectedLeadForCallTracker}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowCallTrackerModal(false)
+                    setSelectedLeadForCallTracker(null)
+                    document.body.style.overflow = 'auto'
+                  }}
+                  className="bg-white/5 hover:bg-white/10 p-3 rounded-2xl transition-all border border-white/10 group active:scale-90"
+                >
+                  <X className="h-6 w-6 text-white group-hover:rotate-90 transition-transform" />
+                </button>
+              </div>
+              <div className="overflow-y-auto flex-1 custom-scrollbar bg-slate-50/50">
+                <NewCallTracker
+                  leadId={selectedLeadForCallTracker}
+                  onClose={() => {
+                    setShowCallTrackerModal(false)
+                    setSelectedLeadForCallTracker(null)
+                    document.body.style.overflow = 'auto'
+                    window.location.reload()
+                  }}
+                />
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
     </div>
   )
 }
 
 export default CallTracker
+
+
