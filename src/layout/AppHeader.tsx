@@ -78,7 +78,7 @@ const AppHeader: React.FC = () => {
         {/* Left Side: Sidebar Toggle */}
         <div className="flex items-center gap-2 h-full px-3 xl:px-0">
           <button
-            className="flex items-center justify-center w-10 h-10 text-slate-700 bg-white border border-slate-200 rounded-xl z-[1001] dark:border-slate-700 dark:text-slate-300 xl:h-11 xl:w-11 hover:bg-slate-50 hover:shadow-sm transition-all duration-200 active:scale-95"
+            className="flex items-center justify-center w-11 h-11 text-slate-700 bg-white border border-slate-200 rounded-xl z-[1001] dark:border-slate-700 dark:text-slate-300 xl:h-11 xl:w-11 hover:bg-slate-50 hover:shadow-sm transition-all duration-200 active:scale-95"
             onClick={handleToggle}
             aria-label="Toggle Sidebar"
           >
@@ -105,7 +105,7 @@ const AppHeader: React.FC = () => {
         <div className="flex items-center gap-2 px-3 xl:px-0">
           <button
             onClick={toggleApplicationMenu}
-            className={`flex items-center justify-center w-10 h-10 rounded-lg z-[1001] transition-colors xl:hidden ${isApplicationMenuOpen ? "bg-slate-100 text-blue-600 shadow-sm" : "text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+            className={`flex items-center justify-center w-11 h-11 rounded-lg z-[1001] transition-colors xl:hidden ${isApplicationMenuOpen ? "bg-slate-100 text-blue-600 shadow-sm" : "text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
               }`}
           >
             {isApplicationMenuOpen ? (
