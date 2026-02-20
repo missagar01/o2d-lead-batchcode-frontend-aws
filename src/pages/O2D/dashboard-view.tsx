@@ -793,6 +793,9 @@ export function DashboardView() {
         )}
 
         {/* Filter Section moved to top */}
+
+
+
         <Card className="border-l-4 border-l-indigo-500 bg-gradient-to-br from-indigo-50/30 to-white shadow-lg overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-indigo-50 to-transparent p-2.5 sm:p-4 pb-2 sm:pb-3">
             <div className="flex items-center justify-between">
@@ -820,6 +823,7 @@ export function DashboardView() {
               )}
             </div>
           </CardHeader>
+
           <CardContent className="p-2 sm:p-4 lg:p-6">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-4 lg:gap-6">
               {/* Salesperson Filter */}
@@ -863,7 +867,14 @@ export function DashboardView() {
 
 
           </CardContent>
+
+
         </Card>
+
+
+
+
+
 
         {/* All Sauda Average & Sales Average - Side by Side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-4 lg:gap-6">

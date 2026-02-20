@@ -54,6 +54,7 @@ const EnquiryView = () => {
     const [itemTypes, setItemTypes] = useState<string[]>([]);
 
     const selectedDate = date ? new Date(date) : undefined;
+    const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const isAdmin = user && user.role === 'admin';
 
     useEffect(() => {
@@ -186,8 +187,8 @@ const EnquiryView = () => {
     );
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] font-sans text-slate-900">
-            <div className="max-w-5xl mx-auto">
+        <div className="min-h-screen bg-[#F8FAFC] font-sans text-slate-900 p-2 sm:p-4 lg:p-6">
+            <div className="w-full mx-auto space-y-4">
 
                 {/* ── Header ── */}
                 <div className="bg-[#1e40af] px-3 py-2.5 sm:px-6 sm:py-4 flex items-center justify-between">
@@ -238,7 +239,7 @@ const EnquiryView = () => {
                                     <CalendarIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-blue-500" />
                                     Date <span className="text-rose-500">*</span>
                                 </label>
-                                <Popover>
+                                <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                                     <PopoverTrigger asChild>
                                         <Button
                                             variant={"outline"}
@@ -255,13 +256,36 @@ const EnquiryView = () => {
                                         <CalendarComponent
                                             mode="single"
                                             selected={selectedDate}
-                                            onSelect={(d) => d && setDate(format(d, "yyyy-MM-dd"))}
+                                            onSelect={(d) => {
+                                                if (d) {
+                                                    setDate(format(d, "yyyy-MM-dd"));
+                                                    setIsCalendarOpen(false);
+                                                }
+                                            }}
                                             initialFocus
                                             className="bg-white"
                                         />
                                         <div className="flex items-center justify-between p-3 border-t border-slate-50 bg-slate-50/50">
-                                            <button type="button" onClick={() => setDate("")} className="text-xs font-bold text-rose-500 hover:text-rose-600 px-3 py-1.5 rounded-lg hover:bg-rose-50 transition-colors">Clear</button>
-                                            <button type="button" onClick={() => setDate(format(new Date(), "yyyy-MM-dd"))} className="text-xs font-bold text-blue-600 hover:text-blue-700 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors">Today</button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setDate("");
+                                                    setIsCalendarOpen(false);
+                                                }}
+                                                className="text-xs font-bold text-rose-500 hover:text-rose-600 px-3 py-1.5 rounded-lg hover:bg-rose-50 transition-colors"
+                                            >
+                                                Clear
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setDate(format(new Date(), "yyyy-MM-dd"));
+                                                    setIsCalendarOpen(false);
+                                                }}
+                                                className="text-xs font-bold text-blue-600 hover:text-blue-700 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+                                            >
+                                                Today
+                                            </button>
                                         </div>
                                     </PopoverContent>
                                 </Popover>
