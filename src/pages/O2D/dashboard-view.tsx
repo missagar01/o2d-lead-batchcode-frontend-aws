@@ -1323,7 +1323,7 @@ export function DashboardView() {
         </div>
 
         {/* Sale Performance State Wise Section */}
-        <Card className="border-none shadow-none bg-transparent overflow-visible mb-0 sm:shadow-sm sm:bg-white sm:overflow-hidden">
+        <Card className="hidden sm:block border-none shadow-none bg-transparent overflow-visible mb-0 sm:shadow-sm sm:bg-white sm:overflow-hidden">
           <CardHeader className="p-0 bg-transparent border-none sm:bg-slate-50/50 sm:border-b sm:border-slate-100 sm:p-6">
             <div className="flex items-center justify-between px-0 py-0">
               <div className="flex items-center gap-2 sm:gap-3">
@@ -1439,100 +1439,102 @@ export function DashboardView() {
               })}
             </div>
 
-            {/* Mobile Only: State Share Pie Chart Card */}
-            <div className="sm:hidden mt-2 w-full">
-              <div className="rounded-lg bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-600 px-2 py-1.5 text-center">
-                <p className="text-[11px] font-black uppercase tracking-wider text-white">State Share Pie</p>
-                <p className="text-[9px] font-bold uppercase tracking-wide text-white/85">State, Score & Market Share %</p>
-              </div>
 
-              {mobileStateShareData.length === 0 ? (
-                <p className="py-8 text-center text-xs font-semibold text-slate-400">No state share data available</p>
-              ) : (
-                <>
-                  <div className="mt-2 rounded-lg border border-slate-200 bg-gradient-to-b from-slate-50 to-white p-2">
-                    <div className="relative h-56">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={mobileStateShareData}
-                            dataKey="value"
-                            nameKey="name"
-                            innerRadius={44}
-                            outerRadius={84}
-                            paddingAngle={2}
-                            strokeWidth={1}
-                            stroke="#ffffff"
-                            labelLine={false}
-                            label={(props: any) => {
-                              const percent = Number(props?.payload?.percentage || 0);
-                              if (percent < 4) return null;
-                              const RADIAN = Math.PI / 180;
-                              const radius = (props?.outerRadius || 0) + 12;
-                              const x = (props?.cx || 0) + radius * Math.cos(-(props?.midAngle || 0) * RADIAN);
-                              const y = (props?.cy || 0) + radius * Math.sin(-(props?.midAngle || 0) * RADIAN);
-                              return (
-                                <text
-                                  x={x}
-                                  y={y}
-                                  fill="#0f172a"
-                                  textAnchor={x > (props?.cx || 0) ? "start" : "end"}
-                                  dominantBaseline="central"
-                                  fontSize={10}
-                                  fontWeight={800}
-                                >
-                                  {`${percent.toFixed(1)}%`}
-                                </text>
-                              );
-                            }}
-                          >
-                            {mobileStateShareData.map((entry, idx) => (
-                              <Cell key={`mobile-state-pie-${entry.name}-${idx}`} fill={entry.fill} />
-                            ))}
-                          </Pie>
-                        </PieChart>
-                      </ResponsiveContainer>
-
-                      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                        <p className="text-[9px] font-black uppercase tracking-wider text-slate-500">Total Score</p>
-                        <p className="text-base font-black text-slate-800">
-                          {mobileStateShareData.reduce((sum, row) => sum + row.value, 0).toLocaleString()}
-                        </p>
-                        <p className="text-[11px] font-bold uppercase tracking-wide text-indigo-600">
-                          {mobileStateShareData[0]?.name || "Top State"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1 mt-1">
-                    {mobileStateShareData.map((entry, idx) => (
-                      <div
-                        key={`mobile-state-row-${entry.name}-${idx}`}
-                        className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5"
-                      >
-                        <div className="grid grid-cols-[1.3fr_0.7fr_0.7fr] items-center gap-1">
-                          <div className="min-w-0 flex items-center gap-1.5">
-                            <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.fill }} />
-                            <span className="truncate text-sm font-semibold uppercase text-slate-700">{entry.name}</span>
-                          </div>
-                          <span className="text-center text-sm font-bold text-slate-700">{entry.value.toLocaleString()}</span>
-                          <span className="text-center text-sm font-black text-indigo-600">{entry.percentage.toFixed(1)}%</span>
-                        </div>
-                        <div className="mt-1 h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
-                          <div
-                            className="h-full rounded-full"
-                            style={{ width: `${Math.min(entry.percentage, 100)}%`, backgroundColor: entry.fill }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
           </CardContent>
         </Card>
+
+        {/* Mobile Only: State Share Pie Chart Card - outside the hidden Card so it shows on mobile */}
+        <div className="sm:hidden mt-2 w-full">
+          <div className="rounded-lg bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-600 px-2 py-1.5 text-center">
+            <p className="text-[11px] font-black uppercase tracking-wider text-white">State Share Pie</p>
+            <p className="text-[9px] font-bold uppercase tracking-wide text-white/85">State, Score & Market Share %</p>
+          </div>
+
+          {mobileStateShareData.length === 0 ? (
+            <p className="py-8 text-center text-xs font-semibold text-slate-400">No state share data available</p>
+          ) : (
+            <>
+              <div className="mt-2 rounded-lg border border-slate-200 bg-gradient-to-b from-slate-50 to-white p-2">
+                <div className="relative h-56">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={mobileStateShareData}
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius={44}
+                        outerRadius={84}
+                        paddingAngle={2}
+                        strokeWidth={1}
+                        stroke="#ffffff"
+                        labelLine={false}
+                        label={(props: any) => {
+                          const percent = Number(props?.payload?.percentage || 0);
+                          if (percent < 4) return null;
+                          const RADIAN = Math.PI / 180;
+                          const radius = (props?.outerRadius || 0) + 12;
+                          const x = (props?.cx || 0) + radius * Math.cos(-(props?.midAngle || 0) * RADIAN);
+                          const y = (props?.cy || 0) + radius * Math.sin(-(props?.midAngle || 0) * RADIAN);
+                          return (
+                            <text
+                              x={x}
+                              y={y}
+                              fill="#0f172a"
+                              textAnchor={x > (props?.cx || 0) ? "start" : "end"}
+                              dominantBaseline="central"
+                              fontSize={10}
+                              fontWeight={800}
+                            >
+                              {`${percent.toFixed(1)}%`}
+                            </text>
+                          );
+                        }}
+                      >
+                        {mobileStateShareData.map((entry, idx) => (
+                          <Cell key={`mobile-state-pie-${entry.name}-${idx}`} fill={entry.fill} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+
+                  <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                    <p className="text-[9px] font-black uppercase tracking-wider text-slate-500">Total Score</p>
+                    <p className="text-base font-black text-slate-800">
+                      {mobileStateShareData.reduce((sum, row) => sum + row.value, 0).toLocaleString()}
+                    </p>
+                    <p className="text-[11px] font-bold uppercase tracking-wide text-indigo-600">
+                      {mobileStateShareData[0]?.name || "Top State"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-1 mt-1">
+                {mobileStateShareData.map((entry, idx) => (
+                  <div
+                    key={`mobile-state-row-${entry.name}-${idx}`}
+                    className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5"
+                  >
+                    <div className="grid grid-cols-[1.3fr_0.7fr_0.7fr] items-center gap-1">
+                      <div className="min-w-0 flex items-center gap-1.5">
+                        <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.fill }} />
+                        <span className="truncate text-sm font-semibold uppercase text-slate-700">{entry.name}</span>
+                      </div>
+                      <span className="text-center text-sm font-bold text-slate-700">{entry.value.toLocaleString()}</span>
+                      <span className="text-center text-sm font-black text-indigo-600">{entry.percentage.toFixed(1)}%</span>
+                    </div>
+                    <div className="mt-1 h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
+                      <div
+                        className="h-full rounded-full"
+                        style={{ width: `${Math.min(entry.percentage, 100)}%`, backgroundColor: entry.fill }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
 
 
 
