@@ -1691,7 +1691,7 @@ export function DashboardView() {
                           const avgOrderClientsValue = totalOrderClients / dataRows.length;
                           const avgConversionRatio = (dataRows.reduce((sum, row) => sum + parseFloat(row.conversionRatio || '0'), 0) / dataRows.length).toFixed(2);
                           const avgTotalRsSaleValue = totalRsSale / dataRows.length;
-                          const avgAvgRsSale = (dataRows.reduce((sum, row) => sum + parseFloat(row.avgRsSale || '0'), 0) / dataRows.length).toFixed(2);
+                          const avgAvgRsSale = avgOrderClientsValue > 0 ? (avgTotalRsSaleValue / avgOrderClientsValue).toFixed(2) : '0.00';
 
                           return (
                             <>
@@ -1835,8 +1835,7 @@ export function DashboardView() {
                               const avgConversionRatio = (dataRows.reduce((sum, row) => sum + parseFloat(row.conversionRatio || '0'), 0) / dataRows.length).toFixed(2);
                               const avgTotalRsSaleValue = dataRows.reduce((sum, row) => sum + Number(row.totalRsSale || 0), 0) / dataRows.length;
                               const avgTotalRsSale = avgTotalRsSaleValue.toFixed(0);
-                              // Average Rs Sale = Average Total Rs Sale / Average Order Clients
-                              const avgAvgRsSale = (dataRows.reduce((sum, row) => sum + parseFloat(row.avgRsSale || '0'), 0) / dataRows.length).toFixed(2);
+                              const avgAvgRsSale = avgOrderClientsValue > 0 ? (avgTotalRsSaleValue / avgOrderClientsValue).toFixed(2) : '0.00';
 
                               return (
                                 <tr className="bg-purple-50 font-bold border-t-2 border-purple-200 hover:bg-purple-100/80 transition-colors text-[9px] sm:text-sm">
@@ -1997,7 +1996,7 @@ export function DashboardView() {
                           const avgOrderClientsValue = totalOrderClients / dataRows.length;
                           const avgConversionRatio = (dataRows.reduce((sum, row) => sum + parseFloat(row.conversionRatio || '0'), 0) / dataRows.length).toFixed(2);
                           const avgTotalRsSaleValue = totalRsSale / dataRows.length;
-                          const avgAvgRsSale = (dataRows.reduce((sum, row) => sum + parseFloat(row.avgRsSale || '0'), 0) / dataRows.length).toFixed(2);
+                          const avgAvgRsSale = avgOrderClientsValue > 0 ? (avgTotalRsSaleValue / avgOrderClientsValue).toFixed(2) : '0.00';
 
                           return (
                             <>
@@ -2130,11 +2129,15 @@ export function DashboardView() {
                           const dataRows = dailySalesPerformance.filter(row => row.salesPerson !== 'Total');
                           if (dataRows.length === 0) return null;
 
-                          const avgCallings = (dataRows.reduce((sum, row) => sum + Number(row.noOfCallings || 0), 0) / dataRows.length).toFixed(1);
-                          const avgOrderClients = (dataRows.reduce((sum, row) => sum + Number(row.orderClients || 0), 0) / dataRows.length).toFixed(1);
+                          const avgCallingsValue = dataRows.reduce((sum, row) => sum + Number(row.noOfCallings || 0), 0) / dataRows.length;
+                          const avgOrderClientsValue = dataRows.reduce((sum, row) => sum + Number(row.orderClients || 0), 0) / dataRows.length;
+                          const avgTotalRsSaleValue = dataRows.reduce((sum, row) => sum + Number(row.totalRsSale || 0), 0) / dataRows.length;
+
+                          const avgCallings = avgCallingsValue.toFixed(1);
+                          const avgOrderClients = avgOrderClientsValue.toFixed(1);
                           const avgConversionRatio = (dataRows.reduce((sum, row) => sum + parseFloat(row.conversionRatio || '0'), 0) / dataRows.length).toFixed(2);
-                          const avgTotalRsSale = (dataRows.reduce((sum, row) => sum + Number(row.totalRsSale || 0), 0) / dataRows.length).toFixed(0);
-                          const avgAvgRsSale = (dataRows.reduce((sum, row) => sum + parseFloat(row.avgRsSale || '0'), 0) / dataRows.length).toFixed(2);
+                          const avgTotalRsSale = avgTotalRsSaleValue.toFixed(0);
+                          const avgAvgRsSale = avgOrderClientsValue > 0 ? (avgTotalRsSaleValue / avgOrderClientsValue).toFixed(2) : '0.00';
 
                           return (
                             <tr className="bg-teal-50 font-bold border-t-2 border-teal-200 hover:bg-teal-100/80 transition-colors text-[9px] sm:text-sm">
