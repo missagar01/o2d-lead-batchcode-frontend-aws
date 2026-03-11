@@ -43,7 +43,7 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
     const [formData, setFormData] = useState({
         client_name: '',
         sales_person: '',
-        date_of_calling: new Date().toISOString().split('T')[0],
+        date_of_calling: '',
         order_quantity: '',
         order_date: '',
         next_calling_date: '',
@@ -57,19 +57,19 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
                 setFormData({
                     client_name: followup.customerName || '',
                     sales_person: followup.salesPerson || '',
-                    date_of_calling: followup.date ? new Date(followup.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                    date_of_calling: followup.date ? getLocalYYYYMMDD(followup.date) : getLocalYYYYMMDD(new Date()),
                     order_quantity: followup.quantity || '',
-                    order_date: followup.orderDate ? new Date(followup.orderDate).toISOString().split('T')[0] : '',
-                    next_calling_date: followup.nextCall ? new Date(followup.nextCall).toISOString().split('T')[0] : '',
+                    order_date: followup.orderDate ? getLocalYYYYMMDD(followup.orderDate) : '',
+                    next_calling_date: followup.nextCall ? getLocalYYYYMMDD(followup.nextCall) : '',
                 });
                 setWaitingForResponse(followup.status === 'Waiting for Response');
             } else {
                 setFormData({
                     client_name: customer?.["Client Name"] || customer?.name || '',
                     sales_person: user?.user_name || user?.username || '',
-                    date_of_calling: new Date().toISOString().split('T')[0],
+                    date_of_calling: getLocalYYYYMMDD(new Date()),
                     order_quantity: '',
-                    order_date: new Date().toISOString().split('T')[0],
+                    order_date: getLocalYYYYMMDD(new Date()),
                     next_calling_date: '',
                 });
                 setWaitingForResponse(false);
@@ -77,12 +77,42 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
         }
     }, [isOpen, followup, customer, user]);
 
+    const getLocalYYYYMMDD = (d: any) => {
+        if (!d) return '';
+        try {
+            const dateObj = new Date(d);
+            if (isNaN(dateObj.getTime())) return '';
+            const y = dateObj.getFullYear();
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        } catch {
+            return '';
+        }
+    };
+
     // Format YYYY-MM-DD → "20 Feb 2026" for display
     const fmtDisplay = (s: string) => {
         if (!s) return '';
         try {
+            const parts = s.split('-');
+            if (parts.length === 3) {
+                // Parse correctly using local components to prevent timezone shift
+                const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+                return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+            }
             return new Date(s).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
         } catch { return s; }
+    };
+
+    const handleDateClick = (e: React.MouseEvent<HTMLInputElement>) => {
+        try {
+            if ('showPicker' in HTMLInputElement.prototype) {
+                (e.target as HTMLInputElement).showPicker();
+            }
+        } catch (err) {
+            // gracefully ignore if showPicker is unsupported or already open
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -96,7 +126,7 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
                 client_name: formData.client_name,
                 sales_person: formData.sales_person,
                 actual_order: actualOrder,
-                actual_order_date: isBooked ? (formData.order_date || new Date().toISOString().split('T')[0]) : null,
+                actual_order_date: isBooked ? (formData.order_date || getLocalYYYYMMDD(new Date())) : null,
                 date_of_calling: formData.date_of_calling,
                 next_calling_date: (!isBooked && !waitingForResponse && formData.next_calling_date) ? formData.next_calling_date : null
             };
@@ -132,7 +162,7 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
                     disabled={disabled}
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
-                    onClick={(e) => !disabled && (e.target as any).showPicker?.()}
+                    onClick={(e) => !disabled && handleDateClick(e)}
                     className="peer absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
                 />
                 <div className={`flex items-center gap-2.5 bg-slate-50 border ${borderColor} rounded-xl px-3.5 py-3.5 transition-all peer-focus:ring-2 peer-focus:ring-blue-500/20 peer-focus:border-blue-500 peer-focus:bg-white ${disabled ? 'opacity-40' : ''}`}>
