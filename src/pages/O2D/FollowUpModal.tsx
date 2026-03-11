@@ -24,8 +24,42 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
     });
     const [waitingForResponse, setWaitingForResponse] = useState(false);
 
-    const fmtDisplay = (s: string) => { try { return format(new Date(s), 'dd-MM-yyyy'); } catch { return s; } };
-    const fmtPayload = (s: string) => { try { return format(new Date(s), 'dd-MM-yyyy'); } catch { return s; } };
+    const getLocalYYYYMMDD = (d: any) => {
+        if (!d) return '';
+        try {
+            const dateObj = new Date(d);
+            if (isNaN(dateObj.getTime())) return '';
+            const y = dateObj.getFullYear();
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        } catch {
+            return '';
+        }
+    };
+
+    const fmtDisplay = (s: string) => {
+        if (!s) return '';
+        const parts = s.split('-');
+        if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        return s;
+    };
+    const fmtPayload = (s: string) => {
+        if (!s) return '';
+        const parts = s.split('-');
+        if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        return s;
+    };
+
+    const handleDateClick = (e: React.MouseEvent<HTMLInputElement>) => {
+        try {
+            if ('showPicker' in HTMLInputElement.prototype) {
+                (e.target as HTMLInputElement).showPicker();
+            }
+        } catch (err) {
+            // gracefully ignore if showPicker is unsupported or already open
+        }
+    };
 
     useEffect(() => {
         if (!isOpen) return;
@@ -33,13 +67,19 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
             setFormData({
                 order_booked: followup.isBooked ? 'true' : 'false',
                 order_quantity: followup.quantity || '',
-                order_date: followup.orderDate ? new Date(followup.orderDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-                date_of_calling: followup.date ? new Date(followup.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-                next_calling_date: followup.nextCall ? new Date(followup.nextCall).toISOString().split('T')[0] : '',
+                order_date: followup.orderDate ? getLocalYYYYMMDD(followup.orderDate) : getLocalYYYYMMDD(new Date()),
+                date_of_calling: followup.date ? getLocalYYYYMMDD(followup.date) : getLocalYYYYMMDD(new Date()),
+                next_calling_date: followup.nextCall ? getLocalYYYYMMDD(followup.nextCall) : '',
             });
             setWaitingForResponse(followup.status === 'Waiting for Response');
         } else {
-            setFormData({ order_booked: 'true', order_quantity: '', order_date: new Date().toISOString().split('T')[0], date_of_calling: new Date().toISOString().split('T')[0], next_calling_date: '' });
+            setFormData({
+                order_booked: 'true',
+                order_quantity: '',
+                order_date: getLocalYYYYMMDD(new Date()),
+                date_of_calling: getLocalYYYYMMDD(new Date()),
+                next_calling_date: ''
+            });
             setWaitingForResponse(false);
         }
     }, [isOpen, followup]);
@@ -125,7 +165,7 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
                                 <div className="relative">
                                     <input type="date" required value={formData.order_date}
                                         onChange={(e) => setFormData({ ...formData, order_date: e.target.value })}
-                                        onClick={(e) => (e.target as any).showPicker?.()}
+                                        onClick={handleDateClick}
                                         className="peer absolute inset-0 opacity-0 cursor-pointer z-10 w-full h-full" />
                                     <div className="flex items-center bg-white border border-emerald-200 rounded-xl px-3 py-2.5 gap-2">
                                         <Calendar className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
@@ -148,7 +188,7 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
                                 <div className="relative">
                                     <input type="date" required value={formData.date_of_calling}
                                         onChange={(e) => setFormData({ ...formData, date_of_calling: e.target.value })}
-                                        onClick={(e) => (e.target as any).showPicker?.()}
+                                        onClick={handleDateClick}
                                         className="peer absolute inset-0 opacity-0 cursor-pointer z-10 w-full h-full" />
                                     <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 gap-2">
                                         <Calendar className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
@@ -162,7 +202,7 @@ const FollowUpModal: React.FC<FollowUpModalProps> = ({ isOpen, onClose, customer
                                     <input type="date" required={!waitingForResponse} disabled={waitingForResponse}
                                         value={formData.next_calling_date}
                                         onChange={(e) => setFormData({ ...formData, next_calling_date: e.target.value })}
-                                        onClick={(e) => !waitingForResponse && (e.target as any).showPicker?.()}
+                                        onClick={(e) => !waitingForResponse && handleDateClick(e)}
                                         className="peer absolute inset-0 opacity-0 cursor-pointer z-10 w-full h-full disabled:cursor-not-allowed" />
                                     <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 gap-2">
                                         <Calendar className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
