@@ -132,7 +132,7 @@ function getPerformanceSummary(rows: PerformanceRow[] = []) {
   const totalOrderClients = dataRows.reduce((sum, row) => sum + Number(row.orderClients || 0), 0)
   const totalRsSale = dataRows.reduce((sum, row) => sum + Number(row.totalRsSale || 0), 0)
   const totalConversionRatio = totalCallings > 0 ? ((totalOrderClients / totalCallings) * 100).toFixed(2) : "0.00"
-  const totalAvgSale = totalOrderClients > 0 ? (totalRsSale / totalOrderClients).toFixed(2) : "0.00"
+  const totalAvgSale = dataRows.reduce((sum, row) => sum + parseFloat(String(row.avgRsSale || "0")), 0).toFixed(2)
   const avgCallings = personCount > 0 ? (totalCallings / personCount).toFixed(1) : "0.0"
   const avgCallingsPerPerson = personCount > 0 ? (Number(avgCallings) / personCount).toFixed(2) : "0.00"
   const avgOrderClientsValue = personCount > 0 ? (totalOrderClients / personCount) : 0
@@ -1846,7 +1846,7 @@ export function DashboardView() {
                               )
                             })}
 
-                                      {(() => {
+                            {(() => {
                               if (monthlyPerformanceSummary.dataRows.length === 0) return null;
 
                               return (
