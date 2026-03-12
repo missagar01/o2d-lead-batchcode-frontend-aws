@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react"
 import { AlertCircle, Filter, Loader2, RefreshCw, X, Trophy, Database, User, Percent, Truck, Target, TrendingUp, ArrowUpRight, Activity, Quote, MessageSquare, Star } from "lucide-react"
@@ -107,6 +107,60 @@ function DatePicker({
   );
 }
 
+type PerformanceRow = {
+  salesPerson?: string | null
+  noOfCallings?: number | string | null
+  orderClients?: number | string | null
+  conversionRatio?: number | string | null
+  totalRsSale?: number | string | null
+  avgRsSale?: number | string | null
+}
+
+const PERFORMANCE_SUMMARY_LABELS = new Set(["total", "average", "avg"])
+
+function getPerformanceDataRows(rows: PerformanceRow[] = []) {
+  return rows.filter((row) => {
+    const salesPerson = String(row.salesPerson || "").trim().toLowerCase()
+    return salesPerson !== "" && !PERFORMANCE_SUMMARY_LABELS.has(salesPerson)
+  })
+}
+
+function getPerformanceSummary(rows: PerformanceRow[] = []) {
+  const dataRows = getPerformanceDataRows(rows)
+  const personCount = dataRows.length
+  const totalCallings = dataRows.reduce((sum, row) => sum + Number(row.noOfCallings || 0), 0)
+  const totalOrderClients = dataRows.reduce((sum, row) => sum + Number(row.orderClients || 0), 0)
+  const totalRsSale = dataRows.reduce((sum, row) => sum + Number(row.totalRsSale || 0), 0)
+  const totalConversionRatio = totalCallings > 0 ? ((totalOrderClients / totalCallings) * 100).toFixed(2) : "0.00"
+  const totalAvgSale = totalOrderClients > 0 ? (totalRsSale / totalOrderClients).toFixed(2) : "0.00"
+  const avgCallings = personCount > 0 ? (totalCallings / personCount).toFixed(1) : "0.0"
+  const avgCallingsPerPerson = personCount > 0 ? (Number(avgCallings) / personCount).toFixed(2) : "0.00"
+  const avgOrderClientsValue = personCount > 0 ? (totalOrderClients / personCount) : 0
+  const avgOrderClients = avgOrderClientsValue.toFixed(1)
+  const avgConversionRatio = personCount > 0
+    ? (dataRows.reduce((sum, row) => sum + parseFloat(String(row.conversionRatio || "0")), 0) / personCount).toFixed(2)
+    : "0.00"
+  const avgTotalRsSaleValue = personCount > 0 ? (totalRsSale / personCount) : 0
+  const avgTotalRsSale = avgTotalRsSaleValue.toFixed(0)
+  const avgAvgRsSale = avgOrderClientsValue > 0 ? (avgTotalRsSaleValue / avgOrderClientsValue).toFixed(2) : "0.00"
+
+  return {
+    dataRows,
+    personCount,
+    totalCallings,
+    totalOrderClients,
+    totalRsSale,
+    totalConversionRatio,
+    totalAvgSale,
+    avgCallings,
+    avgCallingsPerPerson,
+    avgOrderClients,
+    avgConversionRatio,
+    avgTotalRsSale,
+    avgAvgRsSale,
+  }
+}
+
 export function DashboardView() {
   const { user, loading: authLoading } = useAuth()
   const [data, setData] = useState<DashboardResponse | null>(null)
@@ -143,6 +197,14 @@ export function DashboardView() {
   const [followupStats, setFollowupStats] = useState({ totalFollowUps: 0, ordersBooked: 0 })
   const [salesPerformance, setSalesPerformance] = useState<any[]>([])
   const [dailySalesPerformance, setDailySalesPerformance] = useState<any[]>([]) // New state for daily stats
+  const monthlyPerformanceSummary = useMemo(
+    () => getPerformanceSummary(salesPerformance),
+    [salesPerformance]
+  )
+  const dailyPerformanceSummary = useMemo(
+    () => getPerformanceSummary(dailySalesPerformance),
+    [dailySalesPerformance]
+  )
   const [deliveryStats, setDeliveryStats] = useState<{ monthly: any; daily: any } | null>(null)
   const [salespersonDeliveryStats, setSalespersonDeliveryStats] = useState<Record<string, any>>({})
 
@@ -1784,39 +1846,29 @@ export function DashboardView() {
                               )
                             })}
 
-                            {/* Total Row */}
-                            {(() => {
-                              const dataRows = salesPerformance.filter(row => row.salesPerson !== 'Total');
-                              if (dataRows.length === 0) return null;
-
-                              const totalCallings = dataRows.reduce((sum, row) => sum + Number(row.noOfCallings || 0), 0);
-                              const totalOrderClients = dataRows.reduce((sum, row) => sum + Number(row.orderClients || 0), 0);
-                              const totalRsSale = dataRows.reduce((sum, row) => sum + Number(row.totalRsSale || 0), 0);
-
-                              const totalConversionRatio = totalCallings > 0 ? ((totalOrderClients / totalCallings) * 100).toFixed(2) : '0.00';
-                              // Avg Sale for Total = Total Sale / Total Order Clients
-                              const totalAvgSale = dataRows.reduce((sum, row) => sum + parseFloat(row.avgRsSale || '0'), 0).toFixed(2);
+                                      {(() => {
+                              if (monthlyPerformanceSummary.dataRows.length === 0) return null;
 
                               return (
                                 <tr className="bg-yellow-50 font-bold border-t-2 border-yellow-200 hover:bg-yellow-100/80 transition-colors text-[9px] sm:text-sm">
                                   <td className="px-3 sm:px-6 py-2 sm:py-3 font-medium flex items-center gap-1.5 sm:gap-3">
                                     <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-full bg-yellow-600 flex items-center justify-center text-white text-[8px] sm:text-xs font-bold shadow-sm">
-                                      Î£
+                                      Σ
                                     </div>
                                     <span className="text-yellow-700">TOTAL</span>
                                   </td>
-                                  <td className="px-2 sm:px-6 py-2 sm:py-3 text-center text-yellow-700">{totalCallings}</td>
-                                  <td className="px-2 sm:px-6 py-2 sm:py-3 text-center text-yellow-700">{totalOrderClients}</td>
+                                  <td className="px-2 sm:px-6 py-2 sm:py-3 text-center text-yellow-700">{monthlyPerformanceSummary.totalCallings}</td>
+                                  <td className="px-2 sm:px-6 py-2 sm:py-3 text-center text-yellow-700">{monthlyPerformanceSummary.totalOrderClients}</td>
                                   <td className="px-2 sm:px-6 py-2 sm:py-3 text-center">
                                     <div className="flex flex-col items-center">
-                                      <span className="text-yellow-700 font-bold">{totalConversionRatio}%</span>
+                                      <span className="text-yellow-700 font-bold">{monthlyPerformanceSummary.totalConversionRatio}%</span>
                                     </div>
                                   </td>
                                   <td className="px-2 sm:px-6 py-2 sm:py-3 text-center text-yellow-700">
-                                    {Number(totalRsSale).toLocaleString()}
+                                    {Number(monthlyPerformanceSummary.totalRsSale).toLocaleString()}
                                   </td>
                                   <td className="px-2 sm:px-6 py-2 sm:py-3 text-center">
-                                    <span className="text-yellow-700 font-bold">{totalAvgSale}</span>
+                                    <span className="text-yellow-700 font-bold">{monthlyPerformanceSummary.totalAvgSale}</span>
                                   </td>
                                 </tr>
                               );
@@ -1824,39 +1876,28 @@ export function DashboardView() {
 
                             {/* Average Row */}
                             {(() => {
-                              // Filter out the Total row for average calculation
-                              const dataRows = salesPerformance.filter(row => row.salesPerson !== 'Total');
-                              if (dataRows.length === 0) return null;
-
-                              const avgCallingsValue = dataRows.reduce((sum, row) => sum + Number(row.noOfCallings || 0), 0) / dataRows.length;
-                              const avgOrderClientsValue = dataRows.reduce((sum, row) => sum + Number(row.orderClients || 0), 0) / dataRows.length;
-                              const avgCallings = avgCallingsValue.toFixed(1);
-                              const avgOrderClients = avgOrderClientsValue.toFixed(1);
-                              const avgConversionRatio = (dataRows.reduce((sum, row) => sum + parseFloat(row.conversionRatio || '0'), 0) / dataRows.length).toFixed(2);
-                              const avgTotalRsSaleValue = dataRows.reduce((sum, row) => sum + Number(row.totalRsSale || 0), 0) / dataRows.length;
-                              const avgTotalRsSale = avgTotalRsSaleValue.toFixed(0);
-                              const avgAvgRsSale = avgOrderClientsValue > 0 ? (avgTotalRsSaleValue / avgOrderClientsValue).toFixed(2) : '0.00';
+                              if (monthlyPerformanceSummary.dataRows.length === 0) return null;
 
                               return (
                                 <tr className="bg-purple-50 font-bold border-t-2 border-purple-200 hover:bg-purple-100/80 transition-colors text-[9px] sm:text-sm">
                                   <td className="px-3 sm:px-6 py-2 sm:py-3 font-medium flex items-center gap-1.5 sm:gap-3">
                                     <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-full bg-purple-600 flex items-center justify-center text-white text-[8px] sm:text-xs font-bold shadow-sm">
-                                      Ã¸
+                                      ø
                                     </div>
                                     <span className="text-purple-700">AVERAGE</span>
                                   </td>
-                                  <td className="px-2 sm:px-6 py-2 sm:py-3 text-center text-purple-700">{avgCallings}</td>
-                                  <td className="px-2 sm:px-6 py-2 sm:py-3 text-center text-purple-700">{avgOrderClients}</td>
+                                  <td className="px-2 sm:px-6 py-2 sm:py-3 text-center text-purple-700">{monthlyPerformanceSummary.avgCallings}</td>
+                                  <td className="px-2 sm:px-6 py-2 sm:py-3 text-center text-purple-700">{monthlyPerformanceSummary.avgOrderClients}</td>
                                   <td className="px-2 sm:px-6 py-2 sm:py-3 text-center">
                                     <div className="flex flex-col items-center">
-                                      <span className="text-purple-700 font-bold">{avgConversionRatio}%</span>
+                                      <span className="text-purple-700 font-bold">{monthlyPerformanceSummary.avgConversionRatio}%</span>
                                     </div>
                                   </td>
                                   <td className="px-2 sm:px-6 py-2 sm:py-3 text-center text-purple-700">
-                                    {Number(avgTotalRsSale).toLocaleString()}
+                                    {Number(monthlyPerformanceSummary.avgTotalRsSale).toLocaleString()}
                                   </td>
                                   <td className="px-2 sm:px-6 py-2 sm:py-3 text-center">
-                                    <span className="text-purple-700 font-bold">{avgAvgRsSale}</span>
+                                    <span className="text-purple-700 font-bold">{monthlyPerformanceSummary.avgAvgRsSale}</span>
                                   </td>
                                 </tr>
                               );
@@ -1868,13 +1909,7 @@ export function DashboardView() {
                   </div>
 
                   {/* Summary Statistics Tables - Excel Format */}
-                  {salesPerformance.length > 0 && (() => {
-                    const dataRows = salesPerformance.filter(row => row.salesPerson !== 'Total');
-                    if (dataRows.length === 0) return null;
-
-                    // Calculate statistics
-                    const totalCallings = dataRows.reduce((sum, row) => sum + Number(row.noOfCallings || 0), 0);
-
+                  {monthlyPerformanceSummary.dataRows.length > 0 && (() => {
                     // Get number of days to divide by
                     let daysDivisor = 30; // default
                     if (selectedMonth !== "All Months") {
@@ -1888,9 +1923,10 @@ export function DashboardView() {
                       }
                     }
 
-                    const avgCallPerPersonMonthly = totalCallings / dataRows.length;
-                    const avgCallPerDay = (avgCallPerPersonMonthly / daysDivisor).toFixed(2);
-                    const avgCallPerPerson = (parseFloat(avgCallPerDay) / dataRows.length).toFixed(2);
+                    const avgCallPerDay = monthlyPerformanceSummary.personCount > 0
+                      ? (monthlyPerformanceSummary.totalCallings / monthlyPerformanceSummary.personCount / daysDivisor).toFixed(2)
+                      : "0.00";
+                    const avgCallPerPerson = monthlyPerformanceSummary.avgCallingsPerPerson;
 
                     return (
                       <div className="mt-1 sm:mt-4 px-0 sm:px-6 pb-1 sm:pb-6">
@@ -1910,7 +1946,7 @@ export function DashboardView() {
                           {/* Total Calling */}
                           <div className="min-w-0 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 transition-colors rounded-lg sm:rounded-xl px-2 sm:px-5 py-1.5 sm:py-3 border-2 border-yellow-600 shadow-lg">
                             <span className="block text-center font-bold text-slate-800 text-[13px] sm:text-base leading-tight">Total Calling</span>
-                            <span className="block text-center font-black text-slate-800 text-[13px] sm:text-base leading-none">{totalCallings.toLocaleString()}</span>
+                            <span className="block text-center font-black text-slate-800 text-[13px] sm:text-base leading-none">{monthlyPerformanceSummary.totalCallings.toLocaleString()}</span>
                           </div>
                         </div>
                       </div>
@@ -1983,42 +2019,29 @@ export function DashboardView() {
                         })}
 
                         {(() => {
-                          const dataRows = dailySalesPerformance.filter(row => row.salesPerson !== 'Total');
-                          if (dataRows.length === 0) return null;
-
-                          const totalCallings = dataRows.reduce((sum, row) => sum + Number(row.noOfCallings || 0), 0);
-                          const totalOrderClients = dataRows.reduce((sum, row) => sum + Number(row.orderClients || 0), 0);
-                          const totalRsSale = dataRows.reduce((sum, row) => sum + Number(row.totalRsSale || 0), 0);
-                          const totalConversionRatio = totalCallings > 0 ? ((totalOrderClients / totalCallings) * 100).toFixed(2) : '0.00';
-                          const totalAvgSale = dataRows.reduce((sum, row) => sum + parseFloat(row.avgRsSale || '0'), 0).toFixed(2);
-
-                          const avgCallingsValue = totalCallings / dataRows.length;
-                          const avgOrderClientsValue = totalOrderClients / dataRows.length;
-                          const avgConversionRatio = (dataRows.reduce((sum, row) => sum + parseFloat(row.conversionRatio || '0'), 0) / dataRows.length).toFixed(2);
-                          const avgTotalRsSaleValue = totalRsSale / dataRows.length;
-                          const avgAvgRsSale = avgOrderClientsValue > 0 ? (avgTotalRsSaleValue / avgOrderClientsValue).toFixed(2) : '0.00';
+                          if (dailyPerformanceSummary.dataRows.length === 0) return null;
 
                           return (
                             <>
                               <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-1.5 shadow-sm">
                                 <p className="text-[13px] sm:text-sm font-black text-yellow-700 mb-1">TOTAL</p>
                                 <div className="grid grid-cols-2 gap-1">
-                                  <div className="rounded-md bg-blue-50 px-1.5 py-1 flex items-center justify-between gap-2"><p className="text-[13px] sm:text-base text-blue-500 uppercase leading-none">Calls</p><p className="text-[13px] sm:text-base font-bold text-blue-700 leading-none">{totalCallings}</p></div>
-                                  <div className="rounded-md bg-violet-50 px-1.5 py-1 flex items-center justify-between gap-2"><p className="text-[13px] sm:text-base text-violet-500 uppercase leading-none">Orders</p><p className="text-[13px] sm:text-base font-bold text-violet-700 leading-none">{totalOrderClients}</p></div>
-                                  <div className="rounded-md bg-emerald-50 px-1.5 py-1 flex items-center justify-between gap-2"><p className="text-[13px] sm:text-base text-emerald-500 uppercase leading-none">Conv</p><p className="text-[13px] sm:text-base font-bold text-emerald-700 leading-none">{totalConversionRatio}%</p></div>
-                                  <div className="rounded-md bg-amber-50 px-1.5 py-1 flex items-center justify-between gap-2"><p className="text-[13px] sm:text-base text-amber-600 uppercase leading-none">Sale</p><p className="text-[13px] sm:text-base font-bold text-amber-700 leading-none">{Number(totalRsSale).toLocaleString()}</p></div>
-                                  <div className="rounded-md bg-indigo-50 px-1.5 py-1 flex items-center justify-between gap-2 col-span-2"><p className="text-[13px] sm:text-base text-indigo-500 uppercase leading-none">Avg</p><p className="text-[13px] sm:text-base font-bold text-indigo-700 leading-none">{totalAvgSale}</p></div>
+                                  <div className="rounded-md bg-blue-50 px-1.5 py-1 flex items-center justify-between gap-2"><p className="text-[13px] sm:text-base text-blue-500 uppercase leading-none">Calls</p><p className="text-[13px] sm:text-base font-bold text-blue-700 leading-none">{dailyPerformanceSummary.totalCallings}</p></div>
+                                  <div className="rounded-md bg-violet-50 px-1.5 py-1 flex items-center justify-between gap-2"><p className="text-[13px] sm:text-base text-violet-500 uppercase leading-none">Orders</p><p className="text-[13px] sm:text-base font-bold text-violet-700 leading-none">{dailyPerformanceSummary.totalOrderClients}</p></div>
+                                  <div className="rounded-md bg-emerald-50 px-1.5 py-1 flex items-center justify-between gap-2"><p className="text-[13px] sm:text-base text-emerald-500 uppercase leading-none">Conv</p><p className="text-[13px] sm:text-base font-bold text-emerald-700 leading-none">{dailyPerformanceSummary.totalConversionRatio}%</p></div>
+                                  <div className="rounded-md bg-amber-50 px-1.5 py-1 flex items-center justify-between gap-2"><p className="text-[13px] sm:text-base text-amber-600 uppercase leading-none">Sale</p><p className="text-[13px] sm:text-base font-bold text-amber-700 leading-none">{Number(dailyPerformanceSummary.totalRsSale).toLocaleString()}</p></div>
+                                  <div className="rounded-md bg-indigo-50 px-1.5 py-1 flex items-center justify-between gap-2 col-span-2"><p className="text-[13px] sm:text-base text-indigo-500 uppercase leading-none">Avg</p><p className="text-[13px] sm:text-base font-bold text-indigo-700 leading-none">{dailyPerformanceSummary.totalAvgSale}</p></div>
                                 </div>
                               </div>
 
                               <div className="rounded-lg border border-purple-200 bg-purple-50 p-1.5 shadow-sm">
                                 <p className="text-[13px] sm:text-sm font-black text-purple-700 mb-1">AVERAGE</p>
                                 <div className="grid grid-cols-2 gap-1">
-                                  <div className="rounded-md bg-blue-50 px-1.5 py-1 flex items-center justify-between gap-2"><p className="text-[13px] sm:text-base text-blue-500 uppercase leading-none">Calls</p><p className="text-[13px] sm:text-base font-bold text-blue-700 leading-none">{avgCallingsValue.toFixed(1)}</p></div>
-                                  <div className="rounded-md bg-violet-50 px-1.5 py-1 flex items-center justify-between gap-2"><p className="text-[13px] sm:text-base text-violet-500 uppercase leading-none">Orders</p><p className="text-[13px] sm:text-base font-bold text-violet-700 leading-none">{avgOrderClientsValue.toFixed(1)}</p></div>
-                                  <div className="rounded-md bg-emerald-50 px-1.5 py-1 flex items-center justify-between gap-2"><p className="text-[13px] sm:text-base text-emerald-500 uppercase leading-none">Conv</p><p className="text-[13px] sm:text-base font-bold text-emerald-700 leading-none">{avgConversionRatio}%</p></div>
-                                  <div className="rounded-md bg-amber-50 px-1.5 py-1 flex items-center justify-between gap-2"><p className="text-[13px] sm:text-base text-amber-600 uppercase leading-none">Sale</p><p className="text-[13px] sm:text-base font-bold text-amber-700 leading-none">{Number(avgTotalRsSaleValue.toFixed(0)).toLocaleString()}</p></div>
-                                  <div className="rounded-md bg-indigo-50 px-1.5 py-1 flex items-center justify-between gap-2 col-span-2"><p className="text-[13px] sm:text-base text-indigo-500 uppercase leading-none">Avg</p><p className="text-[13px] sm:text-base font-bold text-indigo-700 leading-none">{avgAvgRsSale}</p></div>
+                                  <div className="rounded-md bg-blue-50 px-1.5 py-1 flex items-center justify-between gap-2"><p className="text-[13px] sm:text-base text-blue-500 uppercase leading-none">Calls</p><p className="text-[13px] sm:text-base font-bold text-blue-700 leading-none">{dailyPerformanceSummary.avgCallings}</p></div>
+                                  <div className="rounded-md bg-violet-50 px-1.5 py-1 flex items-center justify-between gap-2"><p className="text-[13px] sm:text-base text-violet-500 uppercase leading-none">Orders</p><p className="text-[13px] sm:text-base font-bold text-violet-700 leading-none">{dailyPerformanceSummary.avgOrderClients}</p></div>
+                                  <div className="rounded-md bg-emerald-50 px-1.5 py-1 flex items-center justify-between gap-2"><p className="text-[13px] sm:text-base text-emerald-500 uppercase leading-none">Conv</p><p className="text-[13px] sm:text-base font-bold text-emerald-700 leading-none">{dailyPerformanceSummary.avgConversionRatio}%</p></div>
+                                  <div className="rounded-md bg-amber-50 px-1.5 py-1 flex items-center justify-between gap-2"><p className="text-[13px] sm:text-base text-amber-600 uppercase leading-none">Sale</p><p className="text-[13px] sm:text-base font-bold text-amber-700 leading-none">{Number(dailyPerformanceSummary.avgTotalRsSale).toLocaleString()}</p></div>
+                                  <div className="rounded-md bg-indigo-50 px-1.5 py-1 flex items-center justify-between gap-2 col-span-2"><p className="text-[13px] sm:text-base text-indigo-500 uppercase leading-none">Avg</p><p className="text-[13px] sm:text-base font-bold text-indigo-700 leading-none">{dailyPerformanceSummary.avgAvgRsSale}</p></div>
                                 </div>
                               </div>
                             </>
@@ -2088,77 +2111,56 @@ export function DashboardView() {
                           })
                         )}
                         {/* Total Row */}
-                        {dailySalesPerformance.length > 0 && (() => {
-                          // Filter out the Total row for total calculation
-                          const dataRows = dailySalesPerformance.filter(row => row.salesPerson !== 'Total');
-                          if (dataRows.length === 0) return null;
-
-                          const totalCallings = dataRows.reduce((sum, row) => sum + Number(row.noOfCallings || 0), 0);
-                          const totalOrderClients = dataRows.reduce((sum, row) => sum + Number(row.orderClients || 0), 0);
-                          const totalConversionRatio = totalCallings > 0 ? ((totalOrderClients / totalCallings) * 100).toFixed(2) : '0.00';
-                          const totalTotalRsSale = dataRows.reduce((sum, row) => sum + Number(row.totalRsSale || 0), 0);
-                          const totalAvgRsSale = dataRows.reduce((sum, row) => sum + parseFloat(row.avgRsSale || '0'), 0).toFixed(2);
+                        {dailyPerformanceSummary.dataRows.length > 0 && (() => {
 
                           return (
                             <tr className="bg-emerald-50 font-bold border-t-2 border-emerald-200 hover:bg-emerald-100/80 transition-colors text-[9px] sm:text-sm">
                               <td className="px-3 sm:px-6 py-2 sm:py-4 font-medium flex items-center gap-1.5 sm:gap-3">
                                 <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white text-[8px] sm:text-xs font-bold shadow-sm">
-                                  Î£
+                                  Σ
                                 </div>
                                 <span className="text-emerald-700">TOTAL</span>
                               </td>
-                              <td className="px-2 sm:px-6 py-2 sm:py-4 text-center text-emerald-700 font-bold">{totalCallings}</td>
-                              <td className="px-2 sm:px-6 py-2 sm:py-4 text-center text-emerald-700 font-bold">{totalOrderClients}</td>
+                              <td className="px-2 sm:px-6 py-2 sm:py-4 text-center text-emerald-700 font-bold">{dailyPerformanceSummary.totalCallings}</td>
+                              <td className="px-2 sm:px-6 py-2 sm:py-4 text-center text-emerald-700 font-bold">{dailyPerformanceSummary.totalOrderClients}</td>
                               <td className="px-2 sm:px-6 py-2 sm:py-4 text-center">
                                 <div className="flex flex-col items-center">
-                                  <span className="text-emerald-700 font-bold">{totalConversionRatio}%</span>
+                                  <span className="text-emerald-700 font-bold">{dailyPerformanceSummary.totalConversionRatio}%</span>
                                 </div>
                               </td>
                               <td className="px-2 sm:px-6 py-2 sm:py-4 text-center text-emerald-700 font-bold">
-                                {Number(totalTotalRsSale).toLocaleString()}
+                                {Number(dailyPerformanceSummary.totalRsSale).toLocaleString()}
                               </td>
                               <td className="px-2 sm:px-6 py-2 sm:py-4 text-center">
-                                <span className="text-emerald-700 font-bold">{totalAvgRsSale}</span>
+                                <span className="text-emerald-700 font-bold">{dailyPerformanceSummary.totalAvgSale}</span>
                               </td>
                             </tr>
                           );
                         })()}
 
                         {/* Average Row */}
-                        {dailySalesPerformance.length > 0 && (() => {
-                          const dataRows = dailySalesPerformance.filter(row => row.salesPerson !== 'Total');
-                          if (dataRows.length === 0) return null;
-
-                          const avgCallingsValue = dataRows.reduce((sum, row) => sum + Number(row.noOfCallings || 0), 0) / dataRows.length;
-                          const avgOrderClientsValue = dataRows.reduce((sum, row) => sum + Number(row.orderClients || 0), 0) / dataRows.length;
-                          const avgTotalRsSaleValue = dataRows.reduce((sum, row) => sum + Number(row.totalRsSale || 0), 0) / dataRows.length;
-
-                          const avgCallings = avgCallingsValue.toFixed(1);
-                          const avgOrderClients = avgOrderClientsValue.toFixed(1);
-                          const avgConversionRatio = (dataRows.reduce((sum, row) => sum + parseFloat(row.conversionRatio || '0'), 0) / dataRows.length).toFixed(2);
-                          const avgTotalRsSale = avgTotalRsSaleValue.toFixed(0);
-                          const avgAvgRsSale = avgOrderClientsValue > 0 ? (avgTotalRsSaleValue / avgOrderClientsValue).toFixed(2) : '0.00';
+                        {dailyPerformanceSummary.dataRows.length > 0 && (() => {
 
                           return (
                             <tr className="bg-teal-50 font-bold border-t-2 border-teal-200 hover:bg-teal-100/80 transition-colors text-[9px] sm:text-sm">
                               <td className="px-3 sm:px-6 py-2 sm:py-3 font-medium flex items-center gap-1.5 sm:gap-3">
                                 <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-full bg-teal-600 flex items-center justify-center text-white text-[8px] sm:text-xs font-bold shadow-sm">
-                                  Ã¸
+                                  ø
                                 </div>
                                 <span className="text-teal-700">AVERAGE</span>
                               </td>
-                              <td className="px-2 sm:px-6 py-2 sm:py-3 text-center text-teal-700">{avgCallings}</td>
-                              <td className="px-2 sm:px-6 py-2 sm:py-3 text-center text-teal-700">{avgOrderClients}</td>
+                              <td className="px-2 sm:px-6 py-2 sm:py-3 text-center text-teal-700">{dailyPerformanceSummary.avgCallings}</td>
+                              <td className="px-2 sm:px-6 py-2 sm:py-3 text-center text-teal-700">{dailyPerformanceSummary.avgOrderClients}</td>
                               <td className="px-2 sm:px-6 py-2 sm:py-3 text-center">
                                 <div className="flex flex-col items-center">
-                                  <span className="text-teal-700 font-bold">{avgConversionRatio}%</span>
+                                  <span className="text-teal-700 font-bold">{dailyPerformanceSummary.avgConversionRatio}%</span>
                                 </div>
                               </td>
                               <td className="px-2 sm:px-6 py-2 sm:py-3 text-center text-teal-700">
-                                {Number(avgTotalRsSale).toLocaleString()}
+                                {Number(dailyPerformanceSummary.avgTotalRsSale).toLocaleString()}
                               </td>
                               <td className="px-2 sm:px-6 py-2 sm:py-3 text-center">
-                                <span className="text-teal-700 font-bold">{avgAvgRsSale}</span>
+                                <span className="text-teal-700 font-bold">{dailyPerformanceSummary.avgAvgRsSale}</span>
                               </td>
                             </tr>
                           );
@@ -2168,25 +2170,19 @@ export function DashboardView() {
                   </div>
 
                   {/* Daily Summary Statistics Cards */}
-                  {dailySalesPerformance.length > 0 && (() => {
-                    const dataRows = dailySalesPerformance.filter(row => row.salesPerson !== 'Total');
-                    if (dataRows.length === 0) return null;
-
-                    const totalCallings = dataRows.reduce((sum, row) => sum + Number(row.noOfCallings || 0), 0);
-                    const avgCallPerPerson = (totalCallings / dataRows.length).toFixed(2);
-
+                  {dailyPerformanceSummary.dataRows.length > 0 && (() => {
                     return (
                       <div className="mt-1 sm:mt-6 flex flex-row items-stretch gap-1.5 sm:gap-4 px-0 sm:px-6 pb-1 sm:pb-6">
                         {/* Avg Call / Person */}
                         <div className="flex-1 min-w-0 flex items-center justify-between gap-1 bg-gradient-to-r from-emerald-400 to-emerald-500 hover:from-emerald-500 hover:to-emerald-600 transition-colors rounded-lg px-2 sm:px-6 py-2 sm:py-3 border border-emerald-600 shadow-sm">
                           <span className="text-xs sm:text-sm font-bold text-white leading-tight truncate">Avg Call / Person</span>
-                          <span className="text-sm sm:text-lg font-black text-white shrink-0">{avgCallPerPerson}</span>
+                          <span className="text-sm sm:text-lg font-black text-white shrink-0">{dailyPerformanceSummary.avgCallingsPerPerson}</span>
                         </div>
 
                         {/* Today's Total Calling */}
                         <div className="flex-1 min-w-0 flex items-center justify-between gap-1 bg-gradient-to-r from-teal-400 to-teal-500 hover:from-teal-500 hover:to-teal-600 transition-colors rounded-lg px-2 sm:px-6 py-2 sm:py-3 border border-teal-600 shadow-lg">
                           <span className="text-xs sm:text-sm font-bold text-white uppercase tracking-wide leading-tight truncate">Today's Total Calling</span>
-                          <span className="text-sm sm:text-lg font-black text-white shrink-0">{totalCallings.toLocaleString()}</span>
+                          <span className="text-sm sm:text-lg font-black text-white shrink-0">{dailyPerformanceSummary.totalCallings.toLocaleString()}</span>
                         </div>
                       </div>
                     );
