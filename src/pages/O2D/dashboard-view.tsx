@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react"
 import { AlertCircle, Filter, Loader2, RefreshCw, X, Trophy, Database, User, Percent, Truck, Target, TrendingUp, ArrowUpRight, Activity, Quote, MessageSquare, Star } from "lucide-react"
@@ -1923,10 +1923,13 @@ export function DashboardView() {
                       }
                     }
 
-                    const avgCallPerDay = monthlyPerformanceSummary.personCount > 0
-                      ? (monthlyPerformanceSummary.totalCallings / monthlyPerformanceSummary.personCount / daysDivisor).toFixed(2)
+                    const avgCallPerDayValue = monthlyPerformanceSummary.personCount > 0
+                      ? (monthlyPerformanceSummary.totalCallings / monthlyPerformanceSummary.personCount / daysDivisor)
+                      : 0;
+                    const avgCallPerDay = avgCallPerDayValue.toFixed(2);
+                    const avgCallPerPerson = monthlyPerformanceSummary.personCount > 0
+                      ? (avgCallPerDayValue / monthlyPerformanceSummary.personCount).toFixed(2)
                       : "0.00";
-                    const avgCallPerPerson = monthlyPerformanceSummary.avgCallingsPerPerson;
 
                     return (
                       <div className="mt-1 sm:mt-4 px-0 sm:px-6 pb-1 sm:pb-6">
